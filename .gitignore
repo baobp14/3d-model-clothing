@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+build/
+*.log
+.env*.local
+__pycache__/
+*.pyc
+tsconfig.tsbuildinfo
+
+# avatar pipeline: downloaded CC0 source assets (re-fetchable)
+tools/avatar-pipeline/mh-data/
+
+# NOTE: public/models/*.glb and avatar-metadata.json are intentionally NOT
+# ignored — they are deterministic build output and the handoff spec says
+# to keep them so a fresh clone runs without Python.

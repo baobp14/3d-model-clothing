@@ -1,0 +1,1 @@
+AS Colour product reference images. Each folder contains front.jpg, back.jpg and source.json. Original JPEGs; backgrounds have not been removed. Source rights belong to their owners; redistribution/public-use permission has not been verified. Folder names distinguish garment style and colour.
