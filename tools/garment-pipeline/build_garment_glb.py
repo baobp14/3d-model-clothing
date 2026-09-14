@@ -279,6 +279,26 @@ class BodyReference:
         else:
             self.thigh_r = 0.09
 
+        # Ban kinh THAT lon nhat quanh truc than, do tu day chau len ngang
+        # mong+15cm (vung quan short/quan dai chon lam "seat"). Mong khong
+        # tron deu: gia dinh hinh tron tu chu vi trung binh (hip_circ/2*pi)
+        # thieu toi 1.6cm o duong cheo mong (buttock), lam vung chon seat_r
+        # HUT NGAN o do -- khong sinh tam giac nao tai cho than that lo ra
+        # ngoai ban kinh, hien ra nhu mot vet khuyet hinh chu V ngay hong khi
+        # nhin tu ben canh (boundaryLoops van dung 3 vi day khong phai lo
+        # thung, chi la mep vai bi hut vao trong sat da). Loai cac dinh o
+        # canh tay (|x|,|z| lon bat thuong) bang nguong 0.25m truoc khi do.
+        seat_band = [
+            p for p in self.positions
+            if self.crotch_y - 0.01 <= p[1] <= self.crotch_y + 0.25
+        ]
+        seat_r_true = 0.0
+        for p in seat_band:
+            r = math.hypot(p[0], p[2] - self.axis_z)
+            if r < 0.25 and r > seat_r_true:
+                seat_r_true = r
+        self.seat_max_r = seat_r_true
+
     def ring_length(self, orig_ring) -> float:
         pts = [self.positions[self.orig_to_render[o]] for o in orig_ring
                if o in self.orig_to_render]
@@ -1234,7 +1254,12 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # dinh se hut hep dan va bo sot ca vanh mat ca. Noi tuyen tam+ban kinh cua
     # hinh tru theo do cao -- van la mot phep thu don gian tren tung dinh (bien
     # sach, khong dung truc nghieng lam vanh rang cua o day chau).
-    seat_r = body.hip_circ / (2.0 * math.pi) + 0.03
+    # hip_circ/2pi gia dinh mong hinh tron deu; mong that khong deu (lech ve
+    # duong cheo buttock), nen phai lay max voi ban kinh THAT do truc tiep
+    # (seat_max_r) cong bien do -- neu khong vung chon se hut ngan ngay tai
+    # cho than lo ra ngoai, hien ra vet khuyet hinh V o hong khi nhin nghieng
+    # (xem ghi chu tai seat_max_r trong BodyReference).
+    seat_r = max(body.hip_circ / (2.0 * math.pi) + 0.03, body.seat_max_r + 0.02)
     LEG_Y_TOP, LEG_Y_BOT = body.crotch_y - 0.02, 0.10
     LEG_CX_TOP, LEG_CZ_TOP, LEG_R_TOP = 0.088, 0.023, 0.13
     LEG_CX_BOT, LEG_CZ_BOT, LEG_R_BOT = 0.220, 0.010, 0.06
