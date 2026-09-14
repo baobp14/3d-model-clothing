@@ -179,6 +179,21 @@ PANTS_REGION = {
 # Anh chup quan trai phang: cap o tren, hai ong xoe xuong. Cung mot bo zoom/dich.
 PANTS_PRINT_CALIBRATION = {"scale": 0.9, "offsetX": 0.0, "offsetY": 0.0}
 
+# --- Bang size quan short unisex (cm) ---------------------------------------
+# Cung mot dang hinh hoc voi quan dai (cap + hai ong, 3 vong bien): chi khac o
+# inseam RAT NGAN (tren dau goi) va hem RONG hon nhieu vi ong short om lay bap
+# dui tren chu khong thon xuong co chan. waist/hip giu giong quan dai vi cung
+# la quan lung thun/day rut, khong can bang rieng.
+SHORTS_SIZE_CHART = {
+    "S":  {"waist": 80.0,  "hip": 96.0,  "inseam": 18.0, "hem": 56.0, "rise": 16.0},
+    "M":  {"waist": 86.0,  "hip": 102.0, "inseam": 19.0, "hem": 58.0, "rise": 17.0},
+    "L":  {"waist": 92.0,  "hip": 108.0, "inseam": 20.0, "hem": 60.0, "rise": 18.0},
+    "XL": {"waist": 98.0,  "hip": 114.0, "inseam": 21.0, "hem": 62.0, "rise": 19.0},
+}
+
+# Anh chup short trai phang cung bo cuc voi quan dai (cap tren, ong xoe duoi).
+SHORTS_PRINT_CALIBRATION = {"scale": 0.9, "offsetX": 0.0, "offsetY": 0.0}
+
 
 def sub3(a, b):
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
@@ -1112,14 +1127,20 @@ def _fix_inward_triangles(positions, triangles, source, body: BodyReference) -> 
     return flips
 
 
-def build_pants_size(body: BodyReference, size: str) -> dict:
+def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SIZE_CHART) -> dict:
     """Cat quan tu co the tham chieu: cap quanh eo, hai ong bao lay hai chan.
 
     Giong build_size nhung: khong co truc xien nhu tay ao (chan gan nhu thang
     dung -> tach trai/phai theo dau cua x), va co BA vong bien (cap + hai gau)
     thay vi bon.
+
+    Dung chung ca cho quan dai (PANTS_SIZE_CHART) va quan short
+    (SHORTS_SIZE_CHART, `inseam` rat ngan): vung chon va phep bien deu lay tron
+    ong chan tu day chau xuong tan mat ca roi moi co gian/nen theo `inseam` cua
+    size_chart, nen chi can truyen bang size khac la ra hinh dang khac, khong
+    can viet lai logic.
     """
-    spec = PANTS_SIZE_CHART[size]
+    spec = size_chart[size]
     waist_target = spec["waist"] * CM
     hip_target = spec["hip"] * CM
     inseam = spec["inseam"] * CM
@@ -1310,9 +1331,20 @@ def build_pants_size(body: BodyReference, size: str) -> dict:
     ]
 
     # --- nhan vung -------------------------------------------------------
+    # boundary_rings() duyet theo lien ket vo huong (xem docstring cua no): tai
+    # DIEM PINCH noi vanh cap cham vao mep khe ho rong chua khau o day chau
+    # (xem _close_inseam), phep duyet co the "nhay" tu vanh cap lot sang mot
+    # vai dinh cua mep khe do roi quay lai -- ket qua waist_ring vo tinh gom
+    # them vai dinh nam tan duoi vung dui/day chau (do bang: 6/80 dinh o day
+    # ~28-31cm duoi eo thay vi ~6-7cm). Cac dinh lac nay bi gan nham nhan
+    # "waistband" roi bi GHIM CHET tai do cao lung quan trong khi hang xom that
+    # cua chung (dinh vung dui) tut xuong tu do khi mo phong -- canh vai giua
+    # hai ben keo gian toi 2.2x du dang dung denim (gioi han 1.01x), hien ra
+    # nhu mot cai lo/vet rach ngay o dung quan. Loc theo do cao that (gan
+    # waist_cut) truoc khi gan nhan de bo cac dinh lac nay.
     waist_ring = max(boundary_rings(triangles),
                      key=lambda r: sum(positions[i][1] for i in r) / len(r))
-    band_waist = set(waist_ring)
+    band_waist = {i for i in waist_ring if positions[i][1] > waist_cut - 0.05}
     hem_rings = [r for r in boundary_rings(triangles) if r is not waist_ring]
     band_hem = set()
     for r in hem_rings:
@@ -1518,9 +1550,11 @@ def main() -> None:
 
     shirts = [build_size(body, s) for s in SIZE_ORDER]
     pants = [build_pants_size(body, s) for s in SIZE_ORDER]
+    shorts = [build_pants_size(body, s, SHORTS_SIZE_CHART) for s in SIZE_ORDER]
 
     shirt_glb = write_garment(shirts, "garment-tshirt.glb", "tshirt_")
     pants_glb = write_garment(pants, "garment-pants.glb", "pants_")
+    shorts_glb = write_garment(shorts, "garment-shorts.glb", "shorts_")
 
     metadata = {
         "units": "metres, Y up, z=0 at body axis, front is +Z",
@@ -1595,6 +1629,29 @@ def main() -> None:
                     for m in pants
                 },
             },
+            "shorts": {
+                "glb": "garment-shorts.glb",
+                "meshPrefix": "shorts_",
+                "label": "Quần short",
+                "yZero": "waist line",
+                "regions": PANTS_REGION,
+                "pinRegion": PANTS_REGION["waistband"],
+                "fitKey": "waistCircCm",
+                "printCalibration": SHORTS_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "waistCircCm": round(m["waistCircAchieved"] * 100, 2),
+                        "hipCircCm": round(m["hipCircAchieved"] * 100, 2),
+                        "inseamCm": round(m["inseam"] * 100, 2),
+                        "hemOpeningCm": SHORTS_SIZE_CHART[m["size"]]["hem"],
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in shorts
+                },
+            },
         },
     }
     meta_path = OUT_DIR / "garment-metadata.json"
@@ -1604,6 +1661,8 @@ def main() -> None:
     _print_report("Ao thun", shirts, "chestCirc")
     print(pants_glb.name + ": " + str(pants_glb.stat().st_size) + " B")
     _print_report("Quan", pants, "waistCirc")
+    print(shorts_glb.name + ": " + str(shorts_glb.stat().st_size) + " B")
+    _print_report("Quan short", shorts, "waistCirc")
     print(meta_path.name + ": " + str(meta_path.stat().st_size) + " B")
 
 

@@ -167,7 +167,12 @@ interface GarmentMeta {
 }
 
 const DEFAULT_CALIB = { scale: 1, offsetX: 0, offsetY: 0 };
-type GarmentKind = 'tshirt' | 'pants';
+type GarmentKind = 'tshirt' | 'pants' | 'shorts';
+const GARMENT_LABEL: Record<GarmentKind, string> = {
+  tshirt: 'Áo thun',
+  pants: 'Quần',
+  shorts: 'Quần short',
+};
 
 type SizedGeom = Record<string, { geom: GarmentGeometry; constraints: GarmentConstraints }>;
 
@@ -470,6 +475,7 @@ export default function GarmentTestApp() {
         const garments = {
           tshirt: await loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
+          shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
         };
 
         if (cancelled) return;
@@ -745,18 +751,18 @@ export default function GarmentTestApp() {
               Món đồ
             </h2>
             <div className="mb-2 flex gap-1.5">
-              {(['tshirt', 'pants'] as const).map((k) => (
+              {(['tshirt', 'pants', 'shorts'] as const).map((k) => (
                 <Button
                   key={k}
                   active={garmentKind === k}
                   onClick={() => setGarmentKind(k)}
                 >
-                  {k === 'tshirt' ? 'Áo thun' : 'Quần'}
+                  {GARMENT_LABEL[k]}
                 </Button>
               ))}
             </div>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Size {garmentKind === 'pants' ? 'quần' : 'áo'}
+              Size {garmentKind === 'tshirt' ? 'áo' : 'quần'}
             </h2>
             <div className="flex flex-wrap gap-1.5">
               {loaded.meta.sizeOrder.map((s) => (
