@@ -185,10 +185,17 @@ PANTS_PRINT_CALIBRATION = {"scale": 0.9, "offsetX": 0.0, "offsetY": 0.0}
 # dui tren chu khong thon xuong co chan. waist/hip giu giong quan dai vi cung
 # la quan lung thun/day rut, khong can bang rieng.
 SHORTS_SIZE_CHART = {
-    "S":  {"waist": 80.0,  "hip": 96.0,  "inseam": 18.0, "hem": 56.0, "rise": 16.0},
-    "M":  {"waist": 86.0,  "hip": 102.0, "inseam": 19.0, "hem": 58.0, "rise": 17.0},
-    "L":  {"waist": 92.0,  "hip": 108.0, "inseam": 20.0, "hem": 60.0, "rise": 18.0},
-    "XL": {"waist": 98.0,  "hip": 114.0, "inseam": 21.0, "hem": 62.0, "rise": 19.0},
+    # hem: chu vi gau NHO HON nhieu so voi ban dau (56-62). Gau tinh doc theo
+    # do cheo/thelen thigh sau khi scale_hip chi ~36-43cm; dat gau rong 56-62
+    # tao ra 15-20cm vai du (ease) khong co gi giu hinh, squeeze_end bi ep len
+    # kich tran o clamp 1.15 -- ong gau xoe ra tu do, hien thanh mep gon
+    # song/gon rach khi mo phong (moi dinh trong vanh 18 dinh du long doc lap).
+    # Ha xuong con ~+8-11cm tren chu vi dui da scale (dung quy uoc ease ao
+    # thun EASE_MIN/MAX_CM) cho gau ban sat hon, het du vai de xoe.
+    "S":  {"waist": 80.0,  "hip": 96.0,  "inseam": 18.0, "hem": 44.0, "rise": 16.0},
+    "M":  {"waist": 86.0,  "hip": 102.0, "inseam": 19.0, "hem": 47.0, "rise": 17.0},
+    "L":  {"waist": 92.0,  "hip": 108.0, "inseam": 20.0, "hem": 50.0, "rise": 18.0},
+    "XL": {"waist": 98.0,  "hip": 114.0, "inseam": 21.0, "hem": 53.0, "rise": 19.0},
 }
 
 # Anh chup short trai phang cung bo cuc voi quan dai (cap tren, ong xoe duoi).
