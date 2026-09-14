@@ -194,6 +194,8 @@ SHORTS_SIZE_CHART = {
 # Anh chup short trai phang cung bo cuc voi quan dai (cap tren, ong xoe duoi).
 SHORTS_PRINT_CALIBRATION = {"scale": 0.9, "offsetX": 0.0, "offsetY": 0.0}
 
+WELD_DIST = 0.012
+
 
 def sub3(a, b):
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
@@ -367,6 +369,79 @@ def cluster_decimate(positions, uvs, triangles, source, cell):
         [new_pos[i] for i in live],
         [new_uv[i] for i in live],
         [(remap[a], remap[b], remap[c]) for a, b, c in new_tris],
+        [new_src[i] for i in live],
+    )
+
+
+def weld_near_duplicates(positions, uvs, triangles, source, dist: float, weldable=None):
+    """Hop nhat hai dau cua CANH MESH (da ke nhau qua mot tam giac) ngan hon
+    `dist`.
+
+    KHONG hop nhat theo khoang cach khong gian thuan tuy (thu mot ban dung
+    luoi 3x3x3 o: no nap luon hai mieng vai KHONG lien quan nhung tinh co gan
+    nhau trong khong gian sau bien dang -- vd hai ben mieng khau o day chau --
+    thanh mot, tao THEM lo thung moi (5 vong bien thay vi 3 tren size S). Chi
+    xet CANH DA TON TAI trong tam giac thi an toan: mot canh ngan trong mesh
+    chi noi hai dinh von da ke nhau ve topo, hop nhat chung khong the noi hai
+    mang vai xa nhau ve topo lai voi nhau.
+
+    Ly do can buoc nay: `place()` nen doc theo ong chan de dat inseam (manh
+    nhat o quan short, ti le nen toi ~4 lan), keo mot so canh vai von cach
+    DECIMATE_CELL (~15mm) truoc khi nen xuong con duoi 1mm sau khi nen --
+    mo phong chi can xich vai mm la ty le gian da vot len 3-5 lan, hien ra nhu
+    nep nhan/rach o giua ong chan.
+    """
+    n = len(positions)
+    parent = list(range(n))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for a, b, c in triangles:
+        for x, y in ((a, b), (b, c), (c, a)):
+            if weldable is not None and not (weldable(x) and weldable(y)):
+                continue
+            if math.dist(positions[x], positions[y]) < dist:
+                union(x, y)
+
+    groups: dict[int, list[int]] = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(i)
+
+    new_pos = []
+    new_uv = []
+    new_src = []
+    remap: dict[int, int] = {}
+    for members in groups.values():
+        idx = len(new_pos)
+        for m in members:
+            remap[m] = idx
+        k = len(members)
+        new_pos.append(tuple(sum(positions[m][ax] for m in members) / k for ax in range(3)))
+        new_uv.append(uvs[members[0]])
+        new_src.append(source[members[0]])
+
+    new_tris = []
+    for a, b, c in triangles:
+        na, nb, nc = remap[a], remap[b], remap[c]
+        if na == nb or nb == nc or nc == na:
+            continue
+        new_tris.append((na, nb, nc))
+
+    live = sorted({v for t in new_tris for v in t})
+    remap2 = {o: k for k, o in enumerate(live)}
+    return (
+        [new_pos[i] for i in live],
+        [new_uv[i] for i in live],
+        [(remap2[a], remap2[b], remap2[c]) for a, b, c in new_tris],
         [new_src[i] for i in live],
     )
 
@@ -1323,6 +1398,33 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # muot hon de danh bay no ra thanh mot nep nong, khong con doc nhu vet rach.
     smooth_surface(positions, triangles, boundary, passes=140)
     rough_after = surface_roughness(positions, triangles)
+
+    # Han quan (inseam ngan hon nhieu so voi chan tu nhien tren co the tham
+    # chieu) nen `stretch` o place() NEN doc theo chieu cao rat manh -- vi du
+    # short inseam 18cm tren chan tu nhien ~69cm la nen gan 4 lan. Hai dinh
+    # cach nhau 1.5cm truoc khi nen (dung bang DECIMATE_CELL) co the con cach
+    # nhau chua toi 1mm sau khi nen roi lam muot (Taubin keo cac dinh ke lai
+    # gan nhau hon), ra hang loat canh vai gan-trung-diem: khi mo phong chi
+    # can xich vai mm la ty le gian da vot len 3-5 lan, tao nep nhan/rach o
+    # giua ong chan (thay ro nhat o short vi nen manh nhat). Weld SAU khi lam
+    # muot (chu khong truoc) vi chinh buoc lam muot la nguon tao them canh
+    # ngan -- weld truoc do se bi lam muot pha lai ngay sau.
+    #
+    # Mot luot weld co the tao ra canh ngan MOI (hai tam giac ke mot canh vua
+    # gop deu co the co canh con lai ngan di theo), nen lap lai toi khi on
+    # dinh thay vi chi chay mot lan.
+    # Chi weld dinh THUOC ONG CHAN (side_of khac None): vung eo/mong khong bi
+    # nen doc nen khong can, va weld o do chi lam mat chi tiet vo ich (thu
+    # weld ca mesh o 12mm lam waistband tu 75 con 51 dinh, seatBack 99 con 64
+    # -- trong khi ca hai vung nay khong he co canh ngan bat thuong).
+    for _ in range(5):
+        before_n = len(positions)
+        positions, uvs, triangles, source = weld_near_duplicates(
+            positions, uvs, triangles, source, WELD_DIST,
+            weldable=lambda v: side_of[source[v]] is not None,
+        )
+        if len(positions) == before_n:
+            break
 
     normals = compute_smooth_normals(positions, triangles)
     positions = [
