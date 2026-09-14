@@ -1442,11 +1442,24 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # nen doc nen khong can, va weld o do chi lam mat chi tiet vo ich (thu
     # weld ca mesh o 12mm lam waistband tu 75 con 51 dinh, seatBack 99 con 64
     # -- trong khi ca hai vung nay khong he co canh ngan bat thuong).
+    #
+    # Rieng VANH GAU (bien mo cua ong chan) phai LOAI khoi weld: no la mot
+    # vong bien it dinh san (10-16 dinh tuy size), weld thu hep no them nua
+    # xuong con 5-8 dinh thi vanh khong con tron -- moi dinh du dai theo mot
+    # huong rieng khi mo phong, hien ra thanh mep luon song/rang cua o ong
+    # quan (dung y "ren xoe" thay vi mot duong gau phang). Tinh lai bien MOI
+    # lan truoc weld vi weld truoc do co the da doi tap hop bien.
     for _ in range(5):
         before_n = len(positions)
+        ec: dict[tuple[int, int], int] = {}
+        for a, b, c in triangles:
+            for x, y in ((a, b), (b, c), (c, a)):
+                k = (min(x, y), max(x, y))
+                ec[k] = ec.get(k, 0) + 1
+        hem_boundary = {v for (a, b), n in ec.items() if n == 1 for v in (a, b)}
         positions, uvs, triangles, source = weld_near_duplicates(
             positions, uvs, triangles, source, WELD_DIST,
-            weldable=lambda v: side_of[source[v]] is not None,
+            weldable=lambda v: side_of[source[v]] is not None and v not in hem_boundary,
         )
         if len(positions) == before_n:
             break
