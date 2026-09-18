@@ -298,6 +298,13 @@ export default function GarmentTestApp() {
   const [printOffsetY, setPrintOffsetY] = useState(0);
   const [garmentKind, setGarmentKind] = useState<GarmentKind>('tshirt');
   const gEntry = loaded?.meta.garments?.[garmentKind];
+  // Which body measurement this garment is sized against -- shirts fit off
+  // the chest, pants/shorts off the waist. The "Người mẫu" picker used to
+  // always print the CHEST number even while fitting pants, so a size that
+  // read "108cm" while trying on pants had nothing to do with the pants at
+  // all -- it was the chest of a body whose waist is 96cm. Label each body
+  // by the measurement that actually governs the garment on screen.
+  const fitKey = gEntry?.fitKey ?? 'chestCircCm';
   // Slider values the mesh ships with; sliders start here, "Bỏ ảnh in" returns here.
   const calib = gEntry?.printCalibration ?? loaded?.meta.printCalibration ?? DEFAULT_CALIB;
   const [printBusy, setPrintBusy] = useState<string | null>(null);
@@ -308,6 +315,10 @@ export default function GarmentTestApp() {
   type PrintEntry = {
     id: string;
     name: string;
+    /** Which mesh this photo belongs on -- the dataset mixes tees, shorts and
+     *  long pants in one flat list (see build_prints.mjs's garmentKindOf).
+     *  Missing on an older cached manifest, so callers must default it. */
+    kind?: GarmentKind;
     front: string;
     back: string | null;
     baseColor: string;
@@ -316,6 +327,23 @@ export default function GarmentTestApp() {
   const [presetIdx, setPresetIdx] = useState(-1);
   const [presetAuto, setPresetAuto] = useState(false);
   const texCache = useRef(new Map<string, THREE.Texture>());
+  // Clicking through the collection fires loadPreset() again before the
+  // previous call's texture fetch has resolved, and fetches do not resolve
+  // in click order (cache hits are instant, network misses are not). Only the
+  // most recently STARTED call may write its result.
+  const presetRequestId = useRef(0);
+  // The collection is scoped to whichever garment is currently selected --
+  // one flat 72-item list mixing tees/pants/shorts used to mean "▶ tự chạy
+  // hết bộ" (or even just clicking ▶ a few times) marched past a pants/shorts
+  // photo onto the next tee and yanked MÓN ĐỒ back to "Áo thun" out from
+  // under a manual "Quần" click, because loadPreset used to set garmentKind
+  // FROM the entry it just loaded. Filtering first means every entry left in
+  // the list already matches garmentKind, so browsing (or auto-play) can
+  // never point it somewhere else.
+  const kindPresets = useMemo(
+    () => presets.filter((p) => (p.kind ?? 'tshirt') === garmentKind),
+    [presets, garmentKind],
+  );
 
   useEffect(() => {
     let off = false;
@@ -353,8 +381,9 @@ export default function GarmentTestApp() {
   }
 
   async function loadPreset(idx: number) {
-    const entry = presets[idx];
+    const entry = kindPresets[idx];
     if (!entry) return;
+    const requestId = ++presetRequestId.current;
     setPresetIdx(idx);
     setPrintBusy('preset');
     try {
@@ -362,30 +391,32 @@ export default function GarmentTestApp() {
         presetTexture(entry.front),
         entry.back ? presetTexture(entry.back) : Promise.resolve(null),
       ]);
+      if (presetRequestId.current !== requestId) return; // superseded, drop it
       setFront(f);
       setBack(b);
       setBaseColor(entry.baseColor);
     } catch (err) {
+      if (presetRequestId.current !== requestId) return;
       console.error('[garment-test] preset', err);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setPrintBusy(null);
+      if (presetRequestId.current === requestId) setPrintBusy(null);
     }
   }
 
   const stepPreset = (delta: number) => {
-    if (!presets.length) return;
+    if (!kindPresets.length) return;
     const base = presetIdx < 0 ? (delta > 0 ? -1 : 0) : presetIdx;
-    void loadPreset((base + delta + presets.length) % presets.length);
+    void loadPreset((base + delta + kindPresets.length) % kindPresets.length);
   };
 
   // Auto-advance: wait for the current one to finish draping, then move on.
   useEffect(() => {
-    if (!presetAuto || !presets.length || printBusy) return;
+    if (!presetAuto || !kindPresets.length || printBusy) return;
     const t = setTimeout(() => stepPreset(1), 3500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presetAuto, presetIdx, printBusy, presets.length]);
+  }, [presetAuto, presetIdx, printBusy, kindPresets.length]);
 
   async function loadPrint(side: 'front' | 'back', file: File | undefined) {
     if (!file) return;
@@ -560,7 +591,6 @@ export default function GarmentTestApp() {
   }, [loaded, profile]);
 
   const garment = loaded?.garments[garmentKind]?.[size] ?? null;
-  const fitKey = gEntry?.fitKey ?? 'chestCircCm';
   const garmentCircCm =
     (loaded && gEntry?.sizes[size]?.[fitKey]) ??
     (loaded ? loaded.meta.sizes[size]?.chestCircCm : 0);
@@ -603,6 +633,10 @@ export default function GarmentTestApp() {
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Người mẫu
             </h2>
+            <p className="mb-1.5 text-[11px] text-stone-400">
+              Số đo {fitKey === 'waistCircCm' ? 'vòng eo' : 'vòng ngực'} của người mẫu — không
+              phải size {garmentKind === 'tshirt' ? 'áo' : 'quần'}.
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {PROFILE_LIST.map(([key, p]) => (
                 <Button
@@ -614,7 +648,7 @@ export default function GarmentTestApp() {
                   }}
                   title={p.label}
                 >
-                  {key} · {p.chest}cm
+                  {key} · {fitKey === 'waistCircCm' ? p.waist : p.chest}cm
                 </Button>
               ))}
               <Button active={customMode} onClick={() => setCustomMode(true)}>
@@ -755,7 +789,14 @@ export default function GarmentTestApp() {
                 <Button
                   key={k}
                   active={garmentKind === k}
-                  onClick={() => setGarmentKind(k)}
+                  onClick={() => {
+                    setGarmentKind(k);
+                    // presetIdx is a position in kindPresets, which is about
+                    // to become a different (differently-sized) array for
+                    // the new kind -- the old index would point at an
+                    // unrelated entry, or past the end.
+                    setPresetIdx(-1);
+                  }}
                 >
                   {GARMENT_LABEL[k]}
                 </Button>
@@ -836,7 +877,7 @@ export default function GarmentTestApp() {
                   />
                 </label>
               ))}
-              {presets.length > 0 && (
+              {kindPresets.length > 0 && (
                 <div className="rounded border border-stone-200 bg-stone-50 p-1.5">
                   <div className="flex items-center gap-1">
                     <button
@@ -851,8 +892,8 @@ export default function GarmentTestApp() {
                       {printBusy === 'preset'
                         ? 'đang tải…'
                         : presetIdx < 0
-                          ? `Bộ sưu tập (${presets.length})`
-                          : `${presets[presetIdx].name} · ${presetIdx + 1}/${presets.length}`}
+                          ? `Bộ sưu tập (${kindPresets.length})`
+                          : `${kindPresets[presetIdx].name} · ${presetIdx + 1}/${kindPresets.length}`}
                     </span>
                     <button
                       type="button"

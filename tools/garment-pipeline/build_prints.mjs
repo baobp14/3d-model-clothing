@@ -20,6 +20,25 @@ const WIDTH = 640; // the shirt UV never resolves finer than this on screen
 const EXTS = ['jpg', 'jpeg', 'png', 'webp'];
 const TOL = 42; // per-channel distance from the corner colour that still counts as background
 
+/**
+ * Which garment mesh a dataset folder's photos belong on.
+ *
+ * The dataset mixes tees, shorts and long pants in one flat folder list (see
+ * dataset/README.txt) with no separate field for it -- only the folder name
+ * says which is which ("ascolour_5903_beach_shorts_..." vs
+ * "ascolour_5932_relax_track_pants_..."). Without this, the manifest gave
+ * every item the same shirt-only treatment: browsing the preset collection
+ * put pants/shorts photos on the T-shirt mesh no matter what they showed.
+ * "short" is checked before "pant"/"trouser" so a folder like
+ * "board_shorts_pantone_blue" still lands on shorts.
+ */
+function garmentKindOf(folder) {
+  const s = folder.toLowerCase();
+  if (/short/.test(s)) return 'shorts';
+  if (/pant|trouser|jean/.test(s)) return 'pants';
+  return 'tshirt';
+}
+
 async function findSide(dir, side) {
   for (const ext of EXTS) {
     const p = path.join(dir, `${side}.${ext}`);
@@ -153,16 +172,18 @@ async function main() {
       hasBack = true;
     }
 
+    const kind = garmentKindOf(folder);
     items.push({
       id: folder,
       name: folder.replace(/_/g, ' '),
+      kind,
       front: `/prints/${folder}__front.webp`,
       back: hasBack ? `/prints/${folder}__back.webp` : null,
       baseColor: front.baseColor,
       source,
     });
     process.stdout.write(
-      `  ${folder}  ${front.keyed ? 'keyed' : 'as-is'}  ${front.baseColor}${hasBack ? '  +back' : ''}\n`,
+      `  ${folder}  [${kind}]  ${front.keyed ? 'keyed' : 'as-is'}  ${front.baseColor}${hasBack ? '  +back' : ''}\n`,
     );
   }
 

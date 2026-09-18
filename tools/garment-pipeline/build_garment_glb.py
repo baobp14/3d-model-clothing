@@ -434,7 +434,7 @@ def weld_near_duplicates(positions, uvs, triangles, source, dist: float, weldabl
 
     for a, b, c in triangles:
         for x, y in ((a, b), (b, c), (c, a)):
-            if weldable is not None and not (weldable(x) and weldable(y)):
+            if weldable is not None and not weldable(x, y):
                 continue
             if math.dist(positions[x], positions[y]) < dist:
                 union(x, y)
@@ -1456,6 +1456,14 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # huong rieng khi mo phong, hien ra thanh mep luon song/rang cua o ong
     # quan (dung y "ren xoe" thay vi mot duong gau phang). Tinh lai bien MOI
     # lan truoc weld vi weld truoc do co the da doi tap hop bien.
+    #
+    # (Da thu cho phep gop dinh vanh gau voi dinh noi bo ke no de xoa dai
+    # tam giac gan-suy-bien sat mieng ong -- BI LOI: dai tam giac do khong
+    # phai mot dai don gian ma la mot "khau" zigzag noi vanh voi vong ke, gop
+    # mot ben ma khong gop dong bo phia doi dien lam rach mat, ra THEM lo
+    # thung moi (vd size S: 4 vong bien [43,4,4,5] thay vi 3). Giu nguyen loai
+    # het canh cham vanh gau; xu ly do nhan/bit o gau bang smooth_surface
+    # them luot ngay duoi day, khong dung weld xuyen bien.)
     for _ in range(5):
         before_n = len(positions)
         ec: dict[tuple[int, int], int] = {}
@@ -1466,7 +1474,10 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
         hem_boundary = {v for (a, b), n in ec.items() if n == 1 for v in (a, b)}
         positions, uvs, triangles, source = weld_near_duplicates(
             positions, uvs, triangles, source, WELD_DIST,
-            weldable=lambda v: side_of[source[v]] is not None and v not in hem_boundary,
+            weldable=lambda x, y: (
+                side_of[source[x]] is not None and side_of[source[y]] is not None
+                and x not in hem_boundary and y not in hem_boundary
+            ),
         )
         if len(positions) == before_n:
             break
@@ -1574,6 +1585,136 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
         "scale": scale_waist,
         "regionCounts": counts,
         "rough": (rough_before, rough_after),
+    }
+
+
+def build_shorts_from_pants(pants: dict, body: BodyReference, size: str) -> dict:
+    """Dung quan short bang cach CAT NGANG ong chan cua quan dai da dung xong.
+
+    Truoc day quan short tu chon vung rieng (giong build_pants_size, chon ca
+    ong chan tu day chau xuong tan mat ca) roi NEN DOC lai cho vua inseam rat
+    ngan (~18-21cm tren nguoi tham chieu co chan tu nhien ~69cm -- ti le nen
+    toi ~4 lan). Nen manh co lam cac vong ngang von cach nhau ~1.5cm truoc
+    khi nen con chua toi 1mm sau khi nen; mo phong chi xich nhe la ty le gian
+    da vot len vai lan, hien ra nhu ong quan nhan nheo va bit lai o gau. Da
+    thu weld xuyen bien va tang so luot lam muot, ca hai deu khong het han
+    che vi goc van la HINH HOC bi nen qua manh, khong phai do thieu weld/muot.
+
+    Sua tan goc: KHONG nen gi ca nua. Dung nguyen `pants` (da qua toan bo
+    build_pants_size voi ti le nen ~1, tu nhien nhu quan that -- xem
+    PANTS_SIZE_CHART, inseam ~74-80cm gan voi chan that ~69cm) roi CAT
+    NGANG hai ong chan ngay tai do cao inseam cua short, y het lay keo cat
+    ong quan dai. Doan giu lai (eo -> cho cat) mang nguyen hinh dang cua
+    quan dai o do cao do, khong co gi bi nen nen khong the nhan nheo.
+
+    Vanh cat moi duoc lam tron + ha phang bang chinh ky thuat smooth_ring +
+    snap-to-plane da dung cho vanh eo/gau trong build_pants_size -- ap dung
+    tren nen hinh hoc khong bi nen nen chat luong it nhat bang gau quan dai.
+    """
+    spec = SHORTS_SIZE_CHART[size]
+    inseam = spec["inseam"] * CM
+    hem_y = (body.crotch_y - body.waist_y) - inseam
+
+    positions = list(pants["positions"])
+    flat = pants["indices"]
+    triangles = [(flat[i], flat[i + 1], flat[i + 2]) for i in range(0, len(flat), 3)]
+
+    keep = [p[1] >= hem_y for p in positions]
+    tris = [t for t in triangles if keep[t[0]] and keep[t[1]] and keep[t[2]]]
+    if not tris:
+        raise RuntimeError(f"{size}: cat short khong con lai tam giac nao")
+
+    used = sorted({v for t in tris for v in t})
+    remap = {o: n for n, o in enumerate(used)}
+    positions = [positions[i] for i in used]
+    regions = [pants["regions"][i] for i in used]
+    triangles = [(remap[a], remap[b], remap[c]) for a, b, c in tris]
+
+    # KHONG goi fill_stray_holes() o day: no dung de don rac ngay sau buoc
+    # chon vung tho tu co the (luc mesh con nhieu manh vun that). Ap dung lai
+    # tren mot mesh QUAN DAI DA HOAN THIEN (dedupe/orient/khau xong xuoi) thi
+    # heuristic "vong nho la rac" cua no lai hieu nham mot phan hop le gan
+    # khe hong o day chau/dui trong (xem _close_inseam) la mieng vun roi bo
+    # di -- gay ra mot lo den o mat trong dui (thay ro o size XL). Vong bien
+    # da duoc kiem thang bang boundary_loops() ==3 ben duoi, du de bat loi
+    # that neu mieng cat that su tao ra manh roi.
+    rings = boundary_rings(triangles)
+    waist_ring = max(rings, key=lambda r: sum(positions[i][1] for i in r) / len(r))
+    hem_rings = [r for r in rings if r is not waist_ring]
+
+    # Lam tron + ha phang hai vanh gau moi, giong het snap_to_cut() trong
+    # build_pants_size: xen ke lam muot doc theo vanh (giu chu vi, khong co
+    # dan vao) roi ep Y ve dung mat phang cat.
+    for _ in range(4):
+        for ring in hem_rings:
+            smooth_ring(positions, ring)
+        for ring in hem_rings:
+            for v in ring:
+                p = positions[v]
+                positions[v] = (p[0], hem_y, p[2])
+
+    for ring in hem_rings:
+        for v in ring:
+            regions[v] = PANTS_REGION["hemRight"] if positions[v][0] >= 0 else PANTS_REGION["hemLeft"]
+
+    normals = compute_smooth_normals(positions, triangles)
+
+    xs = [abs(p[0]) for p in positions]
+    half = max(xs) or 1.0
+    ys = [p[1] for p in positions]
+    y0, y1 = min(ys), max(ys)
+    hgt = (y1 - y0) or 1.0
+    uvs = [(0.5 + p[0] / (2.0 * half), (p[1] - y0) / hgt) for p in positions]
+
+    ax0 = min(p[0] for p in positions)
+    ax1 = max(p[0] for p in positions)
+    awd = (ax1 - ax0) or 1.0
+    art_uvs = []
+    facing = []
+    for p in positions:
+        art_uvs.append(((p[0] - ax0) / awd, (p[1] - y0) / hgt))
+        t = max(0.0, min(1.0, (p[2] + 0.02) / 0.04))
+        facing.append(int(round(t * t * (3.0 - 2.0 * t) * 255)))
+
+    loops = boundary_loops(triangles)
+    if len(loops) != 3:
+        raise RuntimeError(
+            f"{size}: short co {len(loops)} vong bien {loops}, phai la 3 "
+            "(cap + hai gau) -- co lo thung hoac hai ong dinh nhau"
+        )
+
+    counts: dict[str, int] = {}
+    inv = {v: k for k, v in PANTS_REGION.items()}
+    for r in regions:
+        counts[inv[r]] = counts.get(inv[r], 0) + 1
+
+    indices: list[int] = []
+    for a, b, c in triangles:
+        indices.extend((a, b, c))
+
+    rough = surface_roughness(positions, triangles)
+
+    return {
+        "size": size,
+        "boundaryLoops": loops,
+        "holesFilled": 0,
+        "dupFaces": 0,
+        "flippedFaces": 0,
+        "positions": positions,
+        "normals": normals,
+        "uvs": uvs,
+        "art_uvs": art_uvs,
+        "regions": regions,
+        "facing": facing,
+        "indices": indices,
+        "waistCircTarget": pants["waistCircTarget"],
+        "waistCircAchieved": pants["waistCircAchieved"],
+        "hipCircAchieved": pants["hipCircAchieved"],
+        "inseam": inseam,
+        "hemY": hem_y,
+        "scale": pants["scale"],
+        "regionCounts": counts,
+        "rough": (rough, rough),
     }
 
 
@@ -1697,7 +1838,9 @@ def main() -> None:
 
     shirts = [build_size(body, s) for s in SIZE_ORDER]
     pants = [build_pants_size(body, s) for s in SIZE_ORDER]
-    shorts = [build_pants_size(body, s, SHORTS_SIZE_CHART) for s in SIZE_ORDER]
+    # Short = cat ngang ong chan cua quan dai da dung xong (khong tu nen doc
+    # rieng) -- xem docstring cua build_shorts_from_pants.
+    shorts = [build_shorts_from_pants(p, body, s) for p, s in zip(pants, SIZE_ORDER)]
 
     shirt_glb = write_garment(shirts, "garment-tshirt.glb", "tshirt_")
     pants_glb = write_garment(pants, "garment-pants.glb", "pants_")

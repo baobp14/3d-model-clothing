@@ -349,9 +349,17 @@ export interface Fabric {
 
 /** Knit stretches and drapes softly; woven holds its shape; denim barely moves. */
 export const FABRICS: Record<'knit' | 'woven' | 'denim', Fabric> = {
+  // stretchStiffness/bendStiffness lowered and damping raised from the first
+  // pass (0.7 / 0.05 / 0.97): the solver pulled edges back toward rest so
+  // hard and lost so much velocity each step that even the softest preset
+  // read as stiff -- barely any visible swing or fold under motion. Softer
+  // spring-back, looser bend and more retained velocity let momentum carry
+  // (a turn or a size change actually swings/settles instead of snapping
+  // still), without touching maxStretch/tetherSlack -- the hard limits the
+  // fit report's ease/contact/stretch-ratio checks rely on.
   knit: {
-    maxStretch: 1.2, tetherSlack: 1.03, stretchStiffness: 0.7,
-    compressStiffness: 0.02, bendStiffness: 0.05, damping: 0.97,
+    maxStretch: 1.2, tetherSlack: 1.03, stretchStiffness: 0.5,
+    compressStiffness: 0.02, bendStiffness: 0.025, damping: 0.985,
   },
   woven: {
     maxStretch: 1.03, tetherSlack: 1.01, stretchStiffness: 0.85,
@@ -442,20 +450,29 @@ export function buildConstraints(
       positions[a * 3 + 2] - positions[b * 3 + 2],
     );
 
-  // Edges far shorter than the mesh resolution are dropped.
+  // Edges far shorter than the mesh resolution get their rest length floored,
+  // not dropped.
   //
   // Vertex clustering leaves a few 2 mm edges in a mesh whose typical edge is
-  // ~15 mm. They are discretisation debris, not fabric: constraining them adds
+  // ~15 mm. Constraining them at their true (near-zero) rest length adds
   // stiffness that represents nothing, and len/rest on them explodes. Measured
   // on the worst case, the four shortest edges alone accounted for a reported
   // maxStretch of 5.62 against 3.87 for every other edge in the garment.
+  //
+  // Dropping them outright (as before) is worse for short-leg garments
+  // (quan short): the hem ring is excluded from the geometry weld to keep it
+  // round, so it keeps a few sub-3mm edges to its nearest interior ring. With
+  // no distance constraint at all, those hem vertices are free to drift
+  // during simulation -- the leg opening flutters into a crumpled, half-shut
+  // look ("nhan nheo", "bit bit o duoi") instead of hanging open. Flooring the
+  // rest length to MIN_EDGE_LENGTH keeps them pinned near their neighbour
+  // (fixing the flutter) while avoiding the same near-zero-rest explosion.
   const keptEdges: number[] = [];
   const keptRest: number[] = [];
   for (let e = 0; e < edgeList.length / 2; e++) {
     const a = edgeList[e * 2];
     const b = edgeList[e * 2 + 1];
-    const d = dist(a, b);
-    if (d < MIN_EDGE_LENGTH) continue;
+    const d = Math.max(dist(a, b), MIN_EDGE_LENGTH);
     keptEdges.push(a, b);
     keptRest.push(d);
   }
