@@ -80,6 +80,15 @@ CM = 0.01
 # Khe ho vai - da khi may (m). Ao khong nam sat da, va day cung la be day vai.
 FABRIC_GAP = 0.012
 
+# Quan/short: tu body.waist_y (eo tu nhien tren co the tham chieu) len toi
+# waist_cut (mep tren cung, o crotch_y + rise) truoc day scale PHANG tuyet
+# doi theo scale_waist -- ra mot doan hinh tru thang dung, khong co dang eo
+# thun keo sat nao ("dai lung day thang, nhin do/cung"). Them do thot dan ve
+# mep tren de mo phong day thun: 0% ngay tai waist_y, toi CINCH_ABOVE_WAIST
+# ngay tai mep cat. Chi anh huong doan tren waist_y -- khong doi scale_waist
+# tai waist_y nen waistCircAchieved (do tai duong eo that) khong doi.
+CINCH_ABOVE_WAIST = 0.045
+
 # Canh o gop dinh (m). Mesh co the qua min cho mo phong vai: giu nguyen thi ao
 # co 6.2k dinh, settle mat 10 giay va maxStretch len 2.2 vi canh qua ngan.
 # Gop ve ~1.5 cm dua so dinh ve tam 2k, ngang ban procedural cu.
@@ -1395,10 +1404,27 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # ban kinh dui de goc noi vao mong khong bi gay.
     thigh_r_ref = {s: ref_leg_r(s, 0.02, 0.10) for s in ("right", "left")}
 
+    # Day thun eo: mep tren cung (waist_cut) truoc day dung CHUNG scale_waist
+    # phang voi ca doan duoi no -- vi waist_cut (day chau + rise, ~0.94m o
+    # short M) nam THAP HON body.waist_y (~1.01m, eo tu nhien tren co the
+    # tham chieu), nen hscale() khong bao gio thay mot dinh nao dat toi
+    # `y >= body.waist_y` de tra ve scale_waist rieng biet -- ca vanh eo chi
+    # la mot diem tren duong noi hip_y->waist_y, khong co gi phan biet no voi
+    # phan than ben duoi ve HINH DANG, nhin nhu mot ong thang dung ("do/cung").
+    # Neo do thot theo khoang cach THAT toi waist_cut (mep tren cung thuc su
+    # cua mesh), khong phai body.waist_y (co the nam ngoai pham vi mesh).
+    CINCH_BAND = 0.028  # be day doan eo bop lai, do tu mep tren xuong (m)
+
+    def waist_cinch(y: float) -> float:
+        t = min(1.0, max(0.0, (y - (waist_cut - CINCH_BAND)) / CINCH_BAND))
+        t = t * t * (3.0 - 2.0 * t)
+        return 1.0 - CINCH_ABOVE_WAIST * t
+
     def hs(y: float) -> float:
         # eo -> mong roi giu nguyen ti le mong xuong toi chan (khong dung ti le
         # nay de thon chan -- thon lam bang squeeze quanh truc ong ben duoi).
-        return hscale(y) if y >= body.hip_y else scale_hip
+        base = hscale(y) if y >= body.hip_y else scale_hip
+        return base * waist_cinch(y)
 
     def place(p, side):
         x, y, z = p
