@@ -80,14 +80,20 @@ CM = 0.01
 # Khe ho vai - da khi may (m). Ao khong nam sat da, va day cung la be day vai.
 FABRIC_GAP = 0.012
 
-# Quan/short: tu body.waist_y (eo tu nhien tren co the tham chieu) len toi
-# waist_cut (mep tren cung, o crotch_y + rise) truoc day scale PHANG tuyet
-# doi theo scale_waist -- ra mot doan hinh tru thang dung, khong co dang eo
-# thun keo sat nao ("dai lung day thang, nhin do/cung"). Them do thot dan ve
-# mep tren de mo phong day thun: 0% ngay tai waist_y, toi CINCH_ABOVE_WAIST
-# ngay tai mep cat. Chi anh huong doan tren waist_y -- khong doi scale_waist
-# tai waist_y nen waistCircAchieved (do tai duong eo that) khong doi.
-CINCH_ABOVE_WAIST = 0.045
+# Quan/short: doan tu waist_cut (mep tren cung, o crotch_y + rise) tro xuong
+# truoc day scale PHANG tuyet doi theo scale_waist -- ra mot doan hinh tru
+# thang dung, khong co dang day thun keo sat nao ("nhin do/cung"). Them do
+# thot dan ve mep tren trong CINCH_BAND (m) ke duoi waist_cut, toi da giam
+# CINCH_ABOVE_WAIST ngay tai mep cat, de mo phong day thun keo eo ao sat vao
+# nguoi hon phan than ben duoi. Neo theo waist_cut (mep that cua mesh), KHONG
+# theo body.waist_y -- lan dau lam vay bi vo hieu vi body.waist_y (eo tu
+# nhien tren co the tham chieu) luon cao hon waist_cut o moi size, nen
+# khong dinh nao trong mesh dat toi do cao do (rebuild ra file y het cu).
+#
+# Gioi han tren: FABRIC_GAP them ~1.2cm ban kinh ngoai da body o waist_target,
+# nen cinch qua 100%*FABRIC_GAP/ban_kinh_eo (~8-9% o cac size hien tai) se an
+# vao nguoi ngay tai mep. Giu duoi nguong do.
+CINCH_ABOVE_WAIST = 0.075
 
 # Canh o gop dinh (m). Mesh co the qua min cho mo phong vai: giu nguyen thi ao
 # co 6.2k dinh, settle mat 10 giay va maxStretch len 2.2 vi canh qua ngan.
@@ -1413,7 +1419,7 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # phan than ben duoi ve HINH DANG, nhin nhu mot ong thang dung ("do/cung").
     # Neo do thot theo khoang cach THAT toi waist_cut (mep tren cung thuc su
     # cua mesh), khong phai body.waist_y (co the nam ngoai pham vi mesh).
-    CINCH_BAND = 0.028  # be day doan eo bop lai, do tu mep tren xuong (m)
+    CINCH_BAND = 0.045  # be day doan eo bop lai, do tu mep tren xuong (m)
 
     def waist_cinch(y: float) -> float:
         t = min(1.0, max(0.0, (y - (waist_cut - CINCH_BAND)) / CINCH_BAND))
