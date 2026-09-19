@@ -169,9 +169,31 @@ function ClothStage({
     }
     g.setAttribute('_printmask', new THREE.BufferAttribute(printMask, 1));
 
+    // Ribbed-elastic look for the waistband. Region id 0 ("waistband") tags
+    // only the single topmost boundary loop -- zero-height by definition, a
+    // hairline of triangles a pixel or two tall on screen -- so masking the
+    // rib by region alone marks a strip too thin to ever be visible (verified
+    // by sampling the rendered pixels: no variance increase over plain
+    // fabric). Mask by height instead, over the same band the waist cinch
+    // itself uses in the build script (RIB_BAND m below the highest
+    // waistband-tagged vertex), which is the entire span that actually reads
+    // as "the waistband" on screen.
+    const waistband = new Float32Array(geom.regions.length);
+    if (pinRegion === 0) {
+      const RIB_BAND = 0.045;
+      let topY = -Infinity;
+      for (let v = 0; v < geom.regions.length; v++) {
+        if (geom.regions[v] === 0) topY = Math.max(topY, geom.positions[v * 3 + 1]);
+      }
+      for (let v = 0; v < waistband.length; v++) {
+        waistband[v] = geom.positions[v * 3 + 1] > topY - RIB_BAND ? 1 : 0;
+      }
+    }
+    g.setAttribute('_waistband', new THREE.BufferAttribute(waistband, 1));
+
     g.setIndex(new THREE.BufferAttribute(new Uint32Array(geom.indices), 1));
     return g;
-  }, [geom]);
+  }, [geom, pinRegion]);
 
   // One mutable colliders object: the yaw changes every frame and allocating a
   // fresh one per frame would churn the heap for no reason.
@@ -242,16 +264,21 @@ function ClothStage({
         `attribute float _facing;
 attribute float _printmask;
 attribute vec2 _artuv;
+attribute float _waistband;
 varying float vFacing;
 varying float vPrintMask;
 varying vec2 vArtUv;
+varying float vWaistband;
+varying float vLocalY;
 ` +
         shader.vertexShader.replace(
           '#include <begin_vertex>',
           `#include <begin_vertex>
   vFacing = _facing;
   vPrintMask = _printmask;
-  vArtUv = _artuv;`,
+  vArtUv = _artuv;
+  vWaistband = _waistband;
+  vLocalY = position.y;`,
         );
 
       shader.fragmentShader =
@@ -264,10 +291,27 @@ uniform vec2 uArtOffset;
 varying float vFacing;
 varying float vPrintMask;
 varying vec2 vArtUv;
+varying float vWaistband;
+varying float vLocalY;
 ` +
         shader.fragmentShader.replace(
           '#include <map_fragment>',
           `#include <map_fragment>
+  // Ribbed elastic waistband: horizontal bands running around the waist,
+  // since the weave bump map is a generic fabric grain that doesn't read as
+  // elastic ribbing at any scale/rotation. Baked from the rest-position Y
+  // (stable even while the fabric is simulating), so it stays put on the
+  // cloth like a real knit rib instead of swimming as the body turns.
+  //
+  // 785 rad/m (~8mm period), not a finer/more realistic ~2-3mm: at this
+  // canvas's actual pixel density a finer period sampled less than ~4px per
+  // cycle and the GPU's one-sample-per-fragment rasterization aliased it
+  // away to a flat average -- confirmed by reading back rendered pixels and
+  // finding LOWER variance in the waistband than in plain fabric elsewhere.
+  if (vWaistband > 0.5) {
+    float rib = sin(vLocalY * 785.0);
+    diffuseColor.rgb *= 1.0 + 0.16 * rib;
+  }
   if (hasPrint > 0.5) {
     // Zoom about the centre, then shift. >1 shows more image = smaller pattern.
     vec2 puv = (vArtUv - 0.5) * uArtScale + 0.5 + uArtOffset;
