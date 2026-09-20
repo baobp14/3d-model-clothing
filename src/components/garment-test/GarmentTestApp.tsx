@@ -288,6 +288,7 @@ export default function GarmentTestApp() {
   const [spinning, setSpinning] = useState(false);
   const [spinSpeed, setSpinSpeed] = useState(1.6);
   const [turnNonce, setTurnNonce] = useState(0);
+  const [showGarment, setShowGarment] = useState(true);
   const [showStretch, setShowStretch] = useState(false);
   const [showFaces, setShowFaces] = useState(false);
   const [wireframe, setWireframe] = useState(false);
@@ -997,6 +998,9 @@ export default function GarmentTestApp() {
               Hiển thị
             </h2>
             <div className="flex flex-col gap-1.5">
+              <Button active={showGarment} onClick={() => setShowGarment((v) => !v)}>
+                Hiện quần áo
+              </Button>
               <Button
                 active={showFaces}
                 onClick={() => {
@@ -1080,6 +1084,7 @@ export default function GarmentTestApp() {
             spinning={spinning}
             spinSpeed={spinSpeed}
             turnNonce={turnNonce}
+            showGarment={showGarment}
             showStretch={showStretch}
             showFaces={showFaces}
             wireframe={wireframe}

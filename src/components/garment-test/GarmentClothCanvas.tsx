@@ -28,6 +28,8 @@ export interface ClothViewProps {
   spinSpeed: number;
   /** Bumping this number snaps the body through a half turn. */
   turnNonce: number;
+  /** Hide the cloth mesh so the bare body underneath is visible. Default true. */
+  showGarment?: boolean;
   showStretch: boolean;
   /** Tint the mesh by which print panel each vertex belongs to. */
   showFaces?: boolean;
@@ -106,6 +108,7 @@ function ClothStage({
   spinning,
   spinSpeed,
   turnNonce,
+  showGarment = true,
   showStretch,
   showFaces = false,
   wireframe,
@@ -426,7 +429,7 @@ varying float vLocalY;
       <group ref={bodyRef} visible={!wireframe}>
         <primitive object={avatar} />
       </group>
-      <mesh geometry={geometry} castShadow>
+      <mesh geometry={geometry} castShadow visible={showGarment}>
         <meshPhysicalMaterial
           side={THREE.DoubleSide}
           color={showStretch ? '#ffffff' : baseColor}
