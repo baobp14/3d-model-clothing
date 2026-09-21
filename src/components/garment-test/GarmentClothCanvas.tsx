@@ -17,26 +17,21 @@ import {
   type GarmentGeometry,
 } from '@/lib/tryon/garmentFit';
 
-export interface ClothViewProps {
-  avatar: THREE.Object3D;
+/** One simulated garment (e.g. the top, or the bottom) worn on the shared avatar. */
+export interface GarmentPieceInput {
+  /** Stable per-slot id ("top" / "bottom", ...) -- remounts the sim when it changes. */
+  key: string;
   geom: GarmentGeometry;
   constraints: GarmentConstraints;
-  colliders: BodyCollider;
   fabric: Fabric;
-  spinning: boolean;
-  /** Radians per second while spinning. */
-  spinSpeed: number;
-  /** Bumping this number snaps the body through a half turn. */
-  turnNonce: number;
-  /** Hide the cloth mesh so the bare body underneath is visible. Default true. */
+  /** Hide this piece's cloth mesh so the bare body underneath is visible. Default true. */
   showGarment?: boolean;
   showStretch: boolean;
   /** Tint the mesh by which print panel each vertex belongs to. */
   showFaces?: boolean;
-  wireframe: boolean;
-  /** Product photo of the shirt front, background already removed. */
+  /** Product photo of the garment front, background already removed. */
   frontPrint?: THREE.Texture | null;
-  /** Product photo of the shirt back. */
+  /** Product photo of the garment back. */
   backPrint?: THREE.Texture | null;
   /** Base fabric colour, e.g. sampled from the print so sleeves match. */
   baseColor?: string;
@@ -44,12 +39,25 @@ export interface ClothViewProps {
   printScale?: number;
   /** Shift the print UV, in UV units (0.05 ~= a few cm on the shirt). */
   printOffset?: [number, number];
-  /** World Y of the morphed body's lowest vertex; the floor disc sits here. */
-  groundY?: number;
   /** _REGION id of the ring the garment hangs from (collar=5, waistband=0). */
   pinRegion?: number;
   /** World Y of that ring on the body (shoulder line for a top, waist for trousers). */
   anchorY?: number;
+}
+
+export interface ClothViewProps {
+  avatar: THREE.Object3D;
+  colliders: BodyCollider;
+  /** One entry per worn garment -- a top and a bottom can be simulated together. */
+  pieces: GarmentPieceInput[];
+  spinning: boolean;
+  /** Radians per second while spinning. */
+  spinSpeed: number;
+  /** Bumping this number snaps the body through a half turn. */
+  turnNonce: number;
+  wireframe: boolean;
+  /** World Y of the morphed body's lowest vertex; the floor disc sits here. */
+  groundY?: number;
 }
 
 const EMPTY_TEX = new THREE.Texture();
@@ -97,17 +105,19 @@ function makeWeaveBump(): THREE.Texture {
   return tex;
 }
 
-function ClothStage({
-  avatar,
+/**
+ * One simulated + rendered garment. Does NOT own the avatar or the body's
+ * yaw -- several of these can share one avatar (a top + a bottom worn
+ * together), so yaw/turning live once in `Rig` and are read here through
+ * refs instead of each piece re-deriving its own.
+ */
+function GarmentPiece({
   geom,
   constraints,
   colliders,
   pinRegion,
   anchorY,
   fabric,
-  spinning,
-  spinSpeed,
-  turnNonce,
   showGarment = true,
   showStretch,
   showFaces = false,
@@ -117,12 +127,15 @@ function ClothStage({
   baseColor = '#41599c',
   printScale = 1,
   printOffset = [0, 0],
-}: ClothViewProps) {
+  yawRef,
+  turningRef,
+}: GarmentPieceInput & {
+  colliders: BodyCollider;
+  wireframe: boolean;
+  yawRef: React.RefObject<number>;
+  turningRef: React.RefObject<boolean>;
+}) {
   const weave = useMemo(makeWeaveBump, []);
-  const bodyRef = useRef<THREE.Group>(null);
-  const yaw = useRef(0);
-  const targetYaw = useRef(0);
-  const firstTurn = useRef(turnNonce);
 
   const geometry = useMemo(() => {
     const g = new THREE.BufferGeometry();
@@ -223,8 +236,6 @@ function ClothStage({
       anchorY,
     );
     live.current = { ...colliders, yaw: 0 };
-    yaw.current = 0;
-    targetYaw.current = 0;
     settling.current = WARMUP_STEPS + CAP_FINISH_STEPS;
     return state;
   }, [geom, constraints, colliders, fabric, pinRegion, anchorY]);
@@ -336,12 +347,6 @@ varying float vLocalY;
     [],
   );
 
-  useEffect(() => {
-    if (turnNonce === firstTurn.current) return;
-    firstTurn.current = turnNonce;
-    targetYaw.current += Math.PI;
-  }, [turnNonce]);
-
   const pushToGeometry = () => {
     const pos = geometry.getAttribute('position') as THREE.BufferAttribute;
     (pos.array as Float32Array).set(sim.positions);
@@ -381,23 +386,14 @@ varying float vLocalY;
       return;
     }
 
-    if (spinning) targetYaw.current += spinSpeed * dt;
-    // Ease toward the target so a snap turn is fast but not instantaneous --
-    // an instantaneous jump gives the cloth infinite velocity and it explodes.
-    // Rate 7 was tuned on the old 1.7k procedural mesh; on the body-derived
-    // one it threw the shoulders out far enough that they did not settle back.
-    yaw.current += (targetYaw.current - yaw.current) * Math.min(1, dt * 3);
-
-    if (bodyRef.current) bodyRef.current.rotation.y = yaw.current;
-    live.current.yaw = yaw.current;
-    setBodyYaw(sim, yaw.current);
+    live.current.yaw = yawRef.current;
+    setBodyYaw(sim, yawRef.current);
 
     // Two substeps only while the body is actually turning. One 60 Hz step is
     // enough for a hanging shirt; the second exists so the hem cannot tunnel
     // through the hips during a fast turn. Paying for it while the model
     // stands still doubled the cost of the most common frame for nothing.
-    const turning = Math.abs(targetYaw.current - yaw.current) > 0.002 || spinning;
-    if (turning) {
+    if (turningRef.current) {
       stepGarmentSim(sim, constraints, live.current, { fabric, dt: dt / 2 });
       stepGarmentSim(sim, constraints, live.current, { fabric, dt: dt / 2 });
     } else {
@@ -422,34 +418,87 @@ varying float vLocalY;
   });
 
   return (
+    <mesh geometry={geometry} castShadow visible={showGarment}>
+      <meshPhysicalMaterial
+        side={THREE.DoubleSide}
+        color={showStretch ? '#ffffff' : baseColor}
+        vertexColors={showStretch}
+        roughness={0.96}
+        metalness={0}
+        // Sheen is what separates cloth from paint: cotton scatters a pale
+        // rim of light at grazing angles instead of a specular highlight.
+        sheen={0.6}
+        sheenRoughness={0.85}
+        sheenColor={'#c9d4ea'}
+        bumpMap={wireframe || showStretch || showFaces ? null : weave}
+        bumpScale={0.35}
+        wireframe={wireframe}
+        onBeforeCompile={onBeforeCompile}
+        // Must change when vertexColors flips, or three reuses the compiled
+        // program without the USE_COLOR define.
+        customProgramCacheKey={() => `garment-print-${showStretch ? 'vc' : 'plain'}`}
+      />
+    </mesh>
+  );
+}
+
+/**
+ * Owns the avatar and its yaw (spin / snap-turn) once, shared by every
+ * garment piece worn on it -- each piece used to drive its own copy of this
+ * (back when only one garment could be worn at a time), which would fight
+ * over the body's rotation the moment a second piece was added.
+ */
+function Rig({
+  avatar,
+  colliders,
+  pieces,
+  spinning,
+  spinSpeed,
+  turnNonce,
+  wireframe,
+}: ClothViewProps) {
+  const bodyRef = useRef<THREE.Group>(null);
+  const yaw = useRef(0);
+  const targetYaw = useRef(0);
+  const turning = useRef(false);
+  const firstTurn = useRef(turnNonce);
+
+  useEffect(() => {
+    if (turnNonce === firstTurn.current) return;
+    firstTurn.current = turnNonce;
+    targetYaw.current += Math.PI;
+  }, [turnNonce]);
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 1 / 30);
+    if (spinning) targetYaw.current += spinSpeed * dt;
+    // Ease toward the target so a snap turn is fast but not instantaneous --
+    // an instantaneous jump gives the cloth infinite velocity and it explodes.
+    // Rate 7 was tuned on the old 1.7k procedural mesh; on the body-derived
+    // one it threw the shoulders out far enough that they did not settle back.
+    yaw.current += (targetYaw.current - yaw.current) * Math.min(1, dt * 3);
+    if (bodyRef.current) bodyRef.current.rotation.y = yaw.current;
+    turning.current = Math.abs(targetYaw.current - yaw.current) > 0.002 || spinning;
+  });
+
+  return (
     <>
-      {/* Wireframe hides the body: when the question is whether the garment
+      {/* Wireframe hides the body: when the question is whether a garment
           mesh has a hole, the body is exactly what gets in the way of seeing
           it. */}
       <group ref={bodyRef} visible={!wireframe}>
         <primitive object={avatar} />
       </group>
-      <mesh geometry={geometry} castShadow visible={showGarment}>
-        <meshPhysicalMaterial
-          side={THREE.DoubleSide}
-          color={showStretch ? '#ffffff' : baseColor}
-          vertexColors={showStretch}
-          roughness={0.96}
-          metalness={0}
-          // Sheen is what separates cloth from paint: cotton scatters a pale
-          // rim of light at grazing angles instead of a specular highlight.
-          sheen={0.6}
-          sheenRoughness={0.85}
-          sheenColor={'#c9d4ea'}
-          bumpMap={wireframe || showStretch || showFaces ? null : weave}
-          bumpScale={0.35}
+      {pieces.map(({ key, ...p }) => (
+        <GarmentPiece
+          key={key}
+          {...p}
+          colliders={colliders}
           wireframe={wireframe}
-          onBeforeCompile={onBeforeCompile}
-          // Must change when vertexColors flips, or three reuses the compiled
-          // program without the USE_COLOR define.
-          customProgramCacheKey={() => `garment-print-${showStretch ? 'vc' : 'plain'}`}
+          yawRef={yaw}
+          turningRef={turning}
         />
-      </mesh>
+      ))}
     </>
   );
 }
@@ -470,7 +519,7 @@ export default function GarmentClothCanvas(props: ClothViewProps) {
         <circleGeometry args={[6, 64]} />
         <meshStandardMaterial color="#e9e6e2" roughness={1} />
       </mesh>
-      <ClothStage {...props} />
+      <Rig {...props} />
       <OrbitControls enableDamping dampingFactor={0.08} target={[0, 1.0, 0]} />
     </Canvas>
   );

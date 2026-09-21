@@ -29,6 +29,7 @@ import {
   type GarmentConstraints,
   type GarmentGeometry,
 } from '@/lib/tryon/garmentFit';
+import type { GarmentPieceInput } from './GarmentClothCanvas';
 
 const GarmentClothCanvas = dynamic(() => import('./GarmentClothCanvas'), {
   ssr: false,
@@ -167,14 +168,25 @@ interface GarmentMeta {
 }
 
 const DEFAULT_CALIB = { scale: 1, offsetX: 0, offsetY: 0 };
-type GarmentKind = 'tshirt' | 'tank' | 'croptop' | 'pants' | 'shorts';
+type GarmentKind = 'tshirt' | 'tank' | 'croptop' | 'shirt' | 'pants' | 'shorts';
 const GARMENT_LABEL: Record<GarmentKind, string> = {
   tshirt: 'Áo thun',
   tank: 'Áo Cộc Tay',
   croptop: 'Áo Croptop',
+  shirt: 'Áo Sơ Mi',
   pants: 'Quần',
   shorts: 'Quần short',
 };
+
+// A top and a bottom are worn together now -- two independent slots instead
+// of one "which single garment is on the body" selection. Each slot only
+// offers the kinds that fit it.
+type Slot = 'top' | 'bottom';
+const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
+  top: ['tshirt', 'tank', 'croptop', 'shirt'],
+  bottom: ['pants', 'shorts'],
+};
+const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
 
 type SizedGeom = Record<string, { geom: GarmentGeometry; constraints: GarmentConstraints }>;
 
@@ -264,6 +276,57 @@ function Button({
   );
 }
 
+// Built-in shirt prints, pre-cut and pre-trimmed at build time (npm run
+// prints:build -> public/prints/). Switching is just a texture swap -- none
+// of the WASM background-removal that an upload needs.
+type PrintEntry = {
+  id: string;
+  name: string;
+  /** Which mesh this photo was shot for -- the dataset mixes tees, shorts and
+   *  long pants in one flat list (see build_prints.mjs's garmentKindOf). Only
+   *  ever 'tshirt' | 'pants' | 'shorts': there's no separate photo set for
+   *  tank/croptop/shirt, so top-slot kinds all reuse the 'tshirt' photos
+   *  (see presetMatchesKind) -- a flat-lay tee photo maps onto any of them
+   *  through the same whole-garment _ARTUV unwrap. */
+  kind?: GarmentKind;
+  front: string;
+  back: string | null;
+  baseColor: string;
+};
+
+function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
+  if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
+  return presetKind === activeKind;
+}
+
+interface SlotState {
+  kind: GarmentKind | null;
+  size: string;
+  fabricKey: keyof typeof FABRICS;
+  front: THREE.Texture | null;
+  back: THREE.Texture | null;
+  baseColor: string;
+  printScale: number;
+  printOffsetY: number;
+  presetIdx: number;
+  presetAuto: boolean;
+}
+
+function makeSlot(kind: GarmentKind | null, calib: { scale: number; offsetY: number }): SlotState {
+  return {
+    kind,
+    size: 'M',
+    fabricKey: 'knit',
+    front: null,
+    back: null,
+    baseColor: '#41599c',
+    printScale: calib.scale,
+    printOffsetY: calib.offsetY,
+    presetIdx: -1,
+    presetAuto: false,
+  };
+}
+
 export default function GarmentTestApp() {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -285,8 +348,6 @@ export default function GarmentTestApp() {
         boolean
       >,
     );
-  const [size, setSize] = useState('M');
-  const [fabricKey, setFabricKey] = useState<keyof typeof FABRICS>('knit');
   const [spinning, setSpinning] = useState(false);
   const [spinSpeed, setSpinSpeed] = useState(1.6);
   const [turnNonce, setTurnNonce] = useState(0);
@@ -294,59 +355,48 @@ export default function GarmentTestApp() {
   const [showStretch, setShowStretch] = useState(false);
   const [showFaces, setShowFaces] = useState(false);
   const [wireframe, setWireframe] = useState(false);
-  const [front, setFront] = useState<THREE.Texture | null>(null);
-  const [back, setBack] = useState<THREE.Texture | null>(null);
-  const [baseColor, setBaseColor] = useState('#41599c');
-  const [printScale, setPrintScale] = useState(1);
-  const [printOffsetY, setPrintOffsetY] = useState(0);
-  const [garmentKind, setGarmentKind] = useState<GarmentKind>('tshirt');
-  const isTop = garmentKind === 'tshirt' || garmentKind === 'tank' || garmentKind === 'croptop';
-  const gEntry = loaded?.meta.garments?.[garmentKind];
-  // Which body measurement this garment is sized against -- shirts fit off
-  // the chest, pants/shorts off the waist. The "Người mẫu" picker used to
-  // always print the CHEST number even while fitting pants, so a size that
-  // read "108cm" while trying on pants had nothing to do with the pants at
-  // all -- it was the chest of a body whose waist is 96cm. Label each body
-  // by the measurement that actually governs the garment on screen.
-  const fitKey = gEntry?.fitKey ?? 'chestCircCm';
-  // Slider values the mesh ships with; sliders start here, "Bỏ ảnh in" returns here.
-  const calib = gEntry?.printCalibration ?? loaded?.meta.printCalibration ?? DEFAULT_CALIB;
-  const [printBusy, setPrintBusy] = useState<string | null>(null);
 
-  // Built-in shirt prints, pre-cut and pre-trimmed at build time
-  // (npm run prints:build -> public/prints/). Switching is just a texture
-  // swap -- none of the WASM background-removal that an upload needs.
-  type PrintEntry = {
-    id: string;
-    name: string;
-    /** Which mesh this photo belongs on -- the dataset mixes tees, shorts and
-     *  long pants in one flat list (see build_prints.mjs's garmentKindOf).
-     *  Missing on an older cached manifest, so callers must default it. */
-    kind?: GarmentKind;
-    front: string;
-    back: string | null;
-    baseColor: string;
-  };
+  // Which slot's controls (món đồ / size / vải / ảnh in) the sidebar is
+  // currently showing. Both slots stay worn on the body regardless of which
+  // tab is focused -- this only picks which one you're editing.
+  const [activeSlot, setActiveSlot] = useState<Slot>('top');
+  const [slots, setSlots] = useState<Record<Slot, SlotState>>({
+    top: makeSlot('tshirt', { scale: 0.83, offsetY: -0.03 }),
+    bottom: makeSlot('pants', { scale: 0.9, offsetY: 0 }),
+  });
+  const updateSlot = (slot: Slot, patch: Partial<SlotState>) =>
+    setSlots((s) => ({ ...s, [slot]: { ...s[slot], ...patch } }));
+
+  const active = slots[activeSlot];
+  const activeEntry = active.kind ? loaded?.meta.garments?.[active.kind] : undefined;
+  // Which body measurement the ACTIVE slot's garment is sized against --
+  // shirts fit off the chest, pants/shorts off the waist. Only governs the
+  // "Người mẫu" hint text and the active slot's own size/ease numbers; the
+  // other, non-focused slot still fits correctly on its own terms.
+  const fitKey = activeEntry?.fitKey ?? 'chestCircCm';
+  const calib = activeEntry?.printCalibration ?? loaded?.meta.printCalibration ?? DEFAULT_CALIB;
+  // { slot, what } rather than a bare string: a front-photo upload for the
+  // bottom slot must not be mistaken for a preset load on the top slot.
+  const [printBusy, setPrintBusy] = useState<{ slot: Slot; what: 'front' | 'back' | 'preset' } | null>(
+    null,
+  );
+
   const [presets, setPresets] = useState<PrintEntry[]>([]);
-  const [presetIdx, setPresetIdx] = useState(-1);
-  const [presetAuto, setPresetAuto] = useState(false);
   const texCache = useRef(new Map<string, THREE.Texture>());
   // Clicking through the collection fires loadPreset() again before the
   // previous call's texture fetch has resolved, and fetches do not resolve
   // in click order (cache hits are instant, network misses are not). Only the
-  // most recently STARTED call may write its result.
-  const presetRequestId = useRef(0);
-  // The collection is scoped to whichever garment is currently selected --
-  // one flat 72-item list mixing tees/pants/shorts used to mean "▶ tự chạy
-  // hết bộ" (or even just clicking ▶ a few times) marched past a pants/shorts
-  // photo onto the next tee and yanked MÓN ĐỒ back to "Áo thun" out from
-  // under a manual "Quần" click, because loadPreset used to set garmentKind
-  // FROM the entry it just loaded. Filtering first means every entry left in
-  // the list already matches garmentKind, so browsing (or auto-play) can
-  // never point it somewhere else.
+  // most recently STARTED call for THAT slot may write its result -- one
+  // counter per slot so a stale top-slot load can't stomp a fresh bottom-slot
+  // one or vice versa.
+  const presetRequestId = useRef<Record<Slot, number>>({ top: 0, bottom: 0 });
+  // The collection is scoped to whichever kind the active slot has selected.
+  // There's only ever a 'tshirt'-tagged photo set (see PrintEntry.kind), so
+  // every top-slot kind (áo thun/cộc tay/croptop/sơ mi) reuses it; bottom
+  // kinds still match their own tag exactly.
   const kindPresets = useMemo(
-    () => presets.filter((p) => (p.kind ?? 'tshirt') === garmentKind),
-    [presets, garmentKind],
+    () => (active.kind ? presets.filter((p) => presetMatchesKind(p.kind ?? 'tshirt', active.kind!)) : []),
+    [presets, active.kind],
   );
 
   useEffect(() => {
@@ -384,47 +434,50 @@ export default function GarmentTestApp() {
     return tex;
   }
 
-  async function loadPreset(idx: number) {
-    const entry = kindPresets[idx];
+  // `slot` and `list` are captured at call time, not re-read from live state
+  // after the await -- so a slot switch mid-fetch can't make this write to
+  // the wrong slot or index into the wrong (now-stale) preset list.
+  async function loadPreset(slot: Slot, list: PrintEntry[], idx: number) {
+    const entry = list[idx];
     if (!entry) return;
-    const requestId = ++presetRequestId.current;
-    setPresetIdx(idx);
-    setPrintBusy('preset');
+    const requestId = ++presetRequestId.current[slot];
+    updateSlot(slot, { presetIdx: idx });
+    setPrintBusy({ slot, what: 'preset' });
     try {
       const [f, b] = await Promise.all([
         presetTexture(entry.front),
         entry.back ? presetTexture(entry.back) : Promise.resolve(null),
       ]);
-      if (presetRequestId.current !== requestId) return; // superseded, drop it
-      setFront(f);
-      setBack(b);
-      setBaseColor(entry.baseColor);
+      if (presetRequestId.current[slot] !== requestId) return; // superseded, drop it
+      updateSlot(slot, { front: f, back: b, baseColor: entry.baseColor });
     } catch (err) {
-      if (presetRequestId.current !== requestId) return;
+      if (presetRequestId.current[slot] !== requestId) return;
       console.error('[garment-test] preset', err);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      if (presetRequestId.current === requestId) setPrintBusy(null);
+      if (presetRequestId.current[slot] === requestId) setPrintBusy(null);
     }
   }
 
   const stepPreset = (delta: number) => {
     if (!kindPresets.length) return;
-    const base = presetIdx < 0 ? (delta > 0 ? -1 : 0) : presetIdx;
-    void loadPreset((base + delta + kindPresets.length) % kindPresets.length);
+    const base = active.presetIdx < 0 ? (delta > 0 ? -1 : 0) : active.presetIdx;
+    void loadPreset(activeSlot, kindPresets, (base + delta + kindPresets.length) % kindPresets.length);
   };
 
   // Auto-advance: wait for the current one to finish draping, then move on.
+  // Scoped to the active slot/tab only -- switching tabs pauses it rather
+  // than advancing a slot you're no longer looking at.
   useEffect(() => {
-    if (!presetAuto || !kindPresets.length || printBusy) return;
+    if (!active.presetAuto || !kindPresets.length || printBusy) return;
     const t = setTimeout(() => stepPreset(1), 3500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presetAuto, presetIdx, printBusy, kindPresets.length]);
+  }, [active.presetAuto, active.presetIdx, printBusy, kindPresets.length, activeSlot]);
 
-  async function loadPrint(side: 'front' | 'back', file: File | undefined) {
+  async function loadPrint(slot: Slot, side: 'front' | 'back', file: File | undefined) {
     if (!file) return;
-    setPrintBusy(side);
+    setPrintBusy({ slot, what: side });
     try {
       const blob = await removeGarmentBackground(file);
       const trimmed = await trimToContent(blob);
@@ -432,10 +485,10 @@ export default function GarmentTestApp() {
       // instead of shrinking to a patch in the middle of it.
       const tex = await blobToTexture(trimmed);
       tex.colorSpace = THREE.SRGBColorSpace;
-      (side === 'front' ? setFront : setBack)(tex);
+      updateSlot(slot, side === 'front' ? { front: tex } : { back: tex });
       // Tint the bare fabric (sleeves, collar) to the shirt's own colour so
       // it does not read as a contrast panel where the photo runs out.
-      if (side === 'front') setBaseColor(await averageOpaqueColor(trimmed));
+      if (side === 'front') updateSlot(slot, { baseColor: await averageOpaqueColor(trimmed) });
     } catch (err) {
       console.error('[garment-test] print', err);
       setError(err instanceof Error ? err.message : String(err));
@@ -511,6 +564,7 @@ export default function GarmentTestApp() {
           tshirt: await loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
           tank: await loadGarment('/models/garment-tank.glb', 'tank_'),
           croptop: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
+          shirt: await loadGarment('/models/garment-shirt.glb', 'shirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
         };
@@ -541,15 +595,6 @@ export default function GarmentTestApp() {
     () => (customMode ? customResolved : PROFILE_LIST.find(([k]) => k === profileKey)![1]),
     [customMode, customResolved, profileKey],
   );
-
-  // Snap the print sliders to the mesh's baked calibration when it loads, so a
-  // user who uploads a photo gets the right fit without touching anything.
-  useEffect(() => {
-    if (!loaded) return;
-    const c = loaded.meta.printCalibration ?? DEFAULT_CALIB;
-    setPrintScale(c.scale);
-    setPrintOffsetY(c.offsetY);
-  }, [loaded]);
 
   // Solve the body, push the morphs onto the visible mesh, and rebuild the
   // colliders. Cheap enough to redo whenever the profile changes.
@@ -596,21 +641,32 @@ export default function GarmentTestApp() {
     };
   }, [loaded, profile]);
 
-  const garment = loaded?.garments[garmentKind]?.[size] ?? null;
-  const garmentCircCm =
-    (loaded && gEntry?.sizes[size]?.[fitKey]) ??
-    (loaded ? loaded.meta.sizes[size]?.chestCircCm : 0);
-  const bodyCircCm = scene
-    ? fitKey === 'waistCircCm'
-      ? scene.body.waist
-      : scene.body.chest
-    : 0;
-  const ease = loaded && scene ? garmentCircCm - bodyCircCm : null;
+  // One resolved { geom, constraints, entry } per slot that currently has a
+  // kind chosen -- feeds both the 3D pieces array and each slot's own
+  // ease/size numbers.
+  function resolveSlot(slot: Slot) {
+    const st = slots[slot];
+    if (!loaded || !st.kind) return null;
+    const sized = loaded.garments[st.kind]?.[st.size];
+    if (!sized) return null;
+    const entry = loaded.meta.garments[st.kind];
+    return { state: st, entry, ...sized };
+  }
+  const topResolved = resolveSlot('top');
+  const bottomResolved = resolveSlot('bottom');
+
+  const activeResolved = activeSlot === 'top' ? topResolved : bottomResolved;
+  const garmentCircCm = activeResolved
+    ? activeResolved.entry?.sizes[activeResolved.state.size]?.[fitKey]
+    : undefined;
+  const bodyCircCm = scene ? (fitKey === 'waistCircCm' ? scene.body.waist : scene.body.chest) : 0;
+  const ease =
+    activeResolved && scene && garmentCircCm !== undefined ? garmentCircCm - bodyCircCm : null;
 
   if (error) {
     return <div className="p-6 text-sm text-red-600">Lỗi: {error}</div>;
   }
-  if (!loaded || !scene || !garment) {
+  if (!loaded || !scene) {
     return <div className="p-6 text-sm text-stone-500">Đang tải avatar và mesh áo…</div>;
   }
 
@@ -621,6 +677,29 @@ export default function GarmentTestApp() {
     rong: 'Rộng',
   };
 
+  const pieces: GarmentPieceInput[] = [];
+  for (const [slot, resolved] of [['top', topResolved], ['bottom', bottomResolved]] as const) {
+    if (!resolved) continue;
+    pieces.push({
+      key: slot,
+      geom: resolved.geom,
+      constraints: resolved.constraints,
+      fabric: FABRICS[resolved.state.fabricKey],
+      pinRegion: resolved.entry?.pinRegion ?? 5,
+      anchorY: (resolved.entry?.yZero ?? '').startsWith('waist')
+        ? scene.colliders.waistY
+        : scene.colliders.shoulderY,
+      showGarment,
+      showStretch: showStretch && slot === activeSlot,
+      showFaces: showFaces && slot === activeSlot,
+      frontPrint: resolved.state.front,
+      backPrint: resolved.state.back,
+      baseColor: resolved.state.baseColor,
+      printScale: resolved.state.printScale,
+      printOffset: [0, resolved.state.printOffsetY],
+    });
+  }
+
   return (
     <div className="flex h-screen flex-col bg-stone-50">
       <header className="border-b border-stone-200 px-5 py-3">
@@ -629,7 +708,7 @@ export default function GarmentTestApp() {
         </h1>
         <p className="text-xs text-stone-500">
           Áo là mesh có kích thước theo bảng size, không phải ảnh dán. Xoay người để thấy tà áo
-          văng theo quán tính.
+          văng theo quán tính. Áo và quần mặc cùng lúc — tab bên dưới chỉ chọn cái bạn đang chỉnh.
         </p>
       </header>
 
@@ -641,7 +720,7 @@ export default function GarmentTestApp() {
             </h2>
             <p className="mb-1.5 text-[11px] text-stone-400">
               Số đo {fitKey === 'waistCircCm' ? 'vòng eo' : 'vòng ngực'} của người mẫu — không
-              phải size {fitKey === 'waistCircCm' ? 'quần' : 'áo'}.
+              phải size {fitKey === 'waistCircCm' ? 'quần' : 'áo'} đang chỉnh.
             </p>
             <div className="flex flex-wrap gap-1.5">
               {PROFILE_LIST.map(([key, p]) => (
@@ -788,54 +867,219 @@ export default function GarmentTestApp() {
 
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Món đồ
+              Trang phục
+            </h2>
+            <div className="mb-2 flex gap-1.5">
+              {(['top', 'bottom'] as const).map((s) => (
+                <Button key={s} active={activeSlot === s} onClick={() => setActiveSlot(s)}>
+                  {SLOT_LABEL[s]}
+                  {slots[s].kind ? ` · ${GARMENT_LABEL[slots[s].kind!]}` : ' · (trống)'}
+                </Button>
+              ))}
+            </div>
+            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+              Món đồ ({SLOT_LABEL[activeSlot]})
             </h2>
             <div className="mb-2 flex flex-wrap gap-1.5">
-              {(['tshirt', 'tank', 'croptop', 'pants', 'shorts'] as const).map((k) => (
+              {SLOT_KINDS[activeSlot].map((k) => (
                 <Button
                   key={k}
-                  active={garmentKind === k}
+                  active={active.kind === k}
                   onClick={() => {
-                    setGarmentKind(k);
-                    // presetIdx is a position in kindPresets, which is about
-                    // to become a different (differently-sized) array for
-                    // the new kind -- the old index would point at an
-                    // unrelated entry, or past the end.
-                    setPresetIdx(-1);
+                    const nextKind = active.kind === k ? null : k;
+                    const nextCalib = nextKind
+                      ? (loaded.meta.garments[nextKind]?.printCalibration ?? DEFAULT_CALIB)
+                      : DEFAULT_CALIB;
+                    // presetIdx is a position in that kind's preset list,
+                    // which is about to change -- the old index would point
+                    // at an unrelated entry, or past the end.
+                    updateSlot(activeSlot, {
+                      kind: nextKind,
+                      presetIdx: -1,
+                      printScale: nextCalib.scale,
+                      printOffsetY: nextCalib.offsetY,
+                    });
                   }}
                 >
                   {GARMENT_LABEL[k]}
                 </Button>
               ))}
             </div>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Size {isTop ? 'áo' : 'quần'}
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {loaded.meta.sizeOrder.map((s) => (
-                <Button key={s} active={size === s} onClick={() => setSize(s)}>
-                  {s} · {Math.round((gEntry?.sizes[s]?.[fitKey] ?? loaded.meta.sizes[s]?.chestCircCm) || 0)}cm
-                </Button>
-              ))}
-            </div>
+            {active.kind && (
+              <>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Size {fitKey === 'waistCircCm' ? 'quần' : 'áo'}
+                </h2>
+                <div className="flex flex-wrap gap-1.5">
+                  {loaded.meta.sizeOrder.map((s) => (
+                    <Button
+                      key={s}
+                      active={active.size === s}
+                      onClick={() => updateSlot(activeSlot, { size: s })}
+                    >
+                      {s} · {Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0)}cm
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Chất vải
-            </h2>
-            <div className="flex flex-col gap-1.5">
-              {FABRIC_LIST.map(([key, label]) => (
-                <Button
-                  key={key}
-                  active={fabricKey === key}
-                  onClick={() => setFabricKey(key as keyof typeof FABRICS)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </section>
+          {active.kind && (
+            <>
+              <section>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Chất vải ({SLOT_LABEL[activeSlot]})
+                </h2>
+                <div className="flex flex-col gap-1.5">
+                  {FABRIC_LIST.map(([key, label]) => (
+                    <Button
+                      key={key}
+                      active={active.fabricKey === key}
+                      onClick={() => updateSlot(activeSlot, { fabricKey: key as keyof typeof FABRICS })}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Ảnh in lên {fitKey === 'waistCircCm' ? 'quần' : 'áo'} ({SLOT_LABEL[activeSlot]})
+                </h2>
+                <div className="space-y-1.5">
+                  {(['front', 'back'] as const).map((side) => (
+                    <label key={side} className="block text-xs text-stone-600">
+                      <span className="mb-0.5 block">
+                        {side === 'front' ? 'Mặt trước' : 'Mặt sau'}
+                        {printBusy?.slot === activeSlot && printBusy.what === side && ' — đang tách nền…'}
+                        {(side === 'front' ? active.front : active.back) && ' ✓'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => loadPrint(activeSlot, side, e.target.files?.[0])}
+                        className="w-full text-[11px] file:mr-2 file:rounded file:border file:border-stone-300 file:bg-white file:px-2 file:py-0.5 file:text-[11px]"
+                      />
+                    </label>
+                  ))}
+                  {kindPresets.length > 0 && (
+                    <div className="rounded border border-stone-200 bg-stone-50 p-1.5">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => stepPreset(-1)}
+                          disabled={printBusy?.slot === activeSlot && printBusy.what === 'preset'}
+                          className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
+                        >
+                          ◀
+                        </button>
+                        <span className="flex-1 truncate text-center text-[11px] text-stone-600">
+                          {printBusy?.slot === activeSlot && printBusy.what === 'preset'
+                            ? 'đang tải…'
+                            : active.presetIdx < 0
+                              ? `Bộ sưu tập (${kindPresets.length})`
+                              : `${kindPresets[active.presetIdx].name} · ${active.presetIdx + 1}/${kindPresets.length}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => stepPreset(1)}
+                          disabled={printBusy?.slot === activeSlot && printBusy.what === 'preset'}
+                          className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                      <Button
+                        active={active.presetAuto}
+                        onClick={() => {
+                          const next = !active.presetAuto;
+                          updateSlot(activeSlot, { presetAuto: next });
+                          if (next && active.presetIdx < 0) stepPreset(1);
+                        }}
+                      >
+                        {active.presetAuto ? '⏸ dừng tự chạy' : '▶ tự chạy hết bộ'}
+                      </Button>
+                    </div>
+                  )}
+                  <Button
+                    active={false}
+                    onClick={() => {
+                      const s = makeSamplePrints();
+                      updateSlot(activeSlot, { front: s.front, back: s.back });
+                    }}
+                  >
+                    Dùng ảnh mẫu
+                  </Button>
+                  {(active.front || active.back) && (
+                    <Button
+                      active={false}
+                      onClick={() => {
+                        updateSlot(activeSlot, {
+                          front: null,
+                          back: null,
+                          baseColor: '#41599c',
+                          printScale: calib.scale,
+                          printOffsetY: calib.offsetY,
+                          presetAuto: false,
+                          presetIdx: -1,
+                        });
+                      }}
+                    >
+                      Bỏ ảnh in
+                    </Button>
+                  )}
+                </div>
+
+                {(active.front || active.back) && (
+                  <div className="mt-2 space-y-2 border-t border-stone-200 pt-2">
+                    <p className="text-[10px] leading-snug text-stone-400">
+                      Đã căn sẵn cho mẫu áo này ({calib.scale}× · {calib.offsetY}). Chỉ chỉnh nếu
+                      ảnh của bạn khác bố cục.
+                    </p>
+                    <label className="block text-xs text-stone-600">
+                      Phóng ảnh in: {active.printScale.toFixed(2)}×
+                      <input
+                        type="range"
+                        min={0.5}
+                        max={2}
+                        step={0.01}
+                        value={active.printScale}
+                        onChange={(e) => updateSlot(activeSlot, { printScale: parseFloat(e.target.value) })}
+                        className="mt-1 w-full"
+                      />
+                      <span className="text-[10px] text-stone-400">nhỏ = hoa văn to · lớn = hoa văn nhỏ</span>
+                    </label>
+                    <label className="block text-xs text-stone-600">
+                      Dời lên / xuống: {active.printOffsetY > 0 ? '+' : ''}
+                      {active.printOffsetY.toFixed(2)}
+                      <input
+                        type="range"
+                        min={-0.3}
+                        max={0.3}
+                        step={0.01}
+                        value={active.printOffsetY}
+                        onChange={(e) => updateSlot(activeSlot, { printOffsetY: parseFloat(e.target.value) })}
+                        className="mt-1 w-full"
+                      />
+                    </label>
+                    {(active.printScale !== calib.scale || active.printOffsetY !== calib.offsetY) && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateSlot(activeSlot, { printScale: calib.scale, printOffsetY: calib.offsetY })
+                        }
+                        className="text-[11px] text-stone-500 underline underline-offset-2"
+                      >
+                        ↺ về mẫu chuẩn
+                      </button>
+                    )}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
 
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
@@ -865,141 +1109,6 @@ export default function GarmentTestApp() {
 
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Ảnh in lên áo
-            </h2>
-            <div className="space-y-1.5">
-              {(['front', 'back'] as const).map((side) => (
-                <label key={side} className="block text-xs text-stone-600">
-                  <span className="mb-0.5 block">
-                    {side === 'front' ? 'Mặt trước' : 'Mặt sau'}
-                    {printBusy === side && ' — đang tách nền…'}
-                    {(side === 'front' ? front : back) && ' ✓'}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => loadPrint(side, e.target.files?.[0])}
-                    className="w-full text-[11px] file:mr-2 file:rounded file:border file:border-stone-300 file:bg-white file:px-2 file:py-0.5 file:text-[11px]"
-                  />
-                </label>
-              ))}
-              {kindPresets.length > 0 && (
-                <div className="rounded border border-stone-200 bg-stone-50 p-1.5">
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => stepPreset(-1)}
-                      disabled={printBusy === 'preset'}
-                      className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-                    >
-                      ◀
-                    </button>
-                    <span className="flex-1 truncate text-center text-[11px] text-stone-600">
-                      {printBusy === 'preset'
-                        ? 'đang tải…'
-                        : presetIdx < 0
-                          ? `Bộ sưu tập (${kindPresets.length})`
-                          : `${kindPresets[presetIdx].name} · ${presetIdx + 1}/${kindPresets.length}`}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => stepPreset(1)}
-                      disabled={printBusy === 'preset'}
-                      className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-                    >
-                      ▶
-                    </button>
-                  </div>
-                  <Button
-                    active={presetAuto}
-                    onClick={() => {
-                      const next = !presetAuto;
-                      setPresetAuto(next);
-                      if (next && presetIdx < 0) stepPreset(1);
-                    }}
-                  >
-                    {presetAuto ? '⏸ dừng tự chạy' : '▶ tự chạy hết bộ'}
-                  </Button>
-                </div>
-              )}
-              <Button
-                active={false}
-                onClick={() => {
-                  const s = makeSamplePrints();
-                  setFront(s.front);
-                  setBack(s.back);
-                }}
-              >
-                Dùng ảnh mẫu
-              </Button>
-              {(front || back) && (
-                <Button
-                  active={false}
-                  onClick={() => {
-                    setFront(null);
-                    setBack(null);
-                    setBaseColor('#41599c');
-                    setPrintScale(calib.scale);
-                    setPrintOffsetY(calib.offsetY);
-                    setPresetAuto(false);
-                    setPresetIdx(-1);
-                  }}
-                >
-                  Bỏ ảnh in
-                </Button>
-              )}
-            </div>
-
-            {(front || back) && (
-              <div className="mt-2 space-y-2 border-t border-stone-200 pt-2">
-                <p className="text-[10px] leading-snug text-stone-400">
-                  Đã căn sẵn cho mẫu áo này ({calib.scale}× · {calib.offsetY}). Chỉ chỉnh nếu
-                  ảnh của bạn khác bố cục.
-                </p>
-                <label className="block text-xs text-stone-600">
-                  Phóng ảnh in: {printScale.toFixed(2)}×
-                  <input
-                    type="range"
-                    min={0.5}
-                    max={2}
-                    step={0.01}
-                    value={printScale}
-                    onChange={(e) => setPrintScale(parseFloat(e.target.value))}
-                    className="mt-1 w-full"
-                  />
-                  <span className="text-[10px] text-stone-400">nhỏ = hoa văn to · lớn = hoa văn nhỏ</span>
-                </label>
-                <label className="block text-xs text-stone-600">
-                  Dời lên / xuống: {printOffsetY > 0 ? '+' : ''}
-                  {printOffsetY.toFixed(2)}
-                  <input
-                    type="range"
-                    min={-0.3}
-                    max={0.3}
-                    step={0.01}
-                    value={printOffsetY}
-                    onChange={(e) => setPrintOffsetY(parseFloat(e.target.value))}
-                    className="mt-1 w-full"
-                  />
-                </label>
-                {(printScale !== calib.scale || printOffsetY !== calib.offsetY) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPrintScale(calib.scale);
-                      setPrintOffsetY(calib.offsetY);
-                    }}
-                    className="text-[11px] text-stone-500 underline underline-offset-2"
-                  >
-                    ↺ về mẫu chuẩn
-                  </button>
-                )}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Hiển thị
             </h2>
             <div className="flex flex-col gap-1.5">
@@ -1013,7 +1122,7 @@ export default function GarmentTestApp() {
                   setShowStretch(false);
                 }}
               >
-                Vùng trước / sau
+                Vùng trước / sau ({SLOT_LABEL[activeSlot]})
               </Button>
               <Button
                 active={showStretch}
@@ -1022,7 +1131,7 @@ export default function GarmentTestApp() {
                   setShowFaces(false);
                 }}
               >
-                Bản đồ độ căng
+                Bản đồ độ căng ({SLOT_LABEL[activeSlot]})
               </Button>
               <Button active={wireframe} onClick={() => setWireframe((v) => !v)}>
                 Khung lưới
@@ -1037,67 +1146,53 @@ export default function GarmentTestApp() {
             )}
           </section>
 
-          <section className="rounded border border-stone-200 bg-stone-50 p-2.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-stone-500">
-                {fitKey === 'waistCircCm' ? 'Eo người' : 'Ngực người'}
-              </span>
-              <span className="font-medium">{bodyCircCm.toFixed(1)} cm</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">
-                {fitKey === 'waistCircCm' ? 'Eo quần' : 'Ngực áo'}
-              </span>
-              <span className="font-medium">{Math.round(garmentCircCm)} cm</span>
-            </div>
-            <div className="mt-1 flex justify-between border-t border-stone-200 pt-1">
-              <span className="text-stone-500">Ease</span>
-              <span
-                className={
-                  'font-semibold ' +
-                  (verdict === 'vua'
-                    ? 'text-emerald-600'
-                    : verdict === 'chat'
-                      ? 'text-red-600'
-                      : 'text-amber-600')
-                }
-              >
-                {ease !== null && ease >= 0 ? '+' : ''}
-                {ease?.toFixed(1)} cm · {verdictLabel[verdict]}
-              </span>
-            </div>
-            <p className="mt-1.5 text-[11px] leading-snug text-stone-400">
-              Ease tính thẳng từ chu vi, không phụ thuộc mô phỏng.
-            </p>
-          </section>
+          {activeResolved && (
+            <section className="rounded border border-stone-200 bg-stone-50 p-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-stone-500">
+                  {fitKey === 'waistCircCm' ? 'Eo người' : 'Ngực người'}
+                </span>
+                <span className="font-medium">{bodyCircCm.toFixed(1)} cm</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-500">
+                  {fitKey === 'waistCircCm' ? 'Eo quần' : 'Ngực áo'}
+                </span>
+                <span className="font-medium">{Math.round(garmentCircCm ?? 0)} cm</span>
+              </div>
+              <div className="mt-1 flex justify-between border-t border-stone-200 pt-1">
+                <span className="text-stone-500">Ease</span>
+                <span
+                  className={
+                    'font-semibold ' +
+                    (verdict === 'vua'
+                      ? 'text-emerald-600'
+                      : verdict === 'chat'
+                        ? 'text-red-600'
+                        : 'text-amber-600')
+                  }
+                >
+                  {ease !== null && ease >= 0 ? '+' : ''}
+                  {ease?.toFixed(1)} cm · {verdictLabel[verdict]}
+                </span>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-snug text-stone-400">
+                Ease tính thẳng từ chu vi, không phụ thuộc mô phỏng.
+              </p>
+            </section>
+          )}
         </aside>
 
         <main className="min-w-0 flex-1">
           <GarmentClothCanvas
             avatar={scene.avatar}
-            geom={garment.geom}
-            constraints={garment.constraints}
             colliders={scene.colliders}
             groundY={scene.groundY}
-            pinRegion={gEntry?.pinRegion ?? 5}
-            anchorY={
-              (gEntry?.yZero ?? '').startsWith('waist')
-                ? scene.colliders.waistY
-                : scene.colliders.shoulderY
-            }
-            fabric={FABRICS[fabricKey]}
             spinning={spinning}
             spinSpeed={spinSpeed}
             turnNonce={turnNonce}
-            showGarment={showGarment}
-            showStretch={showStretch}
-            showFaces={showFaces}
             wireframe={wireframe}
-            frontPrint={front}
-            backPrint={back}
-            baseColor={baseColor}
-            printScale={printScale}
-            printOffset={[0, printOffsetY]}
+            pieces={pieces}
           />
         </main>
       </div>

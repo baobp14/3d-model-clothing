@@ -84,16 +84,33 @@ TANK_SIZE_CHART = {
 TANK_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
 
 # --- Bang size ao croptop unisex (cm) ----------------------------------------
-# Cung build_size, giu nguyen tay ao ngan nhu SIZE_CHART -- chi bodyLength
-# ngan han han (gau tren eo thay vi qua hong) de khac biet nam o DO DAI, cung
+# Cung build_size, giu nguyen tay ao ngan nhu SIZE_CHART -- bodyLength ngan
+# han han (gau tren eo thay vi qua hong) de khac biet nam o DO DAI, cung
 # huong da chung minh an toan/de nhan ra voi quan short so voi quan dai.
+# chest keo xuong duoi SIZE_CHART ~5-6cm (thay vi bang nhau) de om sat nguoi
+# hon -- dung "form" cua croptop that (boi sat nguoi), khong chi la ao thun
+# bi cat ngan.
 CROPTOP_SIZE_CHART = {
-    "S":  {"chest": 92.0,  "bodyLength": 40.0, "sleeveLength": 18.0, "sleeveOpening": 34.0},
-    "M":  {"chest": 98.0,  "bodyLength": 42.0, "sleeveLength": 19.0, "sleeveOpening": 36.0},
-    "L":  {"chest": 104.0, "bodyLength": 44.0, "sleeveLength": 20.0, "sleeveOpening": 38.0},
-    "XL": {"chest": 110.0, "bodyLength": 46.0, "sleeveLength": 21.0, "sleeveOpening": 40.0},
+    "S":  {"chest": 86.0,  "bodyLength": 40.0, "sleeveLength": 18.0, "sleeveOpening": 34.0},
+    "M":  {"chest": 92.0,  "bodyLength": 42.0, "sleeveLength": 19.0, "sleeveOpening": 36.0},
+    "L":  {"chest": 98.0,  "bodyLength": 44.0, "sleeveLength": 20.0, "sleeveOpening": 38.0},
+    "XL": {"chest": 104.0, "bodyLength": 46.0, "sleeveLength": 21.0, "sleeveOpening": 40.0},
 }
 CROPTOP_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
+
+# --- Bang size ao so mi unisex (cm) ------------------------------------------
+# Cung build_size, tay ngan nhu SIZE_CHART (tay dai bi chan boi gioi han hinh
+# hoc canh tay/ban tay -- xem lich su commit). Khac ao thun o do RONG RAI hon:
+# chest +6cm (form so mi khong boi sat nguoi nhu ao thun), bodyLength +2cm
+# (gau dai hon, kieu ao so mi mac ngoai). Mac dinh vai "so mi" (woven, it co
+# gian) o client thay vi "thun".
+SHIRT_SIZE_CHART = {
+    "S":  {"chest": 98.0,  "bodyLength": 68.0, "sleeveLength": 18.0, "sleeveOpening": 38.0},
+    "M":  {"chest": 104.0, "bodyLength": 70.0, "sleeveLength": 19.0, "sleeveOpening": 40.0},
+    "L":  {"chest": 110.0, "bodyLength": 72.0, "sleeveLength": 20.0, "sleeveOpening": 42.0},
+    "XL": {"chest": 116.0, "bodyLength": 74.0, "sleeveLength": 21.0, "sleeveOpening": 44.0},
+}
+SHIRT_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
 
 # Cach anh in san pham can vao _ARTUV.
 #
@@ -1902,6 +1919,7 @@ def main() -> None:
     shirts = [build_size(body, s) for s in SIZE_ORDER]
     tanks = [build_size(body, s, TANK_SIZE_CHART) for s in SIZE_ORDER]
     croptops = [build_size(body, s, CROPTOP_SIZE_CHART) for s in SIZE_ORDER]
+    dress_shirts = [build_size(body, s, SHIRT_SIZE_CHART) for s in SIZE_ORDER]
     pants = [build_pants_size(body, s) for s in SIZE_ORDER]
     # Short = cat ngang ong chan cua quan dai da dung xong (khong tu nen doc
     # rieng) -- xem docstring cua build_shorts_from_pants.
@@ -1910,6 +1928,7 @@ def main() -> None:
     shirt_glb = write_garment(shirts, "garment-tshirt.glb", "tshirt_")
     tank_glb = write_garment(tanks, "garment-tank.glb", "tank_")
     croptop_glb = write_garment(croptops, "garment-croptop.glb", "croptop_")
+    dress_shirt_glb = write_garment(dress_shirts, "garment-shirt.glb", "shirt_")
     pants_glb = write_garment(pants, "garment-pants.glb", "pants_")
     shorts_glb = write_garment(shorts, "garment-shorts.glb", "shorts_")
 
@@ -2005,6 +2024,27 @@ def main() -> None:
                     for m in croptops
                 },
             },
+            "shirt": {
+                "glb": "garment-shirt.glb",
+                "meshPrefix": "shirt_",
+                "label": "Áo Sơ Mi",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": SHIRT_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in dress_shirts
+                },
+            },
             "pants": {
                 "glb": "garment-pants.glb",
                 "meshPrefix": "pants_",
@@ -2062,6 +2102,8 @@ def main() -> None:
     _print_report("Ao ba lo", tanks, "chestCirc")
     print(croptop_glb.name + ": " + str(croptop_glb.stat().st_size) + " B")
     _print_report("Ao croptop", croptops, "chestCirc")
+    print(dress_shirt_glb.name + ": " + str(dress_shirt_glb.stat().st_size) + " B")
+    _print_report("Ao so mi", dress_shirts, "chestCirc")
     print(pants_glb.name + ": " + str(pants_glb.stat().st_size) + " B")
     _print_report("Quan", pants, "waistCirc")
     print(shorts_glb.name + ": " + str(shorts_glb.stat().st_size) + " B")
