@@ -167,9 +167,11 @@ interface GarmentMeta {
 }
 
 const DEFAULT_CALIB = { scale: 1, offsetX: 0, offsetY: 0 };
-type GarmentKind = 'tshirt' | 'pants' | 'shorts';
+type GarmentKind = 'tshirt' | 'tank' | 'croptop' | 'pants' | 'shorts';
 const GARMENT_LABEL: Record<GarmentKind, string> = {
   tshirt: 'Áo thun',
+  tank: 'Áo Cộc Tay',
+  croptop: 'Áo Croptop',
   pants: 'Quần',
   shorts: 'Quần short',
 };
@@ -298,6 +300,7 @@ export default function GarmentTestApp() {
   const [printScale, setPrintScale] = useState(1);
   const [printOffsetY, setPrintOffsetY] = useState(0);
   const [garmentKind, setGarmentKind] = useState<GarmentKind>('tshirt');
+  const isTop = garmentKind === 'tshirt' || garmentKind === 'tank' || garmentKind === 'croptop';
   const gEntry = loaded?.meta.garments?.[garmentKind];
   // Which body measurement this garment is sized against -- shirts fit off
   // the chest, pants/shorts off the waist. The "Người mẫu" picker used to
@@ -506,6 +509,8 @@ export default function GarmentTestApp() {
 
         const garments = {
           tshirt: await loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
+          tank: await loadGarment('/models/garment-tank.glb', 'tank_'),
+          croptop: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
         };
@@ -636,7 +641,7 @@ export default function GarmentTestApp() {
             </h2>
             <p className="mb-1.5 text-[11px] text-stone-400">
               Số đo {fitKey === 'waistCircCm' ? 'vòng eo' : 'vòng ngực'} của người mẫu — không
-              phải size {garmentKind === 'tshirt' ? 'áo' : 'quần'}.
+              phải size {fitKey === 'waistCircCm' ? 'quần' : 'áo'}.
             </p>
             <div className="flex flex-wrap gap-1.5">
               {PROFILE_LIST.map(([key, p]) => (
@@ -785,8 +790,8 @@ export default function GarmentTestApp() {
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Món đồ
             </h2>
-            <div className="mb-2 flex gap-1.5">
-              {(['tshirt', 'pants', 'shorts'] as const).map((k) => (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {(['tshirt', 'tank', 'croptop', 'pants', 'shorts'] as const).map((k) => (
                 <Button
                   key={k}
                   active={garmentKind === k}
@@ -804,7 +809,7 @@ export default function GarmentTestApp() {
               ))}
             </div>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Size {garmentKind === 'tshirt' ? 'áo' : 'quần'}
+              Size {isTop ? 'áo' : 'quần'}
             </h2>
             <div className="flex flex-wrap gap-1.5">
               {loaded.meta.sizeOrder.map((s) => (
