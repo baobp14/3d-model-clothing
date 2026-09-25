@@ -168,7 +168,15 @@ interface GarmentMeta {
 }
 
 const DEFAULT_CALIB = { scale: 1, offsetX: 0, offsetY: 0 };
-type GarmentKind = 'tshirt' | 'tank' | 'croptop' | 'shirt' | 'pants' | 'shorts';
+type GarmentKind =
+  | 'tshirt'
+  | 'tank'
+  | 'croptop'
+  | 'shirt'
+  | 'pants'
+  | 'shorts'
+  | 'capri'
+  | 'skirt';
 const GARMENT_LABEL: Record<GarmentKind, string> = {
   tshirt: 'Áo thun',
   tank: 'Áo Cộc Tay',
@@ -176,6 +184,8 @@ const GARMENT_LABEL: Record<GarmentKind, string> = {
   shirt: 'Áo Sơ Mi',
   pants: 'Quần',
   shorts: 'Quần short',
+  capri: 'Quần lửng',
+  skirt: 'Chân váy',
 };
 
 // A top and a bottom are worn together now -- two independent slots instead
@@ -184,7 +194,7 @@ const GARMENT_LABEL: Record<GarmentKind, string> = {
 type Slot = 'top' | 'bottom';
 const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
   top: ['tshirt', 'tank', 'croptop', 'shirt'],
-  bottom: ['pants', 'shorts'],
+  bottom: ['pants', 'shorts', 'capri', 'skirt'],
 };
 const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
 
@@ -294,8 +304,11 @@ type PrintEntry = {
   baseColor: string;
 };
 
+// Quần lửng is cut from the same pants mesh, so the pants photos fit it; the
+// skirt has no photo set of its own.
 function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
   if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
+  if (activeKind === 'capri') return presetKind === 'pants';
   return presetKind === activeKind;
 }
 
@@ -567,6 +580,8 @@ export default function GarmentTestApp() {
           shirt: await loadGarment('/models/garment-shirt.glb', 'shirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
+          capri: await loadGarment('/models/garment-capri.glb', 'capri_'),
+          skirt: await loadGarment('/models/garment-skirt.glb', 'skirt_'),
         };
 
         if (cancelled) return;
