@@ -43,6 +43,8 @@ export interface GarmentPieceInput {
   pinRegion?: number;
   /** World Y of that ring on the body (shoulder line for a top, waist for trousers). */
   anchorY?: number;
+  /** Draw a button placket down the centre front (dress shirt). */
+  placket?: boolean;
 }
 
 export interface ClothViewProps {
@@ -117,6 +119,7 @@ function GarmentPiece({
   colliders,
   pinRegion,
   anchorY,
+  placket = false,
   fabric,
   showGarment = true,
   showStretch,
@@ -181,7 +184,8 @@ function GarmentPiece({
     // neckline rather than stopping on a hard line.
     const printMask = new Float32Array(geom.regions.length);
     for (let v = 0; v < geom.regions.length; v++) {
-      printMask[v] = geom.regions[v] === GARMENT_REGION.collar ? 0 : 1;
+      const r = geom.regions[v];
+      printMask[v] = r === GARMENT_REGION.collar || r === GARMENT_REGION.collarLeaf ? 0 : 1;
     }
     g.setAttribute('_printmask', new THREE.BufferAttribute(printMask, 1));
 
@@ -207,9 +211,32 @@ function GarmentPiece({
     }
     g.setAttribute('_waistband', new THREE.BufferAttribute(waistband, 1));
 
+    // Rest-pose (x, y) for the placket and buttons. The live position moves
+    // with the sim and turns with the body, so a stripe keyed on it would
+    // swim across the cloth; the rest coords stay stuck to the threads.
+    const rest = new Float32Array(geom.regions.length * 2);
+    for (let v = 0; v < geom.regions.length; v++) {
+      rest[v * 2] = geom.positions[v * 3];
+      rest[v * 2 + 1] = geom.positions[v * 3 + 1];
+    }
+    g.setAttribute('_rest', new THREE.BufferAttribute(rest, 2));
+
     g.setIndex(new THREE.BufferAttribute(new Uint32Array(geom.indices), 1));
     return g;
   }, [geom, pinRegion]);
+
+  // Top of the placket: where the centre front meets the collar.
+  const placketTop = useMemo(() => {
+    let top = -Infinity;
+    for (let v = 0; v < geom.regions.length; v++) {
+      const r = geom.regions[v];
+      if (r === GARMENT_REGION.collar || r === GARMENT_REGION.collarLeaf) continue;
+      const x = geom.positions[v * 3];
+      const z = geom.positions[v * 3 + 2];
+      if (Math.abs(x) < 0.02 && z > 0) top = Math.max(top, geom.positions[v * 3 + 1]);
+    }
+    return Number.isFinite(top) ? top : 0;
+  }, [geom]);
 
   // One mutable colliders object: the yaw changes every frame and allocating a
   // fresh one per frame would churn the heap for no reason.
@@ -249,6 +276,8 @@ function GarmentPiece({
     frontMap: { value: EMPTY_TEX },
     backMap: { value: EMPTY_TEX },
     hasPrint: { value: 0 },
+    placket: { value: 0 },
+    placketTop: { value: 0 },
     showFaces: { value: 0 },
     artScale: { value: 1 },
     artOffset: { value: new THREE.Vector2(0, 0) },
@@ -261,9 +290,11 @@ function GarmentPiece({
     printUniforms.current.hasPrint.value =
       (frontPrint || backPrint) && !showFaces && !showStretch ? 1 : 0;
     printUniforms.current.showFaces.value = showFaces && !showStretch ? 1 : 0;
+    printUniforms.current.placket.value = placket ? 1 : 0;
+    printUniforms.current.placketTop.value = placketTop;
     printUniforms.current.artScale.value = printScale;
     printUniforms.current.artOffset.value.set(printOffset[0], printOffset[1]);
-  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset]);
+  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop]);
 
   const onBeforeCompile = useMemo(
     () => (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -271,6 +302,8 @@ function GarmentPiece({
       shader.uniforms.backMap = printUniforms.current.backMap;
       shader.uniforms.hasPrint = printUniforms.current.hasPrint;
       shader.uniforms.uShowFaces = printUniforms.current.showFaces;
+      shader.uniforms.uPlacket = printUniforms.current.placket;
+      shader.uniforms.uPlacketTop = printUniforms.current.placketTop;
       shader.uniforms.uArtScale = printUniforms.current.artScale;
       shader.uniforms.uArtOffset = printUniforms.current.artOffset;
 
@@ -279,6 +312,8 @@ function GarmentPiece({
 attribute float _printmask;
 attribute vec2 _artuv;
 attribute float _waistband;
+attribute vec2 _rest;
+varying vec2 vRest;
 varying float vFacing;
 varying float vPrintMask;
 varying vec2 vArtUv;
@@ -292,6 +327,7 @@ varying float vLocalY;
   vPrintMask = _printmask;
   vArtUv = _artuv;
   vWaistband = _waistband;
+  vRest = _rest;
   vLocalY = position.y;`,
         );
 
@@ -300,6 +336,9 @@ varying float vLocalY;
 uniform sampler2D backMap;
 uniform float hasPrint;
 uniform float uShowFaces;
+uniform float uPlacket;
+uniform float uPlacketTop;
+varying vec2 vRest;
 uniform float uArtScale;
 uniform vec2 uArtOffset;
 varying float vFacing;
@@ -333,6 +372,29 @@ varying float vLocalY;
     vec4 b = texture2D(backMap, vec2(1.0 - puv.x, puv.y));
     vec4 art = mix(b, f, vFacing);
     diffuseColor.rgb = mix(diffuseColor.rgb, art.rgb, art.a * vPrintMask);
+  }
+  // Dress-shirt placket: a 3.4 cm band down the centre front with a stitch
+  // line on each edge and a button every 9 cm. Drawn after the print, the
+  // way a real placket sits on top of the printed body panel.
+  if (uPlacket > 0.5 && vFacing > 0.5 && vPrintMask > 0.5) {
+    float ax = abs(vRest.x);
+    float dy = uPlacketTop - vRest.y;
+    if (ax < 0.017 && dy > 0.0) {
+      diffuseColor.rgb *= 1.06;
+      float seam = smoothstep(0.0012, 0.0, abs(ax - 0.0145));
+      diffuseColor.rgb *= 1.0 - 0.35 * seam;
+      float k = dy - 0.035;
+      if (k > -0.01) {
+        float cy = floor(k / 0.09 + 0.5) * 0.09;
+        float d = length(vec2(vRest.x, k - cy));
+        float btn = smoothstep(0.0062, 0.0052, d);
+        float rim = smoothstep(0.0062, 0.0052, d) - smoothstep(0.0048, 0.0040, d);
+        float holes = smoothstep(0.0011, 0.0007, length(vec2(abs(vRest.x) - 0.0016, abs(k - cy) - 0.0016)));
+        vec3 bc = vec3(0.93, 0.92, 0.88);
+        diffuseColor.rgb = mix(diffuseColor.rgb, bc * (1.0 - 0.25 * rim), btn);
+        diffuseColor.rgb = mix(diffuseColor.rgb, bc * 0.45, holes * btn);
+      }
+    }
   }
   // Panel overlay: cyan = takes the FRONT image, orange = the BACK image,
   // grey = no print (sleeve / collar / yoke).

@@ -320,6 +320,8 @@ export const GARMENT_REGION = {
   sleeveLeft: 7,
   cuffRight: 8,
   cuffLeft: 9,
+  /** Dress-shirt collar leaf: pinned with the collar, but not smoothed into it. */
+  collarLeaf: 10,
 } as const;
 
 export interface Fabric {
@@ -666,6 +668,11 @@ export function createSimState(
     // free endpoint, so the solver cannot correct it. The rest RESTS on the
     // body and is carried by contact plus friction.
     if (geom.regions[v] === pinRegion) pinned[v] = 1;
+    // A shirt collar is interfaced and stands on its own; it rides the neck
+    // ring rigidly rather than hanging.
+    if (pinRegion === GARMENT_REGION.collar && geom.regions[v] === GARMENT_REGION.collarLeaf) {
+      pinned[v] = 1;
+    }
   }
 
   // Pinned vertices skip collision for the whole run, so if the collar starts
@@ -693,7 +700,7 @@ export function createSimState(
   for (let e = 0; e < constraints.restLengths.length; e++) {
     const a = constraints.edges[e * 2];
     const b = constraints.edges[e * 2 + 1];
-    if (!pinned[a] || !pinned[b]) continue;
+    if (geom.regions[a] !== pinRegion || geom.regions[b] !== pinRegion) continue;
     collarNeighbours[a].push(b);
     collarNeighbours[b].push(a);
   }
@@ -723,7 +730,7 @@ export function createSimState(
   const smoothCollar = () => {
     const moved = new Float32Array(positions);
     for (let v = 0; v < n; v++) {
-      if (!pinned[v]) continue;
+      if (geom.regions[v] !== pinRegion) continue;
       const ring = collarNeighbours[v];
       if (ring.length < 2) continue;
       let cx = 0;

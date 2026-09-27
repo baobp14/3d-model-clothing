@@ -306,6 +306,13 @@ type PrintEntry = {
 
 // Quần lửng is cut from the same pants mesh, so the pants photos fit it; the
 // skirt has no photo set of its own.
+// Chan vay va so mi la vai det: vai thun gian 20% lam vay chay luon song va
+// so mi mem nhu ao thun.
+const DEFAULT_FABRIC: Partial<Record<GarmentKind, keyof typeof FABRICS>> = {
+  skirt: 'woven',
+  shirt: 'woven',
+};
+
 function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
   if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
   if (activeKind === 'capri') return presetKind === 'pants';
@@ -364,7 +371,8 @@ export default function GarmentTestApp() {
   const [spinning, setSpinning] = useState(false);
   const [spinSpeed, setSpinSpeed] = useState(1.6);
   const [turnNonce, setTurnNonce] = useState(0);
-  const [showGarment, setShowGarment] = useState(true);
+  const [showTop, setShowTop] = useState(true);
+  const [showBottom, setShowBottom] = useState(true);
   const [showStretch, setShowStretch] = useState(false);
   const [showFaces, setShowFaces] = useState(false);
   const [wireframe, setWireframe] = useState(false);
@@ -704,7 +712,7 @@ export default function GarmentTestApp() {
       anchorY: (resolved.entry?.yZero ?? '').startsWith('waist')
         ? scene.colliders.waistY
         : scene.colliders.shoulderY,
-      showGarment,
+      showGarment: slot === 'top' ? showTop : showBottom,
       showStretch: showStretch && slot === activeSlot,
       showFaces: showFaces && slot === activeSlot,
       frontPrint: resolved.state.front,
@@ -712,6 +720,7 @@ export default function GarmentTestApp() {
       baseColor: resolved.state.baseColor,
       printScale: resolved.state.printScale,
       printOffset: [0, resolved.state.printOffsetY],
+      placket: resolved.state.kind === 'shirt',
     });
   }
 
@@ -911,6 +920,7 @@ export default function GarmentTestApp() {
                     updateSlot(activeSlot, {
                       kind: nextKind,
                       presetIdx: -1,
+                      fabricKey: (nextKind && DEFAULT_FABRIC[nextKind]) ?? 'knit',
                       printScale: nextCalib.scale,
                       printOffsetY: nextCalib.offsetY,
                     });
@@ -1127,8 +1137,11 @@ export default function GarmentTestApp() {
               Hiển thị
             </h2>
             <div className="flex flex-col gap-1.5">
-              <Button active={showGarment} onClick={() => setShowGarment((v) => !v)}>
-                Hiện quần áo
+              <Button active={showTop} onClick={() => setShowTop((v) => !v)}>
+                Hiện áo
+              </Button>
+              <Button active={showBottom} onClick={() => setShowBottom((v) => !v)}>
+                Hiện quần / váy
               </Button>
               <Button
                 active={showFaces}

@@ -211,6 +211,10 @@ REGION = {
     "sleeveLeft": 7,
     "cuffRight": 8,
     "cuffLeft": 9,
+    # La co + chan co cua ao so mi (add_shirt_collar). Ghim cung nhu `collar`
+    # nhung sim KHONG lam muot no cung vong co -- lam muot la vuot phang ca
+    # mieng co vao duong vien co.
+    "collarLeaf": 10,
 }
 
 FRONT_HALF_ANGLE = math.radians(55)
@@ -293,6 +297,10 @@ WELD_DIST = 0.012
 
 def sub3(a, b):
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+
+def cross3(a, b):
+    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
 
 
 def dot(a, b):
@@ -1184,6 +1192,141 @@ def build_size(body: BodyReference, size: str, size_chart: dict = SIZE_CHART) ->
     }
 
 
+COLLAR_STAND = 0.032      # chieu cao chan co (m)
+COLLAR_NECK_EASE = 0.009  # khe giua chan co va co nguoi
+COLLAR_FRONT_GAP = 0.12   # nua goc ho truoc (rad) -- cho hai dau co gap nhau
+COLLAR_TIP_DROP = 0.045   # mui co truoc chuc xuong them bao nhieu (m)
+
+
+def add_shirt_collar(m: dict, body: BodyReference) -> dict:
+    """Gan co so mi (chan co dung + la co lat xuong) len vong co cua ao.
+
+    Ao so mi dung chung mesh voi ao thun, nen truoc day chi la ao thun co
+    duong co tron -- khong co co ao. Co duoc dung thang tu vong bien co:
+
+      hang 0  vong co cua ao (dinh da co)
+      hang 1  mep tren chan co: dung len COLLAR_STAND, keo vao om sat co nguoi
+      hang 2  nep gap: lech ra ngoai mot chut
+      hang 3  giua la co
+      hang 4  mep la co: lat xuong trum qua duong may co; o hai ben truoc keo
+              dai chuc xuong thanh hai mui co.
+
+    Toan bo dinh co gan nhan `collar` nen sim ghim cung theo co the (co that
+    duoc dung bang keo lot, khong ru xuong). Giua truoc de ho mot khe hep.
+    """
+    positions = [tuple(p) for p in m["positions"]]
+    indices = m["indices"]
+    triangles = [tuple(indices[i:i + 3]) for i in range(0, len(indices), 3)]
+    neck = max(boundary_rings(triangles), key=lambda r: max(positions[i][1] for i in r))
+
+    # Co nguoi o he toa do local cua ao (y tu mom vai, z tu truc than).
+    # 5 cm tren mom vai: giua co. Cao hon (7.5 cm) la lat cat dinh ca CAM, tam
+    # co lech ra truoc 3 cm va la co sau gay venh ra khoi gay.
+    ny = 0.05
+    slab = [(p[0], p[2] - body.axis_z) for p in body.positions
+            if abs(p[1] - body.shoulder_y - ny) < 0.012]
+    ring_c = (sum(positions[i][0] for i in neck) / len(neck),
+              sum(positions[i][2] for i in neck) / len(neck))
+    slab = [q for q in slab if math.dist(q, ring_c) < 0.11]
+    if len(slab) < 8:
+        raise RuntimeError("khong tim thay co nguoi de dung co ao")
+    ncx = sum(q[0] for q in slab) / len(slab)
+    ncz = sum(q[1] for q in slab) / len(slab)
+    bins = 24
+    neck_r = [0.0] * bins
+    for x, z in slab:
+        j = int((math.atan2(x - ncx, z - ncz) % (2 * math.pi)) / (2 * math.pi) * bins) % bins
+        neck_r[j] = max(neck_r[j], math.hypot(x - ncx, z - ncz))
+    mean_r = sum(r for r in neck_r if r > 0) / max(1, sum(1 for r in neck_r if r > 0))
+    neck_r = [r if r > 0 else mean_r for r in neck_r]
+
+    def ang(i: int) -> float:
+        p = positions[i]
+        return math.atan2(p[0] - ncx, p[2] - ncz)  # 0 = chinh truoc
+
+    order = sorted(neck, key=lambda i: ang(i) % (2 * math.pi))
+    order = [i for i in order if abs(ang(i)) > COLLAR_FRONT_GAP]
+    if len(order) < 8:
+        raise RuntimeError("vong co qua it dinh de dung co ao")
+
+    region_leaf = REGION["collarLeaf"]
+    rows: list[list[int]] = [order]
+    new_rows: list[list[tuple[float, float, float]]] = [[], [], [], []]
+    for i in order:
+        p = positions[i]
+        a = ang(i)
+        d = (math.sin(a), math.cos(a))
+        j = int((a % (2 * math.pi)) / (2 * math.pi) * bins) % bins
+        rn = neck_r[j] + COLLAR_NECK_EASE
+        # 0 o sau gay, 1 o chinh truoc
+        front = max(0.0, 1.0 - abs(a) / (math.pi * 0.45))
+        front = front * front * (3.0 - 2.0 * front)
+        stand = COLLAR_STAND * (1.0 - 0.25 * front)
+        top = (ncx + d[0] * rn, p[1] + stand, ncz + d[1] * rn)
+        fold = (top[0] + d[0] * 0.005, top[1] + 0.003, top[2] + d[1] * 0.005)
+        r_seam = math.hypot(p[0] - ncx, p[2] - ncz)
+        drop = COLLAR_TIP_DROP * front
+        # Mep la co chi vuot qua duong may co mot chut roi nam xuong ao -- vuot
+        # xa hon la la co chia ra sau gay nhu cai canh.
+        edge_r = max(r_seam, rn) + 0.004 + 0.018 * front
+        edge = (ncx + d[0] * edge_r, p[1] - 0.012 - drop, ncz + d[1] * edge_r)
+        mid_r = (rn + 0.005 + edge_r) / 2.0 + 0.003
+        mid = (ncx + d[0] * mid_r, (fold[1] + edge[1]) / 2.0, ncz + d[1] * mid_r)
+        for k, q in enumerate((top, fold, mid, edge)):
+            new_rows[k].append(q)
+
+    uvs = list(m["uvs"])
+    art_uvs = list(m["art_uvs"])
+    regions = list(m["regions"])
+    facing = list(m["facing"])
+    for row in new_rows:
+        ids = []
+        for k, q in enumerate(row):
+            src = order[k]
+            ids.append(len(positions))
+            positions.append(q)
+            uvs.append(uvs[src])
+            art_uvs.append(art_uvs[src])
+            facing.append(facing[src])
+            regions.append(region_leaf)
+        rows.append(ids)
+
+    # Huong tam giac: chan co phai quay mat ra ngoai (xa truc co).
+    def outward(a: int, b: int, c: int) -> bool:
+        pa, pb, pc = positions[a], positions[b], positions[c]
+        n = cross3(sub3(pb, pa), sub3(pc, pa))
+        cx = (pa[0] + pb[0] + pc[0]) / 3.0 - ncx
+        cz = (pa[2] + pb[2] + pc[2]) / 3.0 - ncz
+        return n[0] * cx + n[2] * cz > 0.0
+
+    flip = not outward(rows[0][0], rows[0][1], rows[1][0])
+    added = []
+    for r in range(len(rows) - 1):
+        lo, hi = rows[r], rows[r + 1]
+        for k in range(len(order) - 1):  # ho o giua truoc: khong noi dau-cuoi
+            t1 = (lo[k], lo[k + 1], hi[k])
+            t2 = (hi[k], lo[k + 1], hi[k + 1])
+            for t in (t1, t2):
+                added.append((t[0], t[2], t[1]) if flip else t)
+    triangles += added
+
+    out = dict(m)
+    out["positions"] = positions
+    out["normals"] = compute_smooth_normals(positions, triangles)
+    out["uvs"] = uvs
+    out["art_uvs"] = art_uvs
+    out["regions"] = regions
+    out["facing"] = facing
+    out["indices"] = [v for t in triangles for v in t]
+    out["boundaryLoops"] = boundary_loops(triangles)
+    counts: dict[str, int] = {}
+    inv = {v: k for k, v in REGION.items()}
+    for r in regions:
+        counts[inv[r]] = counts.get(inv[r], 0) + 1
+    out["regionCounts"] = counts
+    return out
+
+
 def _close_inseam(
     positions, triangles, source, body: BodyReference, y_floor: float
 ) -> None:
@@ -1857,31 +2000,60 @@ def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SI
         if not (y_hem - 0.03 <= p[1] <= y_top + 0.03):
             continue
         dx, dz = p[0], p[2] - body.axis_z
-        r = math.hypot(dx, dz)
-        if r > 0.35:
+        if math.hypot(dx, dz) > 0.35:
             continue
-        pts.append((p[1], math.atan2(dx, dz) % (2.0 * math.pi), r))
+        pts.append((p[1], dx, dz))
+
+    def hull_2d(xy: list[tuple[float, float]]) -> list[tuple[float, float]]:
+        xy = sorted(set(xy))
+        if len(xy) < 3:
+            return xy
+
+        def cross(o, a, b):
+            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+        lower: list[tuple[float, float]] = []
+        for q in xy:
+            while len(lower) >= 2 and cross(lower[-2], lower[-1], q) <= 0:
+                lower.pop()
+            lower.append(q)
+        upper: list[tuple[float, float]] = []
+        for q in reversed(xy):
+            while len(upper) >= 2 and cross(upper[-2], upper[-1], q) <= 0:
+                upper.pop()
+            upper.append(q)
+        return lower[:-1] + upper[:-1]
 
     def silhouette(y: float) -> list[float]:
-        row = [0.0] * n
-        for py, th, r in pts:
-            if abs(py - y) <= 0.012:
-                j = int(th / (2.0 * math.pi) * n) % n
-                if r > row[j]:
-                    row[j] = r
-        filled = [j for j in range(n) if row[j] > 0.0]
-        if not filled:
+        """Ban kinh theo goc cua BAO LOI lat cat co the o do cao y.
+
+        Vai khong chui vao cho lom (khe giua hai chan, eo lung, duoi mong), nen
+        lay bao loi chu khong lay duong bao that -- lay duong bao that thi vay bi
+        lom lom lom theo mong va dui.
+        """
+        hull = hull_2d([(dx, dz) for py, dx, dz in pts if abs(py - y) <= 0.012])
+        if len(hull) < 3:
             raise RuntimeError(f"{size}: khong co dinh co the nao o do cao {y:.3f}")
-        # Goc trong (vd khe giua hai chan): noi suy tu hai goc co du lieu gan nhat.
-        out = list(row)
-        for j in range(n):
-            if row[j] > 0.0:
-                continue
-            a = max((k for k in filled if k < j), default=filled[-1] - n)
-            b = min((k for k in filled if k > j), default=filled[0] + n)
-            t = (j - a) / (b - a)
-            out[j] = row[a % n] + (row[b % n] - row[a % n]) * t
-        return out
+        cx = sum(q[0] for q in hull) / len(hull)
+        cz = sum(q[1] for q in hull) / len(hull)
+        row = []
+        for a in angles:
+            ux, uz = math.sin(a), math.cos(a)
+            best = 0.0
+            # Tia tu truc than (0, 0) cat canh bao loi. Truc than nam trong bao
+            # loi o moi do cao cua vay nen luon co dung mot giao diem xa nhat.
+            for k in range(len(hull)):
+                (x1, z1), (x2, z2) = hull[k], hull[(k + 1) % len(hull)]
+                ex, ez = x2 - x1, z2 - z1
+                den = ux * ez - uz * ex
+                if abs(den) < 1e-12:
+                    continue
+                t = (x1 * ez - z1 * ex) / den
+                u = (x1 * uz - z1 * ux) / den
+                if t > 0.0 and -1e-9 <= u <= 1.0 + 1e-9:
+                    best = max(best, t)
+            row.append(best if best > 0.0 else math.hypot(cx, cz))
+        return row
 
     def smooth_circular(row: list[float], passes: int = 3) -> list[float]:
         for _ in range(passes):
@@ -1898,12 +2070,14 @@ def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SI
             )
         return total
 
-    base: list[list[float]] = []
-    for y in ring_ys:
-        row = smooth_circular(silhouette(y))
-        if y < body.hip_y and base:
-            row = [max(a, b) for a, b in zip(row, base[-1])]
-        base.append(row)
+    def monotone_down(rows: list[list[float]]) -> None:
+        # Chan vay chu A khong bao gio hep lai khi di xuong: moi goc lay max voi
+        # vong ngay tren.
+        for i in range(1, len(rows)):
+            rows[i] = [max(a, b) for a, b in zip(rows[i], rows[i - 1])]
+
+    base = [smooth_circular(silhouette(y), 2) for y in ring_ys]
+    monotone_down(base)
 
     hip_i = min(range(n_rings), key=lambda i: abs(ring_ys[i] - body.hip_y))
     gap_circ = 2.0 * math.pi * FABRIC_GAP
@@ -1919,25 +2093,35 @@ def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SI
         return s_hip + (s_waist - s_hip) * t
 
     radii = [[r * s_at(y) + FABRIC_GAP for r in row] for y, row in zip(ring_ys, base)]
+    monotone_down(radii)
 
-    hem_now = perimeter(radii[-1])
-    flare_hem = max(1.0, hem_target / hem_now)
+    # Duoi mong: xoe DEU (tuyen tinh theo chieu cao, nhu hai canh chu A) tu vong
+    # mong ra toi chu vi gau. Hinh vong giu theo vong mong nhung nghieng dan ve
+    # elip de gau tron deu, khong con u mong o mat sau.
+    hip_row = radii[hip_i]
+    hip_len = perimeter(hip_row)
+    ex = max(r * abs(math.sin(a)) for r, a in zip(hip_row, angles))
+    ez = max(r * abs(math.cos(a)) for r, a in zip(hip_row, angles))
+    ellipse = [ex * ez / math.hypot(ez * math.sin(a), ex * math.cos(a)) for a in angles]
+    ellipse = [r * hip_len / perimeter(ellipse) for r in ellipse]
     for i, y in enumerate(ring_ys):
-        if y >= hip_y:
+        if i <= hip_i:
             continue
         t = (hip_y - y) / max(hip_y - y_hem, 1e-6)
-        t = t * t * (3.0 - 2.0 * t)
-        f = 1.0 + (flare_hem - 1.0) * t
-        radii[i] = [r * f for r in radii[i]]
+        shape = [h + (e - h) * min(1.0, 2.0 * t) for h, e in zip(hip_row, ellipse)]
+        want = hip_len + (hem_target - hip_len) * t
+        k = want / perimeter(shape)
+        radii[i] = [r * k for r in shape]
 
-    # Lam muot doc theo chieu cao: cho vai chuyen tu mong sang chan (noi bat dau
-    # co hai ong chan) khong bi gay khuc. Giu nguyen vong cap.
-    for _ in range(4):
+    # Lam muot doc theo chieu cao cho doan eo -> mong -> xoe noi nhau em. Giu
+    # nguyen vong cap va vong gau.
+    for _ in range(3):
         new = [list(r) for r in radii]
         for i in range(1, n_rings - 1):
             for j in range(n):
                 new[i][j] = (radii[i - 1][j] + 2.0 * radii[i][j] + radii[i + 1][j]) / 4.0
         radii = new
+    monotone_down(radii)
 
     positions = []
     for i, y in enumerate(ring_ys):
@@ -2145,7 +2329,8 @@ def main() -> None:
     shirts = [build_size(body, s) for s in SIZE_ORDER]
     tanks = [build_size(body, s, TANK_SIZE_CHART) for s in SIZE_ORDER]
     croptops = [build_size(body, s, CROPTOP_SIZE_CHART) for s in SIZE_ORDER]
-    dress_shirts = [build_size(body, s, SHIRT_SIZE_CHART) for s in SIZE_ORDER]
+    dress_shirts = [add_shirt_collar(build_size(body, s, SHIRT_SIZE_CHART), body)
+                    for s in SIZE_ORDER]
     pants = [build_pants_size(body, s) for s in SIZE_ORDER]
     # Short = cat ngang ong chan cua quan dai da dung xong (khong tu nen doc
     # rieng) -- xem docstring cua build_shorts_from_pants.
