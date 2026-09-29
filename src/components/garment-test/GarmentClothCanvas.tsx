@@ -45,6 +45,13 @@ export interface GarmentPieceInput {
   anchorY?: number;
   /** Draw a button placket down the centre front (dress shirt). */
   placket?: boolean;
+  /**
+   * World Y above which this piece is not drawn. Set on the bottom when a top
+   * is worn over it: the two cloths do not collide with each other, so where
+   * they overlap the waistband pokes through the shirt tail in a sawtooth.
+   * An untucked top hides that band anyway.
+   */
+  clipAboveY?: number;
 }
 
 export interface ClothViewProps {
@@ -120,6 +127,7 @@ function GarmentPiece({
   pinRegion,
   anchorY,
   placket = false,
+  clipAboveY = Infinity,
   fabric,
   showGarment = true,
   showStretch,
@@ -278,6 +286,7 @@ function GarmentPiece({
     hasPrint: { value: 0 },
     placket: { value: 0 },
     placketTop: { value: 0 },
+    clipAboveY: { value: 1e6 },
     showFaces: { value: 0 },
     artScale: { value: 1 },
     artOffset: { value: new THREE.Vector2(0, 0) },
@@ -292,9 +301,10 @@ function GarmentPiece({
     printUniforms.current.showFaces.value = showFaces && !showStretch ? 1 : 0;
     printUniforms.current.placket.value = placket ? 1 : 0;
     printUniforms.current.placketTop.value = placketTop;
+    printUniforms.current.clipAboveY.value = Number.isFinite(clipAboveY) ? clipAboveY : 1e6;
     printUniforms.current.artScale.value = printScale;
     printUniforms.current.artOffset.value.set(printOffset[0], printOffset[1]);
-  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop]);
+  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop, clipAboveY]);
 
   const onBeforeCompile = useMemo(
     () => (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -304,6 +314,7 @@ function GarmentPiece({
       shader.uniforms.uShowFaces = printUniforms.current.showFaces;
       shader.uniforms.uPlacket = printUniforms.current.placket;
       shader.uniforms.uPlacketTop = printUniforms.current.placketTop;
+      shader.uniforms.uClipAboveY = printUniforms.current.clipAboveY;
       shader.uniforms.uArtScale = printUniforms.current.artScale;
       shader.uniforms.uArtOffset = printUniforms.current.artOffset;
 
@@ -314,6 +325,7 @@ attribute vec2 _artuv;
 attribute float _waistband;
 attribute vec2 _rest;
 varying vec2 vRest;
+varying float vWorldY;
 varying float vFacing;
 varying float vPrintMask;
 varying vec2 vArtUv;
@@ -328,6 +340,7 @@ varying float vLocalY;
   vArtUv = _artuv;
   vWaistband = _waistband;
   vRest = _rest;
+  vWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
   vLocalY = position.y;`,
         );
 
@@ -338,6 +351,8 @@ uniform float hasPrint;
 uniform float uShowFaces;
 uniform float uPlacket;
 uniform float uPlacketTop;
+uniform float uClipAboveY;
+varying float vWorldY;
 varying vec2 vRest;
 uniform float uArtScale;
 uniform vec2 uArtOffset;
@@ -350,6 +365,7 @@ varying float vLocalY;
         shader.fragmentShader.replace(
           '#include <map_fragment>',
           `#include <map_fragment>
+  if (vWorldY > uClipAboveY) discard;
   // Ribbed elastic waistband: horizontal bands running around the waist,
   // since the weave bump map is a generic fabric grain that doesn't read as
   // elastic ribbing at any scale/rotation. Baked from the rest-position Y
@@ -376,7 +392,8 @@ varying float vLocalY;
   // Dress-shirt placket: a 3.4 cm band down the centre front with a stitch
   // line on each edge and a button every 9 cm. Drawn after the print, the
   // way a real placket sits on top of the printed body panel.
-  if (uPlacket > 0.5 && vFacing > 0.5 && vPrintMask > 0.5) {
+  // Skipped under a print: a real shirt photo already carries its own placket.
+  if (uPlacket > 0.5 && hasPrint < 0.5 && vFacing > 0.5 && vPrintMask > 0.5) {
     float ax = abs(vRest.x);
     float dy = uPlacketTop - vRest.y;
     if (ax < 0.017 && dy > 0.0) {

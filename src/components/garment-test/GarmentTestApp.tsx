@@ -314,6 +314,7 @@ const DEFAULT_FABRIC: Partial<Record<GarmentKind, keyof typeof FABRICS>> = {
 };
 
 function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
+  if (activeKind === 'shirt') return presetKind === 'shirt';
   if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
   if (activeKind === 'capri') return presetKind === 'pants';
   return presetKind === activeKind;
@@ -700,6 +701,16 @@ export default function GarmentTestApp() {
     rong: 'Rộng',
   };
 
+  // Lowest point of the top's rest mesh, in world Y: everything of the bottom
+  // above it (plus a little slack for the hem riding up) is under the shirt.
+  let topHemY = Infinity;
+  if (topResolved && showTop) {
+    const p = topResolved.geom.positions;
+    let lo = Infinity;
+    for (let v = 1; v < p.length; v += 3) lo = Math.min(lo, p[v]);
+    topHemY = scene.colliders.shoulderY + lo + 0.02;
+  }
+
   const pieces: GarmentPieceInput[] = [];
   for (const [slot, resolved] of [['top', topResolved], ['bottom', bottomResolved]] as const) {
     if (!resolved) continue;
@@ -721,6 +732,7 @@ export default function GarmentTestApp() {
       printScale: resolved.state.printScale,
       printOffset: [0, resolved.state.printOffsetY],
       placket: resolved.state.kind === 'shirt',
+      clipAboveY: slot === 'bottom' ? topHemY : undefined,
     });
   }
 
