@@ -173,6 +173,7 @@ type GarmentKind =
   | 'tank'
   | 'croptop'
   | 'shirt'
+  | 'longshirt'
   | 'pants'
   | 'shorts'
   | 'capri'
@@ -182,6 +183,7 @@ const GARMENT_LABEL: Record<GarmentKind, string> = {
   tank: 'Áo Cộc Tay',
   croptop: 'Áo Croptop',
   shirt: 'Áo Sơ Mi',
+  longshirt: 'Sơ Mi Dài Tay',
   pants: 'Quần',
   shorts: 'Quần short',
   capri: 'Quần lửng',
@@ -193,7 +195,7 @@ const GARMENT_LABEL: Record<GarmentKind, string> = {
 // offers the kinds that fit it.
 type Slot = 'top' | 'bottom';
 const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
-  top: ['tshirt', 'tank', 'croptop', 'shirt'],
+  top: ['tshirt', 'tank', 'croptop', 'shirt', 'longshirt'],
   bottom: ['pants', 'shorts', 'capri', 'skirt'],
 };
 const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
@@ -311,10 +313,11 @@ type PrintEntry = {
 const DEFAULT_FABRIC: Partial<Record<GarmentKind, keyof typeof FABRICS>> = {
   skirt: 'woven',
   shirt: 'woven',
+  longshirt: 'woven',
 };
 
 function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
-  if (activeKind === 'shirt') return presetKind === 'shirt';
+  if (activeKind === 'shirt' || activeKind === 'longshirt') return presetKind === 'shirt';
   if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
   if (activeKind === 'capri') return presetKind === 'pants';
   return presetKind === activeKind;
@@ -587,6 +590,7 @@ export default function GarmentTestApp() {
           tank: await loadGarment('/models/garment-tank.glb', 'tank_'),
           croptop: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
           shirt: await loadGarment('/models/garment-shirt.glb', 'shirt_'),
+          longshirt: await loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
           capri: await loadGarment('/models/garment-capri.glb', 'capri_'),
@@ -731,7 +735,7 @@ export default function GarmentTestApp() {
       baseColor: resolved.state.baseColor,
       printScale: resolved.state.printScale,
       printOffset: [0, resolved.state.printOffsetY],
-      placket: resolved.state.kind === 'shirt',
+      placket: resolved.state.kind === 'shirt' || resolved.state.kind === 'longshirt',
       clipAboveY: slot === 'bottom' ? topHemY : undefined,
     });
   }
