@@ -1,18 +1,24 @@
-Dataset anh san pham quan ao (90 mau).
+Dataset anh san pham quan ao (90 mau, 14 kieu co anh chung).
 
-Moi thu muc = 1 mau (1 kieu + 1 mau vai):
-  front.jpg    anh trai phang mat truoc  -> dung de in len mesh 3D
-  back.jpg     anh trai phang mat sau    (chan vay Everlane: trung front.jpg, nguon khong co anh sau)
-  extra_01.jpg ... extra_06.jpg
-               anh phu cho gallery san pham: nguoi mau mac (truoc/sau/nghieng),
-               anh can chat vai. Da thu nho toi da 1000px.
-  source.json  link trang nguon, link goc tung anh (front, back, extra[]), ten kieu, mau
+dataset/<mau>/                  1 thu muc = 1 kieu + 1 mau vai
+  front.jpg, back.jpg           anh trai phang truoc/sau -> in len mesh 3D
+                                (chan vay Everlane: back = front, nguon khong co anh sau)
+  extra_XX.jpg                  anh RIENG cua dung mau nay: nguoi mau mac, can chat vai...
+  source.json                   link nguon + link goc tung anh; "style" neu co anh chung
 
-Luu y: anh phu cua AS Colour la anh chung cho CA KIEU -- nguoi mau co the mac
-mau khac voi thu muc (vd so mi oxford xanh nhung anh nguoi mau mac mau trang).
+dataset/_styles/<kieu>/         anh CHUNG cua ca kieu, luu 1 lan
+  extra_XX.jpg                  shop chi chup nguoi mau mac MOT mau roi dung cho moi mau
+  style.json                    link nguon, danh sach thu muc mau dung chung
 
-Tai lai / bo sung anh phu: python tools/garment-pipeline/fetch_extra_images.py
-Xu ly anh in cho web:       node tools/garment-pipeline/build_prints.mjs
+Map sang DB: _styles -> product_images (theo san pham),
+             <mau>/front,back -> garment_prints (theo mau),
+             <mau>/extra      -> product_images kem mau.
+
+AS Colour KHONG chup nguoi mau theo tung mau (chi co anh trai phang theo mau),
+nen cac mau AS Colour chi co anh trai phang rieng + bo anh nguoi mau chung.
+
+Tai lai anh phu: python tools/garment-pipeline/fetch_extra_images.py
+Xu ly anh in:    node tools/garment-pipeline/build_prints.mjs
 
 Nguon: AS Colour, Jump The Dark, Alyxen, Everlane. Ban quyen thuoc ve chu so
 huu; chua xin phep dung cong khai -- chi dung cho do an.
