@@ -4,5 +4,13 @@
   "front": "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/7402/5421_WORK_SS_SHIRT_BLACK__22852.1663715866.jpg",
   "back": "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/14502/5421_WORK_SS_SHIRT_BLACK_BACK__05909.1720559332.jpg",
   "type": "Work Short Sleeve Shirt - 5421",
-  "color": "Black"
+  "color": "Black",
+  "extra": [
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/21915/5421_WORK_SS_SHIRT_BACK__69830.1747013684.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/21913/5421_WORK_SS_SHIRT_FRONT__09536.1747013683.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/21914/5421_WORK_SS_SHIRT_LOOSE__45886.1747013683.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/21916/5421_WORK_SS_SHIRT_MAIN__56358.1747013684.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/21917/5421_WORK_SS_SHIRT_SIDE__63090.1747013684.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/638/21918/5421_WORK_SS_SHIRT_TURN__61071.1747013685.jpg"
+  ]
 }

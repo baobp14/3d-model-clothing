@@ -3,5 +3,9 @@
   "title": "Lost in Transit Front Print - Heavy Graphic T-shirt",
   "source": "https://jumpthedark.co.uk/products/lost-in-transit-front-print-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/LOST_IN_TRANSIT_FRONT_FLATLAY.jpg?v=1771168436",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/LOST_IN_TRANSIT_BACK_FLATLAY.jpg?v=1771165433"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/LOST_IN_TRANSIT_BACK_FLATLAY.jpg?v=1771165433",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/LOST_IN_TRANSIT_FRONT.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/LOST_IN_TRANSIT_BACK.jpg"
+  ]
 }

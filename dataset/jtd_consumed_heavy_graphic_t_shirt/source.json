@@ -3,5 +3,9 @@
   "title": "Consumed - Heavy Graphic T-shirt",
   "source": "https://jumpthedark.co.uk/products/consumed-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/CONSUMED_FRONT_FLATLAY.jpg?v=1771165428",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/CONSUMED_BACK_FLATLAY.jpg?v=1771165438"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/CONSUMED_BACK_FLATLAY.jpg?v=1771165438",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/CONSUMED_BACK.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/CONSUMED_FRONT.jpg"
+  ]
 }

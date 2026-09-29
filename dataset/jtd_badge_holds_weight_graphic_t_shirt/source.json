@@ -3,5 +3,9 @@
   "title": "BADGE HOLDS WEIGHT - Graphic T-Shirt",
   "source": "https://jumpthedark.co.uk/products/badge-holds-weight-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BADGEHOLDSWEIGHTFRONTFLAT.jpg?v=1772553507",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BADGEHOLDSWEIGHTBACKFLAT.jpg?v=1772553507"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BADGEHOLDSWEIGHTBACKFLAT.jpg?v=1772553507",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BADGEHOLDSWEIGHTBACK.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BADGEHOLDSWEIGHTFRONT_d000d36b-be54-4bbb-a429-4d0f8198bd4d.jpg"
+  ]
 }

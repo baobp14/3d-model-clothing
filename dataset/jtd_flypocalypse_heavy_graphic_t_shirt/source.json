@@ -3,5 +3,9 @@
   "title": "Flypocalypse - Heavy Graphic T-Shirt",
   "source": "https://jumpthedark.co.uk/products/flypocalypse-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/FLYPOCALYPSEFRONTFLATVIEW.jpg?v=1787607852",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/FLYPOCALYPSEBACKFLATVIEW.jpg?v=1787607852"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/FLYPOCALYPSEBACKFLATVIEW.jpg?v=1787607852",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/FLYPOCALYPSEBACKVIEW.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/FLYPOCALYPSE_FRONT_VIEW.jpg"
+  ]
 }

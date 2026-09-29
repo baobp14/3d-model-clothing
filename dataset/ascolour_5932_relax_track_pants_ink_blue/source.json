@@ -4,5 +4,13 @@
   "front": "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/2000w/products/777/23768/5932_RELAX_TRACK_PANTS_INK_BLUE__94506.1758083650.jpg?c=1",
   "back": "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/2000w/products/777/23769/5932_RELAX_TRACK_PANTS_INK_BLUE_BACK__15151.1758083650.jpg?c=1",
   "type": "Relax Track Pants",
-  "color": "Ink Blue"
+  "color": "Ink Blue",
+  "extra": [
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/777/10240/5932_RELAX_TRACK_PANTS_BACK__65943.1679956891.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/777/10236/5932_RELAX_TRACK_PANTS_FRONT__51842.1679956891.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/777/10239/5932_RELAX_TRACK_PANTS_LOOSE__91345.1679956891.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/777/10237/5932_RELAX_TRACK_PANTS_MAIN__25559.1679956891.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/777/10238/5932_RELAX_TRACK_PANTS_SIDE__92847.1679956891.jpg",
+    "https://cdn11.bigcommerce.com/s-hsi95a83fz/images/stencil/1500w/products/777/10235/5932_RELAX_TRACK_PANTS_TURN__06208.1679956891.jpg"
+  ]
 }
