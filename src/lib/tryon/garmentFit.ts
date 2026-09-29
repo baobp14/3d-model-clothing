@@ -101,6 +101,13 @@ export interface BodyCollider {
   axisZ: number;
   /** Body rotation about Y, radians, matching THREE's object.rotation.y. */
   yaw?: number;
+  /**
+   * The unmorphed reference body the garment meshes were cut from
+   * (public/models/body-reference.bin), in the same vertex order as
+   * `positions`. With it, a garment carrying _BIND starts out moved along
+   * with the body's own morph instead of just slid to the shoulder line.
+   */
+  refPositions?: Float32Array;
 }
 
 function hashKey(i: number, j: number, k: number): number {
@@ -391,6 +398,12 @@ export interface GarmentGeometry {
    * deforming normal would let it slide across the fabric as the cloth moves.
    */
   facing?: Float32Array;
+  /** `_BIND`: BIND_K body-vertex indices per garment vertex (as floats). */
+  bind?: Float32Array;
+  /** `_BINDW`: matching weights, summing to 1. */
+  bindW?: Float32Array;
+  /** Where the local origin sits on the reference body (metadata bodyReference). */
+  refOrigin?: [number, number, number];
 }
 
 export interface GarmentConstraints {
@@ -645,6 +658,91 @@ function buildTethers(
  * kinematic while the rest of the cloth drapes -- same model, different
  * region id and different anchor height (see the metadata's pinRegion).
  */
+/**
+ * Where a garment starts out on this body, before any simulation: the rest
+ * mesh moved along with the body's morph (via _BIND), or -- for a mesh
+ * without binding data -- slid to the anchor line. Exported so the page can
+ * reason about where a garment will sit (e.g. the shirt hem line that hides
+ * the waistband under it) without running the solver.
+ */
+export function placeGarment(
+  geom: GarmentGeometry,
+  collider: BodyCollider,
+  constraints: GarmentConstraints,
+  anchorY: number = collider.shoulderY,
+): Float32Array {
+  const n = geom.positions.length / 3;
+  const positions = new Float32Array(geom.positions);
+
+  const ref = collider.refPositions;
+  if (
+    geom.bind && geom.bindW && geom.refOrigin && ref &&
+    ref.length === collider.positions.length
+  ) {
+    // Follow the body's morph. The mesh was cut from the reference body, and
+    // the avatar IS that body plus morphs, so each garment vertex moves by the
+    // weighted displacement of the body vertices it was nearest to. Sliding
+    // the whole garment to the shoulder line instead left long sleeves and
+    // trouser legs where the reference body's limbs were: off the arm of a
+    // taller avatar, a capri turned full-length on a short one. Only the start
+    // position changes -- rest lengths stay the garment's own, so a small size
+    // on a big body is still stretched, not quietly scaled up to fit.
+    const K = geom.bind.length / n;
+    const P = collider.positions;
+    const [ox, oy, oz] = geom.refOrigin;
+    let disp = new Float32Array(n * 3);
+    for (let v = 0; v < n; v++) {
+      for (let k = 0; k < K; k++) {
+        const b = geom.bind[v * K + k] * 3;
+        const w = geom.bindW[v * K + k];
+        disp[v * 3] += w * (P[b] - ref[b]);
+        disp[v * 3 + 1] += w * (P[b + 1] - ref[b + 1]);
+        disp[v * 3 + 2] += w * (P[b + 2] - ref[b + 2]);
+      }
+    }
+    // Smooth the displacement along the cloth. Neighbouring garment vertices
+    // can sit nearest to body parts that morph differently (an ankle hem next
+    // to the foot, an armhole next to the chest), and moving each by its own
+    // nearest body patch saws the edge into teeth.
+    const E = constraints.edges;
+    for (let it = 0; it < 12; it++) {
+      const sum = new Float32Array(n * 3);
+      const cnt = new Float32Array(n);
+      for (let e = 0; e < E.length; e += 2) {
+        const a = E[e];
+        const b = E[e + 1];
+        for (let j = 0; j < 3; j++) {
+          sum[a * 3 + j] += disp[b * 3 + j];
+          sum[b * 3 + j] += disp[a * 3 + j];
+        }
+        cnt[a]++;
+        cnt[b]++;
+      }
+      const next = new Float32Array(n * 3);
+      for (let v = 0; v < n; v++) {
+        for (let j = 0; j < 3; j++) {
+          next[v * 3 + j] = cnt[v]
+            ? 0.5 * disp[v * 3 + j] + 0.5 * (sum[v * 3 + j] / cnt[v])
+            : disp[v * 3 + j];
+        }
+      }
+      disp = next;
+    }
+    for (let v = 0; v < n; v++) {
+      positions[v * 3] += ox + disp[v * 3];
+      positions[v * 3 + 1] += oy + disp[v * 3 + 1];
+      positions[v * 3 + 2] += oz + disp[v * 3 + 2];
+    }
+  } else {
+    for (let v = 0; v < n; v++) {
+      positions[v * 3 + 1] += anchorY;
+      positions[v * 3 + 2] += collider.axisZ;
+    }
+  }
+
+  return positions;
+}
+
 export function createSimState(
   geom: GarmentGeometry,
   collider: BodyCollider,
@@ -654,12 +752,7 @@ export function createSimState(
   anchorY: number = collider.shoulderY,
 ): GarmentSimState {
   const n = geom.positions.length / 3;
-  const positions = new Float32Array(geom.positions);
-
-  for (let v = 0; v < n; v++) {
-    positions[v * 3 + 1] += anchorY;
-    positions[v * 3 + 2] += collider.axisZ;
-  }
+  const positions = placeGarment(geom, collider, constraints, anchorY);
 
   const pinned = new Uint8Array(n);
   for (let v = 0; v < n; v++) {

@@ -1,9 +1,10 @@
 'use client';
 
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { CLIP_BINS } from './clipProfile';
 import {
   captureRestShape,
   createSimState,
@@ -45,6 +46,10 @@ export interface GarmentPieceInput {
   anchorY?: number;
   /** Draw a button placket down the centre front (dress shirt). */
   placket?: boolean;
+  /** Woven / knitted surface pattern (see FABRIC_PATTERNS). */
+  pattern?: FabricPatternKey;
+  /** Second yarn colour for stripes, checks and plaids. */
+  color2?: string;
   /**
    * World Y above which this piece is not drawn. Set on the bottom when a top
    * is worn over it: the two cloths do not collide with each other, so where
@@ -52,6 +57,12 @@ export interface GarmentPieceInput {
    * An untucked top hides that band anyway.
    */
   clipAboveY?: number;
+  /**
+   * Same idea, but a whole hem line: world Y per angle round the body axis
+   * (CLIP_BINS bins, angle 0 = straight ahead, body frame). Wins over
+   * clipAboveY. See GarmentTestApp's topHemProfile.
+   */
+  clipProfile?: Float32Array;
 }
 
 export interface ClothViewProps {
@@ -67,9 +78,74 @@ export interface ClothViewProps {
   wireframe: boolean;
   /** World Y of the morphed body's lowest vertex; the floor disc sits here. */
   groundY?: number;
+  /** Camera framing: whole body, or a close-up to inspect a detail. */
+  view?: CameraView;
+}
+
+export type CameraView = 'full' | 'neck' | 'neckBack' | 'arm' | 'legs';
+
+/** [camera position, orbit target] per framing, relative to the body. */
+function framing(view: CameraView, c: BodyCollider): [THREE.Vector3, THREE.Vector3] {
+  const sh = c.shoulderY;
+  const z = c.axisZ;
+  switch (view) {
+    case 'neck':
+      return [new THREE.Vector3(0.15, sh + 0.12, z + 0.55), new THREE.Vector3(0, sh + 0.04, z)];
+    case 'neckBack':
+      return [new THREE.Vector3(-0.15, sh + 0.14, z - 0.55), new THREE.Vector3(0, sh + 0.04, z)];
+    case 'arm':
+      return [new THREE.Vector3(0.75, sh - 0.2, z + 0.75), new THREE.Vector3(0.35, sh - 0.3, z)];
+    case 'legs':
+      return [new THREE.Vector3(0.5, c.waistY - 0.35, z + 1.5), new THREE.Vector3(0, c.waistY - 0.45, z)];
+    default:
+      return [new THREE.Vector3(0.9, 1.35, 2.3), new THREE.Vector3(0, 1.0, 0)];
+  }
+}
+
+function CameraFraming({ view, colliders }: { view: CameraView; colliders: BodyCollider }) {
+  const camera = useThree((st) => st.camera);
+  const controls = useThree((st) => st.controls) as unknown as {
+    target: THREE.Vector3;
+    update: () => void;
+  } | null;
+  useEffect(() => {
+    const [pos, target] = framing(view, colliders);
+    camera.position.copy(pos);
+    if (controls) {
+      controls.target.copy(target);
+      controls.update();
+    } else {
+      camera.lookAt(target);
+    }
+  }, [view, colliders, camera, controls]);
+  return null;
 }
 
 const EMPTY_TEX = new THREE.Texture();
+
+/**
+ * Fabric surfaces, drawn procedurally in the fragment shader from the cloth's
+ * REST position (so the weave is stuck to the threads while the cloth moves)
+ * and projected three ways by the rest normal, so a stripe runs on round the
+ * side seams instead of smearing. No image assets: every pattern is a closed
+ * form in centimetres, anti-aliased with fwidth so fine twill fades to its
+ * average colour at a distance instead of shimmering.
+ */
+export const FABRIC_PATTERNS = {
+  plain: { id: 0, label: 'Trơn' },
+  heather: { id: 1, label: 'Melange' },
+  stripeH: { id: 2, label: 'Sọc ngang' },
+  pinstripe: { id: 3, label: 'Sọc dọc nhỏ' },
+  gingham: { id: 4, label: 'Caro nhỏ' },
+  plaid: { id: 5, label: 'Caro to (tartan)' },
+  denim: { id: 6, label: 'Jean' },
+  twill: { id: 7, label: 'Kaki' },
+  oxford: { id: 8, label: 'Oxford' },
+  corduroy: { id: 9, label: 'Nhung tăm' },
+  linen: { id: 10, label: 'Linen' },
+  rib: { id: 11, label: 'Thun gân' },
+} as const;
+export type FabricPatternKey = keyof typeof FABRIC_PATTERNS;
 
 /** Milliseconds of settling a single frame may spend before yielding. */
 const SETTLE_BUDGET_MS = 14;
@@ -127,7 +203,10 @@ function GarmentPiece({
   pinRegion,
   anchorY,
   placket = false,
+  pattern = 'plain',
+  color2 = '#ffffff',
   clipAboveY = Infinity,
+  clipProfile,
   fabric,
   showGarment = true,
   showStretch,
@@ -229,6 +308,44 @@ function GarmentPiece({
     }
     g.setAttribute('_rest', new THREE.BufferAttribute(rest, 2));
 
+    // Rest position + rest normal for the fabric pattern (triplanar).
+    const restGeo = new THREE.BufferGeometry();
+    restGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(geom.positions), 3));
+    restGeo.setIndex(new THREE.BufferAttribute(new Uint32Array(geom.indices), 1));
+    restGeo.computeVertexNormals();
+    g.setAttribute('_restpos', new THREE.BufferAttribute(new Float32Array(geom.positions), 3));
+    g.setAttribute('_restnrm', restGeo.getAttribute('normal').clone());
+    restGeo.dispose();
+
+    // Collar leaf outline. The leaf is the same cloth colour as the body and
+    // the scene casts no shadows, so on screen it dissolved into the shirt --
+    // a shirt with a proper pointed collar read as collarless. Mark the leaf's
+    // open border (edges used by one triangle) so the shader can draw the
+    // shadowed edge and a topstitch just inside it.
+    const leafEdge = new Float32Array(geom.regions.length);
+    const isLeaf = new Uint8Array(geom.regions.length);
+    for (let v = 0; v < geom.regions.length; v++) {
+      if (geom.regions[v] === GARMENT_REGION.collarLeaf) isLeaf[v] = 1;
+    }
+    const edgeUse = new Map<number, number>();
+    const nV = geom.regions.length;
+    for (let t = 0; t < geom.indices.length; t += 3) {
+      for (let k = 0; k < 3; k++) {
+        const a = geom.indices[t + k];
+        const b = geom.indices[t + ((k + 1) % 3)];
+        if (!isLeaf[a] || !isLeaf[b]) continue;
+        const key = a < b ? a * nV + b : b * nV + a;
+        edgeUse.set(key, (edgeUse.get(key) ?? 0) + 1);
+      }
+    }
+    for (const [key, n] of edgeUse) {
+      if (n !== 1) continue;
+      leafEdge[Math.floor(key / nV)] = 1;
+      leafEdge[key % nV] = 1;
+    }
+    g.setAttribute('_leafedge', new THREE.BufferAttribute(leafEdge, 1));
+    g.setAttribute('_leaf', new THREE.BufferAttribute(Float32Array.from(isLeaf), 1));
+
     g.setIndex(new THREE.BufferAttribute(new Uint32Array(geom.indices), 1));
     return g;
   }, [geom, pinRegion]);
@@ -285,8 +402,14 @@ function GarmentPiece({
     backMap: { value: EMPTY_TEX },
     hasPrint: { value: 0 },
     placket: { value: 0 },
+    pattern: { value: 0 },
+    color2: { value: new THREE.Color('#ffffff') },
     placketTop: { value: 0 },
     clipAboveY: { value: 1e6 },
+    clipOn: { value: 0 },
+    clipProf: { value: new Array(CLIP_BINS).fill(1e6) as number[] },
+    yaw: { value: 0 },
+    axisZ: { value: 0 },
     showFaces: { value: 0 },
     artScale: { value: 1 },
     artOffset: { value: new THREE.Vector2(0, 0) },
@@ -300,11 +423,18 @@ function GarmentPiece({
       (frontPrint || backPrint) && !showFaces && !showStretch ? 1 : 0;
     printUniforms.current.showFaces.value = showFaces && !showStretch ? 1 : 0;
     printUniforms.current.placket.value = placket ? 1 : 0;
+    printUniforms.current.pattern.value = FABRIC_PATTERNS[pattern]?.id ?? 0;
+    printUniforms.current.color2.value.set(color2);
     printUniforms.current.placketTop.value = placketTop;
     printUniforms.current.clipAboveY.value = Number.isFinite(clipAboveY) ? clipAboveY : 1e6;
+    printUniforms.current.clipOn.value = clipProfile ? 1 : 0;
+    if (clipProfile) {
+      for (let b = 0; b < CLIP_BINS; b++) printUniforms.current.clipProf.value[b] = clipProfile[b];
+    }
+    printUniforms.current.axisZ.value = colliders.axisZ;
     printUniforms.current.artScale.value = printScale;
     printUniforms.current.artOffset.value.set(printOffset[0], printOffset[1]);
-  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop, clipAboveY]);
+  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop, clipAboveY, clipProfile, colliders, pattern, color2]);
 
   const onBeforeCompile = useMemo(
     () => (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -315,6 +445,12 @@ function GarmentPiece({
       shader.uniforms.uPlacket = printUniforms.current.placket;
       shader.uniforms.uPlacketTop = printUniforms.current.placketTop;
       shader.uniforms.uClipAboveY = printUniforms.current.clipAboveY;
+      shader.uniforms.uClipOn = printUniforms.current.clipOn;
+      shader.uniforms.uClipProf = printUniforms.current.clipProf;
+      shader.uniforms.uYaw = printUniforms.current.yaw;
+      shader.uniforms.uAxisZ = printUniforms.current.axisZ;
+      shader.uniforms.uPattern = printUniforms.current.pattern;
+      shader.uniforms.uColor2 = printUniforms.current.color2;
       shader.uniforms.uArtScale = printUniforms.current.artScale;
       shader.uniforms.uArtOffset = printUniforms.current.artOffset;
 
@@ -324,8 +460,17 @@ attribute float _printmask;
 attribute vec2 _artuv;
 attribute float _waistband;
 attribute vec2 _rest;
+attribute vec3 _restpos;
+attribute vec3 _restnrm;
+varying vec3 vRestPos;
+varying vec3 vRestNrm;
+attribute float _leafedge;
+attribute float _leaf;
+varying float vLeafEdge;
+varying float vLeaf;
 varying vec2 vRest;
 varying float vWorldY;
+varying vec3 vWorldPos;
 varying float vFacing;
 varying float vPrintMask;
 varying vec2 vArtUv;
@@ -340,18 +485,111 @@ varying float vLocalY;
   vArtUv = _artuv;
   vWaistband = _waistband;
   vRest = _rest;
+  vLeafEdge = _leafedge;
+  vRestPos = _restpos;
+  vRestNrm = _restnrm;
+  vLeaf = _leaf;
   vWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
+  vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
   vLocalY = position.y;`,
         );
 
       shader.fragmentShader =
-        `uniform sampler2D frontMap;
+        `#define CLIP_BINS_N ${CLIP_BINS}
+uniform sampler2D frontMap;
 uniform sampler2D backMap;
 uniform float hasPrint;
 uniform float uShowFaces;
 uniform float uPlacket;
 uniform float uPlacketTop;
 uniform float uClipAboveY;
+uniform float uClipOn;
+uniform float uClipProf[CLIP_BINS_N];
+uniform float uYaw;
+uniform float uAxisZ;
+varying vec3 vWorldPos;
+uniform int uPattern;
+uniform vec3 uColor2;
+varying vec3 vRestPos;
+varying vec3 vRestNrm;
+
+float fhash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float fnoise(vec2 p) {
+  vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(fhash(i), fhash(i + vec2(1.0, 0.0)), f.x),
+             mix(fhash(i + vec2(0.0, 1.0)), fhash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 1 inside a band of width w (fraction of the period), anti-aliased.
+float band(float x, float period, float w) {
+  float t = fract(x / period);
+  float fw = max(fwidth(x / period), 1e-4);
+  return smoothstep(0.0, fw, t) - smoothstep(w, w + fw, t);
+}
+// How much of a pattern of this period survives at the current pixel size.
+float keep(float x, float period) { return clamp(1.5 - fwidth(x / period) * 2.0, 0.0, 1.0); }
+
+// One projection plane: u runs across (x or z), v up (y), in centimetres.
+vec3 fabric(vec2 uv, vec3 c1) {
+  float u = uv.x; float v = uv.y;
+  if (uPattern == 1) { // heather: two-tone speckled yarn
+    float n = fnoise(uv * 6.0) * 0.6 + fnoise(uv * 23.0) * 0.4;
+    return c1 * mix(0.86, 1.12, n);
+  }
+  if (uPattern == 2) { // horizontal stripe, 1.6 cm repeat
+    return mix(c1, uColor2, band(v, 1.6, 0.4));
+  }
+  if (uPattern == 3) { // pinstripe, 1 cm
+    return mix(c1, uColor2, 0.85 * band(u, 1.0, 0.12));
+  }
+  if (uPattern == 4) { // gingham 0.8 cm: overlaps darkest
+    float a = band(u, 0.8, 0.5); float b = band(v, 0.8, 0.5);
+    return mix(c1, uColor2, 0.45 * (a + b) + 0.1 * a * b);
+  }
+  if (uPattern == 5) { // tartan
+    float bu = band(u, 9.0, 0.35); float bv = band(v, 9.0, 0.35);
+    float big = max(bu, bv);
+    float thin = max(band(u + 2.2, 9.0, 0.04), band(v + 2.2, 9.0, 0.04));
+    vec3 c = mix(c1, c1 * 0.55, big * 0.7 + bu * bv * 0.3);
+    return mix(c, uColor2, thin * 0.9);
+  }
+  if (uPattern == 6) { // denim: indigo twill + white weft + slub streaks
+    float d = u * 0.7 + v;
+    float tw = band(d, 0.12, 0.5) * keep(d, 0.12);
+    float streak = fnoise(vec2(u * 0.8, v * 0.07));
+    vec3 c = c1 * mix(0.82, 1.15, streak);
+    return mix(c, mix(c, vec3(0.85), 0.35), tw);
+  }
+  if (uPattern == 7) { // khaki twill: fine diagonal rib
+    float d = u + v;
+    float tw = band(d, 0.1, 0.5) * keep(d, 0.1);
+    return c1 * mix(1.0, 0.86, tw) * mix(0.96, 1.04, fnoise(uv * 3.0));
+  }
+  if (uPattern == 8) { // oxford: two-tone basket weave
+    vec2 cell = floor(uv / 0.08);
+    float k = mod(cell.x + cell.y, 2.0);
+    float fade = keep(u, 0.16);
+    vec3 c = mix(c1, mix(c1, uColor2, 0.35), k * fade + 0.35 * (1.0 - fade));
+    return c * mix(0.97, 1.03, fnoise(uv * 5.0));
+  }
+  if (uPattern == 9) { // corduroy: vertical wales 0.4 cm
+    float t = fract(u / 0.4);
+    float wale = sin(t * 3.14159);
+    return c1 * mix(1.0, mix(0.72, 1.12, wale), keep(u, 0.4));
+  }
+  if (uPattern == 10) { // linen: irregular slub lines both ways
+    float h = fnoise(vec2(u * 0.3, v * 9.0));
+    float w = fnoise(vec2(u * 9.0, v * 0.3));
+    return c1 * (0.9 + 0.1 * h + 0.08 * w);
+  }
+  if (uPattern == 11) { // knit rib: vertical ribs 0.3 cm
+    float t = fract(u / 0.3);
+    float r = smoothstep(0.2, 0.5, t) - smoothstep(0.7, 1.0, t);
+    return c1 * mix(1.0, mix(0.84, 1.06, r), keep(u, 0.3));
+  }
+  return c1;
+}
+varying float vLeafEdge;
+varying float vLeaf;
 varying float vWorldY;
 varying vec2 vRest;
 uniform float uArtScale;
@@ -366,6 +604,23 @@ varying float vLocalY;
           '#include <map_fragment>',
           `#include <map_fragment>
   if (vWorldY > uClipAboveY) discard;
+  if (uClipOn > 0.5) {
+    // Into the body's own frame (the body turns by uYaw about the origin).
+    float cy = cos(uYaw); float sy = sin(uYaw);
+    float bx = vWorldPos.x * cy - vWorldPos.z * sy;
+    float bz = vWorldPos.x * sy + vWorldPos.z * cy - uAxisZ;
+    float a = atan(bx, bz);
+    if (a < 0.0) a += 6.2831853;
+    float f = a / 6.2831853 * float(CLIP_BINS_N);
+    int i0 = int(floor(f));
+    float t = f - float(i0);
+    float y0 = 0.0; float y1 = 0.0;
+    for (int k = 0; k < CLIP_BINS_N; k++) {
+      if (k == i0 - (i0 / CLIP_BINS_N) * CLIP_BINS_N) y0 = uClipProf[k];
+      if (k == (i0 + 1) - ((i0 + 1) / CLIP_BINS_N) * CLIP_BINS_N) y1 = uClipProf[k];
+    }
+    if (vWorldY > mix(y0, y1, t)) discard;
+  }
   // Ribbed elastic waistband: horizontal bands running around the waist,
   // since the weave bump map is a generic fabric grain that doesn't read as
   // elastic ribbing at any scale/rotation. Baked from the rest-position Y
@@ -380,6 +635,15 @@ varying float vLocalY;
   if (vWaistband > 0.5) {
     float rib = sin(vLocalY * 785.0);
     diffuseColor.rgb *= 1.0 + 0.16 * rib;
+  }
+  if (uPattern > 0) {
+    // Triplanar in centimetres: front/back (x,y), sides (z,y), shoulders (x,z).
+    vec3 tw3 = pow(abs(normalize(vRestNrm)), vec3(4.0));
+    tw3 /= (tw3.x + tw3.y + tw3.z + 1e-5);
+    vec3 pc = vRestPos * 100.0;
+    vec3 base1 = diffuseColor.rgb;
+    diffuseColor.rgb = fabric(pc.xy, base1) * tw3.z + fabric(pc.zy, base1) * tw3.x
+      + fabric(pc.xz, base1) * tw3.y;
   }
   if (hasPrint > 0.5) {
     // Zoom about the centre, then shift. >1 shows more image = smaller pattern.
@@ -413,6 +677,13 @@ varying float vLocalY;
       }
     }
   }
+  // Collar leaf: interfaced, so a touch lighter than the body; a shadowed
+  // rim on its open border and a topstitch line just inside it.
+  if (vLeaf > 0.5) {
+    diffuseColor.rgb *= 1.08;
+    diffuseColor.rgb *= 1.0 - 0.45 * smoothstep(0.80, 0.97, vLeafEdge);
+    diffuseColor.rgb *= 1.0 - 0.25 * (1.0 - smoothstep(0.0, 0.05, abs(vLeafEdge - 0.55)));
+  }
   // Panel overlay: cyan = takes the FRONT image, orange = the BACK image,
   // grey = no print (sleeve / collar / yoke).
   if (uShowFaces > 0.5) {
@@ -434,6 +705,7 @@ varying float vLocalY;
   };
 
   useFrame((_, delta) => {
+    printUniforms.current.yaw.value = yawRef.current ?? 0;
     const dt = Math.min(delta, 1 / 30);
 
     // Settling runs ACROSS frames, not before the first one.
@@ -515,7 +787,7 @@ varying float vLocalY;
         onBeforeCompile={onBeforeCompile}
         // Must change when vertexColors flips, or three reuses the compiled
         // program without the USE_COLOR define.
-        customProgramCacheKey={() => `garment-print-${showStretch ? 'vc' : 'plain'}`}
+        customProgramCacheKey={() => `garment-print-v2-${showStretch ? 'vc' : 'plain'}`}
       />
     </mesh>
   );
@@ -599,7 +871,8 @@ export default function GarmentClothCanvas(props: ClothViewProps) {
         <meshStandardMaterial color="#e9e6e2" roughness={1} />
       </mesh>
       <Rig {...props} />
-      <OrbitControls enableDamping dampingFactor={0.08} target={[0, 1.0, 0]} />
+      <OrbitControls makeDefault enableDamping dampingFactor={0.08} target={[0, 1.0, 0]} />
+      <CameraFraming view={props.view ?? 'full'} colliders={props.colliders} />
     </Canvas>
   );
 }
