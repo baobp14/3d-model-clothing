@@ -1,0 +1,15 @@
+{
+  "front": {
+    "score": 9,
+    "differences": [
+      "The stitching color on the generated photo is slightly lighter than the reference photos."
+    ]
+  },
+  "back": {
+    "score": 9,
+    "differences": [
+      "The stitching color on the generated image appears slightly lighter than in the reference images.",
+      "The texture of the denim in the generated image seems a bit smoother and less pronounced than in the reference images."
+    ]
+  }
+}

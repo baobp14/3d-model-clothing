@@ -1,0 +1,15 @@
+{
+  "front": {
+    "score": 9,
+    "differences": [
+      "The graphic on the model's shirt appears slightly smaller than on the flat-lay reference images.",
+      "The graphic on the model's shirt is positioned slightly more towards the center of the chest compared to the flat-lay reference images where it's closer to the left side."
+    ]
+  },
+  "back": {
+    "score": 9,
+    "differences": [
+      "The graphic on the back of the shirt in the generated image appears slightly smaller than in the reference images."
+    ]
+  }
+}

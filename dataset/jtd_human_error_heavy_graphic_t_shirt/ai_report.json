@@ -1,0 +1,9 @@
+{
+  "front": {
+    "score": 9,
+    "differences": [
+      "The graphic on the back of the shirt in the generated image is slightly less vibrant than in the reference image.",
+      "The graphic on the back of the shirt in the generated image appears to be slightly smaller than in the reference image."
+    ]
+  }
+}
