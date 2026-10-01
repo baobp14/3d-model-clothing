@@ -905,6 +905,7 @@ export default function GarmentTestApp() {
       pattern: resolved.state.front || resolved.state.back ? 'plain' : resolved.state.pattern,
       color2: resolved.state.color2,
       clipProfile: slot === 'bottom' ? topHemProfile : undefined,
+      clipPull: resolved.state.kind === 'skirt' ? 0.035 : 0.012,
     });
   }
 

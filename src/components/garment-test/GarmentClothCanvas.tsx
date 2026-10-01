@@ -63,6 +63,12 @@ export interface GarmentPieceInput {
    * clipAboveY. See GarmentTestApp's topHemProfile.
    */
   clipProfile?: Float32Array;
+  /**
+   * How far (m) the bottom is drawn pulled in under the top's hem. Loose
+   * cuts (skirt) stand well off the body and need ~3.5cm; tight trousers
+   * show the thigh through them past ~1cm.
+   */
+  clipPull?: number;
 }
 
 export interface ClothViewProps {
@@ -207,6 +213,7 @@ function GarmentPiece({
   color2 = '#ffffff',
   clipAboveY = Infinity,
   clipProfile,
+  clipPull = 0.012,
   fabric,
   showGarment = true,
   showStretch,
@@ -406,6 +413,7 @@ function GarmentPiece({
     color2: { value: new THREE.Color('#ffffff') },
     placketTop: { value: 0 },
     clipAboveY: { value: 1e6 },
+    clipPull: { value: 0.012 },
     clipOn: { value: 0 },
     clipProf: { value: new Array(CLIP_BINS).fill(1e6) as number[] },
     yaw: { value: 0 },
@@ -428,13 +436,14 @@ function GarmentPiece({
     printUniforms.current.placketTop.value = placketTop;
     printUniforms.current.clipAboveY.value = Number.isFinite(clipAboveY) ? clipAboveY : 1e6;
     printUniforms.current.clipOn.value = clipProfile ? 1 : 0;
+    printUniforms.current.clipPull.value = clipPull;
     if (clipProfile) {
       for (let b = 0; b < CLIP_BINS; b++) printUniforms.current.clipProf.value[b] = clipProfile[b];
     }
     printUniforms.current.axisZ.value = colliders.axisZ;
     printUniforms.current.artScale.value = printScale;
     printUniforms.current.artOffset.value.set(printOffset[0], printOffset[1]);
-  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop, clipAboveY, clipProfile, colliders, pattern, color2]);
+  }, [frontPrint, backPrint, showFaces, showStretch, printScale, printOffset, placket, placketTop, clipAboveY, clipProfile, clipPull, colliders, pattern, color2]);
 
   const onBeforeCompile = useMemo(
     () => (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -446,6 +455,7 @@ function GarmentPiece({
       shader.uniforms.uPlacketTop = printUniforms.current.placketTop;
       shader.uniforms.uClipAboveY = printUniforms.current.clipAboveY;
       shader.uniforms.uClipOn = printUniforms.current.clipOn;
+      shader.uniforms.uClipPull = printUniforms.current.clipPull;
       shader.uniforms.uClipProf = printUniforms.current.clipProf;
       shader.uniforms.uYaw = printUniforms.current.yaw;
       shader.uniforms.uAxisZ = printUniforms.current.axisZ;
@@ -455,7 +465,13 @@ function GarmentPiece({
       shader.uniforms.uArtOffset = printUniforms.current.artOffset;
 
       shader.vertexShader =
-        `attribute float _facing;
+        `#define CLIP_BINS_N ${CLIP_BINS}
+uniform float uClipOn;
+uniform float uClipPull;
+uniform float uClipProf[CLIP_BINS_N];
+uniform float uYaw;
+uniform float uAxisZ;
+attribute float _facing;
 attribute float _printmask;
 attribute vec2 _artuv;
 attribute float _waistband;
@@ -489,6 +505,40 @@ varying float vLocalY;
   vRestPos = _restpos;
   vRestNrm = _restnrm;
   vLeaf = _leaf;
+  // Bottom worn under a top: the two cloths do not collide, and the top's
+  // simulated hem flares out and hangs lower than its rest shape -- so in the
+  // band just under the hem the bottom's cloth can sit OUTSIDE the shirt and
+  // poke through it in a sawtooth. Draw that band pulled in toward the body
+  // axis so it always reads as underneath. (Render-only; the simulation is
+  // untouched.)
+  if (uClipOn > 0.5) {
+    vec3 w = (modelMatrix * vec4(transformed, 1.0)).xyz;
+    float cy = cos(uYaw); float sy = sin(uYaw);
+    float bx = w.x * cy - w.z * sy;
+    float bz = w.x * sy + w.z * cy - uAxisZ;
+    float a = atan(bx, bz);
+    if (a < 0.0) a += 6.2831853;
+    float f = a / 6.2831853 * float(CLIP_BINS_N);
+    int i0 = int(floor(f));
+    float t = f - float(i0);
+    float y0 = 0.0; float y1 = 0.0;
+    for (int k = 0; k < CLIP_BINS_N; k++) {
+      if (k == i0 - (i0 / CLIP_BINS_N) * CLIP_BINS_N) y0 = uClipProf[k];
+      if (k == (i0 + 1) - ((i0 + 1) / CLIP_BINS_N) * CLIP_BINS_N) y1 = uClipProf[k];
+    }
+    float hem = mix(y0, y1, t);
+    // 0 well below the hem, 1 from 3cm under it upward.
+    float band = smoothstep(hem - 0.10, hem - 0.03, w.y);
+    float r = length(vec2(bx, bz));
+    if (band > 0.0 && r > 1e-4) {
+      float k = max(r - uClipPull * band, r * 0.85) / r;
+      bx *= k; bz *= k;
+      bz += uAxisZ;
+      w.x = bx * cy + bz * sy;
+      w.z = -bx * sy + bz * cy;
+      transformed = (inverse(modelMatrix) * vec4(w, 1.0)).xyz;
+    }
+  }
   vWorldY = (modelMatrix * vec4(transformed, 1.0)).y;
   vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
   vLocalY = position.y;`,
