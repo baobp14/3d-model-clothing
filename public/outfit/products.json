@@ -1,0 +1,1536 @@
+[
+ {
+  "id": "alyxen_dfys_graphic_cream",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "Kem",
+    "hex": "#F5F0E6",
+    "role": "base"
+   },
+   {
+    "name": "Xám đậm",
+    "hex": "#4A4A4A",
+    "role": "accent"
+   },
+   {
+    "name": "Xanh lam xám",
+    "hex": "#4A6F8C",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "oversized",
+  "name_vi": "Áo thun kem in hình và chữ"
+ },
+ {
+  "id": "ascolour_5027_classic_pocket_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen trơn"
+ },
+ {
+  "id": "ascolour_5028_staple_stripe_tee_black_white",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "stripe",
+  "style": [
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun sọc ngang đen trắng"
+ },
+ {
+  "id": "ascolour_5051_basic_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen trơn"
+ },
+ {
+  "id": "ascolour_5052_block_oversized_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen trơn"
+ },
+ {
+  "id": "ascolour_5401_oxford_shirt_black",
+  "category": "top",
+  "subtype": "shirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "smart-casual",
+   "minimal"
+  ],
+  "formality": 3,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo sơ mi đen"
+ },
+ {
+  "id": "ascolour_5417_check_shirt_army_black",
+  "category": "top",
+  "subtype": "shirt",
+  "colors": [
+   {
+    "name": "dark olive green",
+    "hex": "#4A5B42",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "check",
+  "style": [
+   "casual",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo sơ mi caro xanh rêu đen"
+ },
+ {
+  "id": "ascolour_5419_cord_shirt_black",
+  "category": "top",
+  "subtype": "shirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "texture",
+  "style": [
+   "casual",
+   "smart-casual",
+   "vintage"
+  ],
+  "formality": 3,
+  "season": [
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo sơ mi đen vải nhung tăm"
+ },
+ {
+  "id": "ascolour_5421_work_ss_shirt_black",
+  "category": "top",
+  "subtype": "shirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo sơ mi đen tay ngắn"
+ },
+ {
+  "id": "ascolour_5422_work_shirt_black",
+  "category": "top",
+  "subtype": "shirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo sơ mi đen"
+ },
+ {
+  "id": "ascolour_5903_beach_shorts_atlantic",
+  "category": "bottom",
+  "subtype": "shorts",
+  "colors": [
+   {
+    "name": "Teal Green",
+    "hex": "#1F6C62",
+    "role": "base"
+   },
+   {
+    "name": "White",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer"
+  ],
+  "fit": "regular",
+  "name_vi": "Quần short xanh ngọc dây rút trắng"
+ },
+ {
+  "id": "ascolour_5932_relax_track_pants_black",
+  "category": "bottom",
+  "subtype": "pants",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "streetwear",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần nỉ đen"
+ },
+ {
+  "id": "everlane_cargo_mini_skirt_black",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "streetwear",
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy đen túi hộp"
+ },
+ {
+  "id": "everlane_cargo_mini_skirt_soft_brown",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "Khaki",
+    "hex": "#9F8F70",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy kaki túi hộp"
+ },
+ {
+  "id": "everlane_circle_mini_skirt_navy",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "navy blue",
+    "hex": "#313B4B",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "feminine",
+   "minimal"
+  ],
+  "formality": 3,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy xanh navy"
+ },
+ {
+  "id": "everlane_circle_mini_skirt_warm_trench",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "beige",
+    "hex": "#DDCDBB",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "feminine",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Chân váy xòe màu be"
+ },
+ {
+  "id": "everlane_denim_mini_skirt_dark_indigo",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "dark blue",
+    "hex": "#2C3E50",
+    "role": "base"
+   },
+   {
+    "name": "light brown",
+    "hex": "#C0A060",
+    "role": "accent"
+   }
+  ],
+  "pattern": "denim",
+  "style": [
+   "casual",
+   "streetwear",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy jean xanh"
+ },
+ {
+  "id": "everlane_denim_mini_skirt_deep_atlantic",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "blue",
+    "hex": "#4A7090",
+    "role": "base"
+   }
+  ],
+  "pattern": "denim",
+  "style": [
+   "casual",
+   "streetwear",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy jean xanh"
+ },
+ {
+  "id": "everlane_lace_knit_skirt_black",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "texture",
+  "style": [
+   "smart-casual",
+   "feminine"
+  ],
+  "formality": 3,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy đen dệt họa tiết"
+ },
+ {
+  "id": "everlane_mini_skirt_stretch_linen_chambray",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "Light Blue",
+    "hex": "#99B2D4",
+    "role": "base"
+   }
+  ],
+  "pattern": "texture",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer"
+  ],
+  "fit": "regular",
+  "name_vi": "Chân váy linen xanh nhạt"
+ },
+ {
+  "id": "everlane_pull_on_maxi_skirt_cotton_silk_black",
+  "category": "bottom",
+  "subtype": "skirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Chân váy dài đen"
+ },
+ {
+  "id": "jtd_afterform_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   },
+   {
+    "name": "orange",
+    "hex": "#FFA500",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in hình graphic"
+ },
+ {
+  "id": "jtd_badge_holds_weight_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in hình Jump The Dark"
+ },
+ {
+  "id": "jtd_blackletter_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun đen in chữ trắng"
+ },
+ {
+  "id": "jtd_blind_surveillance_heavy_graphic_t_shirt_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun đen in hình mắt tam giác"
+ },
+ {
+  "id": "jtd_bone_riot_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình đầu lâu"
+ },
+ {
+  "id": "jtd_broken_saint_heavy_graphic_t_shirt_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "gold",
+    "hex": "#B8860B",
+    "role": "accent"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in hình"
+ },
+ {
+  "id": "jtd_chaos_and_order_heavy_graphic_t_shirt_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "gold",
+    "hex": "#D4AF37",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in chữ vàng"
+ },
+ {
+  "id": "jtd_consumed_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "grey",
+    "hex": "#808080",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun đen in hình đầu lâu"
+ },
+ {
+  "id": "jtd_decay_premium_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in chữ Jump The Dark"
+ },
+ {
+  "id": "jtd_doomsday_diagnosis_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình thầy bói"
+ },
+ {
+  "id": "jtd_flypocalypse_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "red",
+    "hex": "#FF0000",
+    "role": "accent"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in chữ Jump The Dark"
+ },
+ {
+  "id": "jtd_human_error_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   },
+   {
+    "name": "red",
+    "hex": "#FF0000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình xương và chữ"
+ },
+ {
+  "id": "jtd_jump_the_dark_grey_logo_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "dark gray",
+    "hex": "#424242",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in chữ Jump The Dark"
+ },
+ {
+  "id": "jtd_london_underground_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình bình xịt"
+ },
+ {
+  "id": "jtd_lost_in_transit_back_print_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "red",
+    "hex": "#FF0000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in hình đầu lâu đỏ"
+ },
+ {
+  "id": "jtd_lost_in_transit_front_print_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "beige",
+    "hex": "#F5F5DC",
+    "role": "accent"
+   },
+   {
+    "name": "red",
+    "hex": "#FF0000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in hình con robot"
+ },
+ {
+  "id": "jtd_mid_point_premium_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "beige",
+    "hex": "#e0d4c4",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun be in hình đầu lâu pixel"
+ },
+ {
+  "id": "jtd_midnight_jester_heavy_graphic_t_shirt_grey",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "grey",
+    "hex": "#999999",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "casual",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun xám in hình gậy hề"
+ },
+ {
+  "id": "jtd_natural_born_enemies_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "dark gray",
+    "hex": "#36454F",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình mèo mặt cười"
+ },
+ {
+  "id": "jtd_poised_2_0_heavy_graphic_t_shirt_sand",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "beige",
+    "hex": "#c9b294",
+    "role": "base"
+   },
+   {
+    "name": "red",
+    "hex": "#b20000",
+    "role": "accent"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "oversized",
+  "name_vi": "Áo thun be in hình chữ và búp bê"
+ },
+ {
+  "id": "jtd_poised_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "beige",
+    "hex": "#dcccae",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun be in hình"
+ },
+ {
+  "id": "jtd_raise_hell_heavy_graphic_t_shirt_brown",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "brown",
+    "hex": "#4a3a32",
+    "role": "base"
+   },
+   {
+    "name": "yellow",
+    "hex": "#e6b352",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun nâu in hình Wake Up! And Raise Hell!!"
+ },
+ {
+  "id": "jtd_shadows_rise_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "dark gray",
+    "hex": "#545858",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun xám in hình kiếm và chữ"
+ },
+ {
+  "id": "jtd_shadowz_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun đen in chữ trắng"
+ },
+ {
+  "id": "jtd_step_through_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   },
+   {
+    "name": "red",
+    "hex": "#8B0000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình đầu lâu"
+ },
+ {
+  "id": "jtd_sunny_parade_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "multi",
+    "hex": "#808080",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình đầu lâu và chữ"
+ },
+ {
+  "id": "jtd_the_last_witness_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "beige",
+    "hex": "#E0D8C7",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun đen in hình Jump The Dark"
+ },
+ {
+  "id": "jtd_the_vandal_organic_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#FFFFFF",
+    "role": "base"
+   },
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "accent"
+   },
+   {
+    "name": "red",
+    "hex": "#FF0000",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun trắng in hình graffiti"
+ },
+ {
+  "id": "jtd_tidebreaker_back_print_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "light beige",
+    "hex": "#E0D8C7",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun đen in hình đầu lâu"
+ },
+ {
+  "id": "jtd_tidebreaker_heavy_graphic_t_shirt",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#000000",
+    "role": "base"
+   },
+   {
+    "name": "red",
+    "hex": "#E04E4E",
+    "role": "accent"
+   },
+   {
+    "name": "orange",
+    "hex": "#E0914E",
+    "role": "accent"
+   }
+  ],
+  "pattern": "graphic",
+  "style": [
+   "streetwear",
+   "casual"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun đen in hình bạch tuộc"
+ }
+]
