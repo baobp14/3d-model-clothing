@@ -44,6 +44,12 @@ function MatchCard({ base, m, rank }: { base: OutfitProduct; m: OutfitMatch; ran
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="text-sm font-medium">{m.item.name_vi}</div>
         <Tags p={m.item} />
+        <a
+          href={`/garment-test?top=${encodeURIComponent(top.id)}&bottom=${encodeURIComponent(bottom.id)}`}
+          className="mt-1 rounded-lg bg-black px-3 py-1.5 text-center text-xs font-medium text-white hover:bg-neutral-800"
+        >
+          Mặc thử cả bộ (3D)
+        </a>
         <ul className="mt-1 space-y-0.5 text-xs">
           {m.reasons.map((r, i) => (
             <li key={i} className={r.points > 0 ? 'text-emerald-700' : r.points < 0 ? 'text-rose-700' : 'text-neutral-500'}>

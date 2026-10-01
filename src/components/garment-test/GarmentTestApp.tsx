@@ -579,6 +579,34 @@ export default function GarmentTestApp() {
     }
   }
 
+  // "Mặc thử cả bộ" from the outfit recommender links here as
+  // ?top=<print id>&bottom=<print id>: dress both slots in those prints once
+  // the meshes and the print manifest are loaded.
+  const outfitApplied = useRef(false);
+  useEffect(() => {
+    if (outfitApplied.current || !loaded || !presets.length) return;
+    outfitApplied.current = true;
+    const q = new URLSearchParams(window.location.search);
+    for (const slot of ['top', 'bottom'] as const) {
+      const entry = presets.find((p) => p.id === q.get(slot));
+      if (!entry) continue;
+      const kind: GarmentKind = entry.kind ?? 'tshirt';
+      if (!SLOT_KINDS[slot].includes(kind) || !loaded.meta.garments[kind]) continue;
+      const c = loaded.meta.garments[kind]?.printCalibration ?? DEFAULT_CALIB;
+      const list = presets.filter((p) => presetMatchesKind(p.kind ?? 'tshirt', kind));
+      updateSlot(slot, {
+        kind,
+        fabricKey: DEFAULT_FABRIC[kind] ?? 'knit',
+        textureKey: null,
+        pattern: 'plain',
+        printScale: c.scale,
+        printOffsetY: c.offsetY,
+      });
+      void loadPreset(slot, list, list.indexOf(entry));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, presets]);
+
   const stepPreset = (delta: number) => {
     if (!kindPresets.length) return;
     const base = active.presetIdx < 0 ? (delta > 0 ? -1 : 0) : active.presetIdx;
