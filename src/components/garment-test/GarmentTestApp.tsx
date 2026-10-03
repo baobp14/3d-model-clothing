@@ -178,6 +178,10 @@ type GarmentKind =
   | 'croptop'
   | 'shirt'
   | 'longshirt'
+  | 'sweater'
+  | 'jacket'
+  | 'dress'
+  | 'dressskirt'
   | 'pants'
   | 'shorts'
   | 'capri'
@@ -188,6 +192,10 @@ const GARMENT_LABEL: Record<GarmentKind, string> = {
   croptop: 'Áo Croptop',
   shirt: 'Áo Sơ Mi',
   longshirt: 'Sơ Mi Dài Tay',
+  sweater: 'Áo Len',
+  jacket: 'Áo Khoác',
+  dress: 'Đầm',
+  dressskirt: 'Váy của đầm',
   pants: 'Quần',
   shorts: 'Quần short',
   capri: 'Quần lửng',
@@ -199,7 +207,9 @@ const GARMENT_LABEL: Record<GarmentKind, string> = {
 // offers the kinds that fit it.
 type Slot = 'top' | 'bottom';
 const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
-  top: ['tshirt', 'tank', 'croptop', 'shirt', 'longshirt'],
+  // Đầm sits in the top slot: its bodice is the croptop mesh and it brings
+  // its own skirt (dressskirt) into the bottom slot -- see resolveSlot.
+  top: ['tshirt', 'tank', 'croptop', 'shirt', 'longshirt', 'sweater', 'jacket', 'dress'],
   bottom: ['pants', 'shorts', 'capri', 'skirt'],
 };
 const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
@@ -345,7 +355,10 @@ const DEFAULT_FABRIC: Partial<Record<GarmentKind, keyof typeof FABRICS>> = {
 };
 
 function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
-  if (activeKind === 'shirt' || activeKind === 'longshirt') return presetKind === 'shirt';
+  // No flat-lay photo set fits a dress bodice + skirt pair.
+  if (activeKind === 'dress' || activeKind === 'dressskirt') return false;
+  if (activeKind === 'shirt' || activeKind === 'longshirt' || activeKind === 'jacket')
+    return presetKind === 'shirt';
   if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
   if (activeKind === 'capri') return presetKind === 'pants';
   return presetKind === activeKind;
@@ -397,7 +410,31 @@ const SKIRT_TEXTURES: TextureOpt[] = [
   { key: 'linen', label: 'Linen', pattern: 'linen', color: '#e5dccb', color2: '#ffffff', fabric: 'woven' },
   { key: 'black', label: 'Trơn đen', pattern: 'plain', color: '#22232a', color2: '#ffffff', fabric: 'woven' },
 ];
+const SWEATER_TEXTURES: TextureOpt[] = [
+  { key: 'cable', label: 'Len gân kem', pattern: 'rib', color: '#e6dcc8', color2: '#ffffff', fabric: 'knit' },
+  { key: 'navy', label: 'Len trơn navy', pattern: 'heather', color: '#2c3a5c', color2: '#ffffff', fabric: 'knit' },
+  { key: 'grey', label: 'Len melange xám', pattern: 'heather', color: '#8f9198', color2: '#ffffff', fabric: 'knit' },
+  { key: 'stripe', label: 'Len sọc', pattern: 'stripeH', color: '#7a2630', color2: '#efe6d6', fabric: 'knit' },
+];
+const JACKET_TEXTURES: TextureOpt[] = [
+  { key: 'denim', label: 'Khoác jean', pattern: 'denim', color: '#3d5f8f', color2: '#ffffff', fabric: 'denim' },
+  { key: 'khaki', label: 'Kaki be', pattern: 'twill', color: '#b9a37c', color2: '#ffffff', fabric: 'denim' },
+  { key: 'olive', label: 'Kaki rêu', pattern: 'twill', color: '#4f5a3c', color2: '#ffffff', fabric: 'denim' },
+  { key: 'cord', label: 'Nhung tăm nâu', pattern: 'corduroy', color: '#6b4a33', color2: '#ffffff', fabric: 'denim' },
+  { key: 'plaid', label: 'Dạ caro', pattern: 'plaid', color: '#3a3f4a', color2: '#9b8b6a', fabric: 'denim' },
+];
+const DRESS_TEXTURES: TextureOpt[] = [
+  { key: 'black', label: 'Trơn đen', pattern: 'plain', color: '#1f2026', color2: '#ffffff', fabric: 'woven' },
+  { key: 'linen', label: 'Linen be', pattern: 'linen', color: '#e2d6c0', color2: '#ffffff', fabric: 'woven' },
+  { key: 'gingham', label: 'Caro nhỏ', pattern: 'gingham', color: '#ffffff', color2: '#c0413b', fabric: 'woven' },
+  { key: 'red', label: 'Thun đỏ', pattern: 'plain', color: '#a3242e', color2: '#ffffff', fabric: 'knit' },
+  { key: 'stripe', label: 'Sọc xanh', pattern: 'pinstripe', color: '#f3f1ea', color2: '#3b5ea8', fabric: 'woven' },
+];
 const TEXTURES: Record<GarmentKind, TextureOpt[]> = {
+  sweater: SWEATER_TEXTURES,
+  jacket: JACKET_TEXTURES,
+  dress: DRESS_TEXTURES,
+  dressskirt: DRESS_TEXTURES,
   tshirt: KNIT_TOP_TEXTURES,
   tank: KNIT_TOP_TEXTURES,
   croptop: KNIT_TOP_TEXTURES,
@@ -731,6 +768,10 @@ export default function GarmentTestApp() {
           croptop: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
           shirt: await loadGarment('/models/garment-shirt.glb', 'shirt_'),
           longshirt: await loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
+          sweater: await loadGarment('/models/garment-sweater.glb', 'sweater_'),
+          jacket: await loadGarment('/models/garment-jacket.glb', 'jacket_'),
+          dress: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
+          dressskirt: await loadGarment('/models/garment-dressskirt.glb', 'dressskirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
           capri: await loadGarment('/models/garment-capri.glb', 'capri_'),
@@ -813,8 +854,12 @@ export default function GarmentTestApp() {
   // One resolved { geom, constraints, entry } per slot that currently has a
   // kind chosen -- feeds both the 3D pieces array and each slot's own
   // ease/size numbers.
+  const wearingDress = slots.top.kind === 'dress';
   function resolveSlot(slot: Slot) {
-    const st = slots[slot];
+    // A dress fills both slots: the bottom becomes the dress's own skirt, cut
+    // from the same cloth and size as its bodice.
+    const st: SlotState =
+      slot === 'bottom' && wearingDress ? { ...slots.top, kind: 'dressskirt' } : slots[slot];
     if (!loaded || !st.kind) return null;
     const sized = loaded.garments[st.kind]?.[st.size];
     if (!sized) return null;
@@ -901,11 +946,15 @@ export default function GarmentTestApp() {
       baseColor: resolved.state.baseColor,
       printScale: resolved.state.printScale,
       printOffset: [0, resolved.state.printOffsetY],
-      placket: resolved.state.kind === 'shirt' || resolved.state.kind === 'longshirt',
+      placket:
+        resolved.state.kind === 'shirt' ||
+        resolved.state.kind === 'longshirt' ||
+        resolved.state.kind === 'jacket',
       pattern: resolved.state.front || resolved.state.back ? 'plain' : resolved.state.pattern,
       color2: resolved.state.color2,
       clipProfile: slot === 'bottom' ? topHemProfile : undefined,
-      clipPull: resolved.state.kind === 'skirt' ? 0.035 : 0.012,
+      clipPull:
+        resolved.state.kind === 'skirt' || resolved.state.kind === 'dressskirt' ? 0.035 : 0.012,
     });
   }
 
@@ -1089,6 +1138,11 @@ export default function GarmentTestApp() {
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Món đồ ({SLOT_LABEL[activeSlot]})
             </h2>
+            {activeSlot === 'bottom' && wearingDress && (
+              <p className="mb-1.5 text-[11px] text-amber-700">
+                Đang mặc đầm — phần váy đi theo đầm. Đổi áo ở tab Áo để mặc quần/váy riêng.
+              </p>
+            )}
             <div className="mb-2 flex flex-wrap gap-1.5">
               {SLOT_KINDS[activeSlot].map((k) => (
                 <Button

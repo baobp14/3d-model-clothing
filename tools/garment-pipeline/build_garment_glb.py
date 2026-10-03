@@ -123,6 +123,23 @@ LONGSHIRT_SIZE_CHART = {
     "L":  {"chest": 110.0, "bodyLength": 72.0, "armFit": 62.0, "cuff": 25.0},
     "XL": {"chest": 116.0, "bodyLength": 74.0, "armFit": 64.0, "cuff": 26.0},
 }
+# AO LEN: dai tay nhu so mi dai tay nhung KHONG co co ao, rong hon (len mac
+# thoai mai), co tay om hon (bo gan len). Mac dinh vai "thun" o client.
+SWEATER_SIZE_CHART = {
+    "S":  {"chest": 100.0, "bodyLength": 64.0, "armFit": 58.0, "cuff": 21.0},
+    "M":  {"chest": 106.0, "bodyLength": 66.0, "armFit": 60.0, "cuff": 22.0},
+    "L":  {"chest": 112.0, "bodyLength": 68.0, "armFit": 62.0, "cuff": 23.0},
+    "XL": {"chest": 118.0, "bodyLength": 70.0, "armFit": 64.0, "cuff": 24.0},
+}
+# AO KHOAC: co co + nep, rong hon so mi ~10cm (mac ngoai ao khac), dai hon,
+# co tay rong.
+JACKET_SIZE_CHART = {
+    "S":  {"chest": 108.0, "bodyLength": 70.0, "armFit": 59.0, "cuff": 27.0},
+    "M":  {"chest": 114.0, "bodyLength": 72.0, "armFit": 61.0, "cuff": 28.0},
+    "L":  {"chest": 120.0, "bodyLength": 74.0, "armFit": 63.0, "cuff": 29.0},
+    "XL": {"chest": 126.0, "bodyLength": 76.0, "armFit": 65.0, "cuff": 30.0},
+}
+
 # Dai tay cua co the tham chieu (1.63 m; avatar dung 0.345 x chieu cao). Tay
 # ao dun theo canh tay toi co tay tham chieu, roi di tiep thang them
 # (armFit - REF_ARM_CM) -- mac len nguoi tay dai dung armFit thi vua cham co tay.
@@ -314,6 +331,14 @@ SKIRT_SIZE_CHART = {
     "M":  {"waist": 70.0, "hip": 96.0,  "length": 56.0, "hem": 134.0},
     "L":  {"waist": 76.0, "hip": 102.0, "length": 57.0, "hem": 140.0},
     "XL": {"waist": 82.0, "hip": 108.0, "length": 58.0, "hem": 146.0},
+}
+# Phan vay cua DAM: than dam dung lai croptop (gau ngang eo), vay dai toi
+# goi va xoe hon chan vay thuong.
+DRESS_SKIRT_SIZE_CHART = {
+    "S":  {"waist": 66.0, "hip": 94.0,  "length": 70.0, "hem": 150.0},
+    "M":  {"waist": 72.0, "hip": 100.0, "length": 71.0, "hem": 156.0},
+    "L":  {"waist": 78.0, "hip": 106.0, "length": 72.0, "hem": 162.0},
+    "XL": {"waist": 84.0, "hip": 112.0, "length": 73.0, "hem": 168.0},
 }
 SKIRT_ANGLES = 48        # so dinh moi vong
 SKIRT_RING_STEP = 0.015  # khoang cach giua hai vong ngang (m), bang DECIMATE_CELL
@@ -2690,11 +2715,32 @@ def main() -> None:
             body)
         for s in SIZE_ORDER
     ]
-    for group in (shirts, tanks, croptops, long_shirts, dress_shirts):
+    def long_sleeved(chart, collar):
+        base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.38)
+                for k, v in chart.items()}
+        out = []
+        for s in SIZE_ORDER:
+            m = extend_sleeves(build_size(body, s, base), body, chart[s]["armFit"], chart[s]["cuff"])
+            if collar:
+                m = add_shirt_collar(m, body)
+            else:
+                # extend_sleeves khong dem lai vung (add_shirt_collar moi dem).
+                inv = {v: k for k, v in REGION.items()}
+                m["regionCounts"] = {}
+                for r in m["regions"]:
+                    m["regionCounts"][inv[r]] = m["regionCounts"].get(inv[r], 0) + 1
+            out.append(m)
+        return out
+
+    sweaters = long_sleeved(SWEATER_SIZE_CHART, collar=False)
+    jackets = long_sleeved(JACKET_SIZE_CHART, collar=True)
+    dress_skirts = [build_skirt_size(body, s, DRESS_SKIRT_SIZE_CHART) for s in SIZE_ORDER]
+    for group in (shirts, tanks, croptops, long_shirts, dress_shirts, sweaters, jackets):
         add_body_binding(group, body, body.shoulder_y, legs=False)
     for group in (pants, shorts, capris):
         add_body_binding(group, body, body.waist_y)
     add_body_binding(skirts, body, body.waist_y, legs=False)
+    add_body_binding(dress_skirts, body, body.waist_y, legs=False)
     ref_bin = write_body_reference(body)
     print(ref_bin.name + ": " + str(ref_bin.stat().st_size) + " B")
 
@@ -2707,6 +2753,9 @@ def main() -> None:
     shorts_glb = write_garment(shorts, "garment-shorts.glb", "shorts_")
     capri_glb = write_garment(capris, "garment-capri.glb", "capri_")
     skirt_glb = write_garment(skirts, "garment-skirt.glb", "skirt_")
+    sweater_glb = write_garment(sweaters, "garment-sweater.glb", "sweater_")
+    jacket_glb = write_garment(jackets, "garment-jacket.glb", "jacket_")
+    dress_skirt_glb = write_garment(dress_skirts, "garment-dressskirt.glb", "dressskirt_")
 
     metadata = {
         "units": "metres, Y up, z=0 at body axis, front is +Z",
@@ -2852,6 +2901,50 @@ def main() -> None:
                     for m in long_shirts
                 },
             },
+            "sweater": {
+                "glb": "garment-sweater.glb",
+                "meshPrefix": "sweater_",
+                "label": "Áo Len",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "sleeveLengthCm": round(m["sleeveLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in sweaters
+                },
+            },
+            "jacket": {
+                "glb": "garment-jacket.glb",
+                "meshPrefix": "jacket_",
+                "label": "Áo Khoác",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": SHIRT_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "sleeveLengthCm": round(m["sleeveLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in jackets
+                },
+            },
             "pants": {
                 "glb": "garment-pants.glb",
                 "meshPrefix": "pants_",
@@ -2943,8 +3036,34 @@ def main() -> None:
                     for m in skirts
                 },
             },
+            "dressskirt": {
+                "glb": "garment-dressskirt.glb",
+                "meshPrefix": "dressskirt_",
+                "label": "Váy của đầm",
+                "yZero": "waist line",
+                "regions": PANTS_REGION,
+                "pinRegion": PANTS_REGION["waistband"],
+                "fitKey": "waistCircCm",
+                "printCalibration": PANTS_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "waistCircCm": round(m["waistCircAchieved"] * 100, 2),
+                        "hipCircCm": round(m["hipCircAchieved"] * 100, 2),
+                        "hemCircCm": round(m["hemCircAchieved"] * 100, 2),
+                        "lengthCm": round(m["length"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in dress_skirts
+                },
+            },
         },
     }
+    # Than dam = mesh croptop (gau ngang eo); vay cua dam la "dressskirt".
+    metadata["garments"]["dress"] = dict(metadata["garments"]["croptop"], label="Đầm",
+                                         skirt="dressskirt")
     meta_path = OUT_DIR / "garment-metadata.json"
     meta_path.write_text(json.dumps(metadata, separators=(",", ":")), encoding="utf-8")
 
@@ -2969,6 +3088,11 @@ def main() -> None:
     for m in skirts:
         print(f"  {m['size']:<3} vay: eo {m['waistCircAchieved'] * 100:.1f}  mong "
               f"{m['hipCircAchieved'] * 100:.1f}  gau {m['hemCircAchieved'] * 100:.1f} cm")
+    for g, name in ((sweater_glb, "Ao len"), (jacket_glb, "Ao khoac"), (dress_skirt_glb, "Vay dam")):
+        print(g.name + ": " + str(g.stat().st_size) + " B  " + name)
+    _print_report("Ao len", sweaters, "chestCirc")
+    _print_report("Ao khoac", jackets, "chestCirc")
+    _print_report("Vay dam", dress_skirts, "waistCirc")
     print(meta_path.name + ": " + str(meta_path.stat().st_size) + " B")
 
 

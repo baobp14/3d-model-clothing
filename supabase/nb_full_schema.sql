@@ -122,7 +122,8 @@ exception when duplicate_object then null; end $$;
 
 do $$ begin
   alter table products add constraint products_tryon_kind_check
-    check (tryon_kind in ('tshirt', 'tank', 'croptop', 'shirt',
+    check (tryon_kind in ('tshirt', 'tank', 'croptop', 'shirt', 'longshirt',
+                          'sweater', 'jacket', 'dress',
                           'pants', 'shorts', 'capri', 'skirt'));
 exception when duplicate_object then null; end $$;
 
@@ -134,7 +135,12 @@ create index if not exists products_status_idx on products(status);
 
 -- Gợi ý loại mesh theo danh mục; chỉnh tay từng sản phẩm nếu cần.
 update products set tryon_kind = 'tshirt' where tryon_kind is null and category in ('m-tshirts', 'w-tops');
+-- Sơ mi → dài tay; polo → 'shirt' (tay ngắn, có cổ).
+update products set tryon_kind = 'longshirt' where tryon_kind is null and category = 'm-shirts' and name_vi ilike 'áo sơ mi%';
 update products set tryon_kind = 'shirt'  where tryon_kind is null and category = 'm-shirts';
+update products set tryon_kind = 'sweater' where tryon_kind is null and category in ('m-knit', 'w-knit');
+update products set tryon_kind = 'jacket' where tryon_kind is null and category in ('m-jackets', 'w-jackets');
+update products set tryon_kind = 'dress'  where tryon_kind is null and category = 'w-dresses';
 update products set tryon_kind = 'pants'  where tryon_kind is null and category in ('m-trousers', 'w-trousers');
 update products set tryon_kind = 'skirt'  where tryon_kind is null and category = 'w-skirts';
 
