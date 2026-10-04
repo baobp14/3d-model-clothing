@@ -770,7 +770,7 @@ export default function GarmentTestApp() {
           longshirt: await loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
           sweater: await loadGarment('/models/garment-sweater.glb', 'sweater_'),
           jacket: await loadGarment('/models/garment-jacket.glb', 'jacket_'),
-          dress: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
+          dress: await loadGarment('/models/garment-dress.glb', 'dress_'),
           dressskirt: await loadGarment('/models/garment-dressskirt.glb', 'dressskirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),

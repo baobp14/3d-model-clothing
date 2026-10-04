@@ -2512,6 +2512,35 @@ def pack_region_bytes(regions: list[int]) -> bytes:
 BIND_K = 8  # so dinh co the moi dinh vai bam theo
 
 
+def taper_bodice_to_waist(m: dict, body: BodyReference, hem_circ: float) -> dict:
+    """Bop than dam vao eo cho gau than bang dung cap vay.
+
+    Than ao thuong buong thang tu nguc xuong, nen ghep voi vay (cap om eo) lo
+    ra mot gờ ngang eo trong nhu ao rieng + chan vay. Day: tu duoi nguc tro
+    xuong, thu ban kinh (x, z) dan theo smoothstep cho toi gau thi chu vi gau
+    = hem_circ (m). Tay ao giu nguyen. Toa do mesh tinh tu (0, vai, truc than).
+    """
+    sleeve = {REGION[k] for k in ("sleeveLeft", "sleeveRight", "cuffLeft", "cuffRight")}
+    pos = m["positions"]
+    hem_y = min(p[1] for p in pos)
+    band = [math.hypot(p[0], p[2]) for v, p in enumerate(pos)
+            if m["regions"][v] not in sleeve and p[1] < hem_y + 0.02]
+    r_hem = sum(band) / len(band)
+    k = (hem_circ / (2.0 * math.pi)) / r_hem
+    y_start = (body.waist_y - body.shoulder_y) + 0.14  # duoi nguc
+    out = []
+    for v, p in enumerate(pos):
+        if m["regions"][v] in sleeve or p[1] >= y_start:
+            out.append(p)
+            continue
+        t = min(1.0, (y_start - p[1]) / max(1e-6, y_start - hem_y))
+        t = t * t * (3.0 - 2.0 * t)
+        f = 1.0 + (k - 1.0) * t
+        out.append((p[0] * f, p[1], p[2] * f))
+    m["positions"] = out
+    return m
+
+
 def add_body_binding(meshes: list[dict], body: BodyReference, origin_y: float,
                      legs: bool = True) -> None:
     """Gan moi dinh vai vao BIND_K dinh co the tham chieu gan nhat.
@@ -2735,7 +2764,19 @@ def main() -> None:
     sweaters = long_sleeved(SWEATER_SIZE_CHART, collar=False)
     jackets = long_sleeved(JACKET_SIZE_CHART, collar=True)
     dress_skirts = [build_skirt_size(body, s, DRESS_SKIRT_SIZE_CHART) for s in SIZE_ORDER]
-    for group in (shirts, tanks, croptops, long_shirts, dress_shirts, sweaters, jackets):
+    # Than dam: croptop keo dai toi 4cm duoi eo (phu len cap vay) roi bop eo
+    # cho gau than = cap vay + 2cm -> than va vay noi lien, khong lo go.
+    hps_y = body.shoulder_y + HPS_RISE
+    bodice_len = (hps_y - (body.waist_y - 0.04)) / CM
+    # Size to dai them chut (nguoi to thuong cao hon); XL o dung bodice_len
+    # cat trung mot vung luoi xau de lai lo thung.
+    extra = {"S": 0.0, "M": 0.5, "L": 1.0, "XL": 1.5}
+    bodice_chart = {k: dict(v, bodyLength=bodice_len + extra[k])
+                    for k, v in CROPTOP_SIZE_CHART.items()}
+    bodices = [taper_bodice_to_waist(build_size(body, s, bodice_chart), body,
+                                     (DRESS_SKIRT_SIZE_CHART[s]["waist"] + 2.0) * CM)
+               for s in SIZE_ORDER]
+    for group in (shirts, tanks, croptops, long_shirts, dress_shirts, sweaters, jackets, bodices):
         add_body_binding(group, body, body.shoulder_y, legs=False)
     for group in (pants, shorts, capris):
         add_body_binding(group, body, body.waist_y)
@@ -2756,6 +2797,7 @@ def main() -> None:
     sweater_glb = write_garment(sweaters, "garment-sweater.glb", "sweater_")
     jacket_glb = write_garment(jackets, "garment-jacket.glb", "jacket_")
     dress_skirt_glb = write_garment(dress_skirts, "garment-dressskirt.glb", "dressskirt_")
+    bodice_glb = write_garment(bodices, "garment-dress.glb", "dress_")
 
     metadata = {
         "units": "metres, Y up, z=0 at body axis, front is +Z",
@@ -3062,8 +3104,17 @@ def main() -> None:
         },
     }
     # Than dam = mesh croptop (gau ngang eo); vay cua dam la "dressskirt".
-    metadata["garments"]["dress"] = dict(metadata["garments"]["croptop"], label="Đầm",
-                                         skirt="dressskirt")
+    metadata["garments"]["dress"] = dict(
+        metadata["garments"]["croptop"], glb="garment-dress.glb", meshPrefix="dress_",
+        label="Đầm", skirt="dressskirt",
+        sizes={m["size"]: {
+            "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+            "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+            "hemYm": round(m["hemY"], 4),
+            "vertexCount": len(m["positions"]),
+            "triangleCount": len(m["indices"]) // 3,
+            "regionCounts": m["regionCounts"],
+        } for m in bodices})
     meta_path = OUT_DIR / "garment-metadata.json"
     meta_path.write_text(json.dumps(metadata, separators=(",", ":")), encoding="utf-8")
 
@@ -3093,6 +3144,8 @@ def main() -> None:
     _print_report("Ao len", sweaters, "chestCirc")
     _print_report("Ao khoac", jackets, "chestCirc")
     _print_report("Vay dam", dress_skirts, "waistCirc")
+    _print_report("Than dam", bodices, "chestCirc")
+    print(bodice_glb.name + ": " + str(bodice_glb.stat().st_size) + " B")
     print(meta_path.name + ": " + str(meta_path.stat().st_size) + " B")
 
 
