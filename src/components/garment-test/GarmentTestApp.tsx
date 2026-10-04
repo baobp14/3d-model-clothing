@@ -942,8 +942,15 @@ export default function GarmentTestApp() {
         }
       }
     }
-    // A little slack: the hem rides up a touch when the shirt settles.
-    for (let b = 0; b < CLIP_BINS; b++) prof[b] += 0.012;
+    // Slack: this is the hem as PLACED, and the simulated hem rides up when the
+    // shirt settles -- loose tops now hang straight and lift up to ~4cm at the
+    // sides, which opened a white gap between the hem and the clipped bottom.
+    for (let b = 0; b < CLIP_BINS; b++) prof[b] += 0.04;
+    // Where the top stops above the waistband (croptop, a hem riding up at the
+    // sides) there is nothing over the bottom to hide it under -- cutting it
+    // there bared a band of skin between the two. Leave those angles alone.
+    const waistTop = scene.colliders.waistY - 0.02;
+    for (let b = 0; b < CLIP_BINS; b++) if (prof[b] > waistTop) prof[b] = 1e3;
     return prof;
   })();
 

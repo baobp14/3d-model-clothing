@@ -128,18 +128,18 @@ LONGSHIRT_SIZE_CHART = {
 # AO LEN: dai tay nhu so mi dai tay nhung KHONG co co ao, rong hon (len mac
 # thoai mai), co tay om hon (bo gan len). Mac dinh vai "thun" o client.
 SWEATER_SIZE_CHART = {
-    "S":  {"chest": 100.0, "bodyLength": 64.0, "armFit": 58.0, "cuff": 21.0},
-    "M":  {"chest": 106.0, "bodyLength": 66.0, "armFit": 60.0, "cuff": 22.0},
-    "L":  {"chest": 112.0, "bodyLength": 68.0, "armFit": 62.0, "cuff": 23.0},
-    "XL": {"chest": 118.0, "bodyLength": 70.0, "armFit": 64.0, "cuff": 24.0},
+    "S":  {"chest": 100.0, "bodyLength": 60.0, "armFit": 58.0, "cuff": 21.0},
+    "M":  {"chest": 106.0, "bodyLength": 62.0, "armFit": 60.0, "cuff": 22.0},
+    "L":  {"chest": 112.0, "bodyLength": 64.0, "armFit": 62.0, "cuff": 23.0},
+    "XL": {"chest": 118.0, "bodyLength": 66.0, "armFit": 64.0, "cuff": 24.0},
 }
 # AO KHOAC: co co + nep, rong hon so mi ~10cm (mac ngoai ao khac), dai hon,
 # co tay rong. Nguc +4 (tu 108-126): M tren nguoi to C keo vai 1.6 lan.
 JACKET_SIZE_CHART = {
-    "S":  {"chest": 112.0, "bodyLength": 70.0, "armFit": 59.0, "cuff": 27.0},
-    "M":  {"chest": 118.0, "bodyLength": 72.0, "armFit": 61.0, "cuff": 28.0},
-    "L":  {"chest": 124.0, "bodyLength": 74.0, "armFit": 63.0, "cuff": 29.0},
-    "XL": {"chest": 130.0, "bodyLength": 76.0, "armFit": 65.0, "cuff": 30.0},
+    "S":  {"chest": 112.0, "bodyLength": 64.0, "armFit": 59.0, "cuff": 27.0},
+    "M":  {"chest": 118.0, "bodyLength": 66.0, "armFit": 61.0, "cuff": 28.0},
+    "L":  {"chest": 124.0, "bodyLength": 68.0, "armFit": 63.0, "cuff": 29.0},
+    "XL": {"chest": 130.0, "bodyLength": 70.0, "armFit": 65.0, "cuff": 30.0},
 }
 
 # Dai tay cua co the tham chieu (1.63 m; avatar dung 0.345 x chieu cao). Tay
@@ -898,6 +898,120 @@ def smooth_ring(positions, ring, passes: int = 6) -> None:
 
 
 def build_size(body: BodyReference, size: str, size_chart: dict = SIZE_CHART) -> dict:
+    return drape_torso(_build_size_raw(body, size, size_chart), body)
+
+
+DRAPE_START = -0.17   # m duoi vai: tu day xuong vai roi thang (duoi nguc)
+DRAPE_SLICE = 0.015   # m, be day moi lat cat ngang
+DRAPE_BINS = 64       # so goc quanh truc than
+
+
+def drape_torso(m: dict, body: BodyReference) -> dict:
+    """Bien than ao tu "ban sao co the phong to" thanh vai may.
+
+    Than ao cat tu chinh be mat co the roi scale theo size, nen moi cho lom /
+    loi cua co the (ranh giua nguc, eo, ranh lung, khe hang) bi phong to theo:
+    size cang lon cang ro hinh nguc, ao khoac M trong nhu co nguc nu, gau ao
+    chui vao hang keo quan khuyet theo. Vai that thi bac cau qua cho lom va
+    roi thang tu nguc xuong. Hai buoc tren phan than (khong dung tay, co):
+
+      1. Moi lat cat ngang: day dinh ra toi bao loi cua lat -> lap cho lom.
+      2. Duoi DRAPE_START: ban kinh theo moi goc khong nho hon ban kinh lon
+         nhat o phia tren (vai roi thang, khong thot vao bung / hang).
+
+    Roi lam muot lai (giu bien) de khong con gon doc giua cac lat.
+    """
+    sleeve_ids = {REGION[k] for k in ("sleeveLeft", "sleeveRight", "cuffLeft", "cuffRight",
+                                      "collar")}
+    if "collarLeaf" in REGION:
+        sleeve_ids.add(REGION["collarLeaf"])
+    pos = [list(p) for p in m["positions"]]
+    torso = [v for v, r in enumerate(m["regions"]) if r not in sleeve_ids and pos[v][1] < -0.03]
+    if not torso:
+        return m
+
+    def ang_bin(x, z):
+        return int(((math.atan2(x, z) + 2 * math.pi) % (2 * math.pi)) / (2 * math.pi) * DRAPE_BINS) % DRAPE_BINS
+
+    # 1. bao loi tung lat
+    slices: dict[int, list[int]] = {}
+    for v in torso:
+        slices.setdefault(int(math.floor(pos[v][1] / DRAPE_SLICE)), []).append(v)
+    for vs in slices.values():
+        if len(vs) < 3:
+            continue
+        pts = sorted({(pos[v][0], pos[v][2]) for v in vs})
+
+        def cross(o, a, b):
+            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+        lo: list = []
+        for q in pts:
+            while len(lo) >= 2 and cross(lo[-2], lo[-1], q) <= 0:
+                lo.pop()
+            lo.append(q)
+        up: list = []
+        for q in reversed(pts):
+            while len(up) >= 2 and cross(up[-2], up[-1], q) <= 0:
+                up.pop()
+            up.append(q)
+        hull = lo[:-1] + up[:-1]
+        if len(hull) < 3:
+            continue
+        for v in vs:
+            x, z = pos[v][0], pos[v][2]
+            r = math.hypot(x, z)
+            if r < 1e-6:
+                continue
+            ux, uz = x / r, z / r
+            # khoang cach tu truc toi bao loi theo huong (ux, uz)
+            best = r
+            for i in range(len(hull)):
+                a, b = hull[i], hull[(i + 1) % len(hull)]
+                ex, ez = b[0] - a[0], b[1] - a[1]
+                den = ux * ez - uz * ex
+                if abs(den) < 1e-9:
+                    continue
+                t = (a[0] * ez - a[1] * ex) / den
+                sgm = (a[0] * uz - a[1] * ux) / den
+                if t > 0 and -1e-6 <= sgm <= 1 + 1e-6:
+                    best = max(best, t)
+            pos[v][0], pos[v][2] = ux * best, uz * best
+
+    # 2. roi thang tu duoi nguc
+    runmax = [0.0] * DRAPE_BINS
+    for v in sorted(torso, key=lambda v: -pos[v][1]):
+        x, z = pos[v][0], pos[v][2]
+        r = math.hypot(x, z)
+        b = ang_bin(x, z)
+        if pos[v][1] < DRAPE_START and r > 1e-6:
+            # lan can 1 o de vai khong bi rang cua theo goc
+            want = max(runmax[b], 0.5 * (runmax[(b - 1) % DRAPE_BINS] + runmax[(b + 1) % DRAPE_BINS]))
+            if want > r:
+                pos[v][0], pos[v][2] = x / r * want, z / r * want
+                r = want
+        runmax[b] = max(runmax[b], r)
+
+    triangles = [tuple(m["indices"][i:i + 3]) for i in range(0, len(m["indices"]), 3)]
+    positions = [tuple(p) for p in pos]
+    frozen = {v for loop_v in boundary_vertex_set(triangles) for v in (loop_v,)}
+    frozen |= {v for v, r in enumerate(m["regions"]) if r in sleeve_ids}
+    smooth_surface(positions, triangles, frozen, passes=30)
+    m["positions"] = positions
+    m["normals"] = compute_smooth_normals(positions, triangles)
+    return m
+
+
+def boundary_vertex_set(triangles) -> set:
+    cnt: dict = {}
+    for a, b, c in triangles:
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (min(x, y), max(x, y))
+            cnt[k] = cnt.get(k, 0) + 1
+    return {v for (a, b), n in cnt.items() if n == 1 for v in (a, b)}
+
+
+def _build_size_raw(body: BodyReference, size: str, size_chart: dict = SIZE_CHART) -> dict:
     spec = size_chart[size]
     target_chest = spec["chest"] * CM
     body_length = spec["bodyLength"] * CM
