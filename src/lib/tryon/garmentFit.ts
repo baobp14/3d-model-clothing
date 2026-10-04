@@ -154,8 +154,10 @@ export function buildBodyCollider(
   influences: Float32Array,
   indices: ArrayLike<number>,
   cell = 0.05,
+  /** Luoi da tao dang (src/lib/avatar/pose.ts); mac dinh = luoi chu A. */
+  posed?: Float32Array,
 ): BodyCollider {
-  const positions = deformPositions(rig, influences);
+  const positions = posed ?? deformPositions(rig, influences);
   const normals = bodyNormals(positions, indices);
 
   const n = positions.length / 3;

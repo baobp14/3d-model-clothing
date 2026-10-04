@@ -76,10 +76,12 @@ SIZE_ORDER = ["S", "M", "L", "XL"]
 # 2.83mm, ngang bang ao thun. 8cm van ngan hon nhieu lan 18-21cm cua ao thun
 # nen van la mot tank-top/cap-sleeve ro rang, khong phai ao thun tay cụt.
 TANK_SIZE_CHART = {
-    "S":  {"chest": 90.0,  "bodyLength": 64.0, "sleeveLength": 8.0, "sleeveOpening": 30.0},
-    "M":  {"chest": 96.0,  "bodyLength": 66.0, "sleeveLength": 8.0, "sleeveOpening": 32.0},
-    "L":  {"chest": 102.0, "bodyLength": 68.0, "sleeveLength": 8.0, "sleeveOpening": 34.0},
-    "XL": {"chest": 108.0, "bodyLength": 70.0, "sleeveLength": 8.0, "sleeveOpening": 36.0},
+    # sleeveOpening +8cm: 30-36 bo chat bap vai, vong tay gian 1.6-2.1 lan
+    # ngay tren nguoi mac vua size.
+    "S":  {"chest": 90.0,  "bodyLength": 64.0, "sleeveLength": 8.0, "sleeveOpening": 38.0},
+    "M":  {"chest": 96.0,  "bodyLength": 66.0, "sleeveLength": 8.0, "sleeveOpening": 40.0},
+    "L":  {"chest": 102.0, "bodyLength": 68.0, "sleeveLength": 8.0, "sleeveOpening": 42.0},
+    "XL": {"chest": 108.0, "bodyLength": 70.0, "sleeveLength": 8.0, "sleeveOpening": 44.0},
 }
 TANK_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
 
@@ -105,10 +107,10 @@ CROPTOP_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
 # (gau dai hon, kieu ao so mi mac ngoai). Mac dinh vai "so mi" (woven, it co
 # gian) o client thay vi "thun".
 SHIRT_SIZE_CHART = {
-    "S":  {"chest": 98.0,  "bodyLength": 68.0, "sleeveLength": 18.0, "sleeveOpening": 38.0},
-    "M":  {"chest": 104.0, "bodyLength": 70.0, "sleeveLength": 19.0, "sleeveOpening": 40.0},
-    "L":  {"chest": 110.0, "bodyLength": 72.0, "sleeveLength": 20.0, "sleeveOpening": 42.0},
-    "XL": {"chest": 116.0, "bodyLength": 74.0, "sleeveLength": 21.0, "sleeveOpening": 44.0},
+    "S":  {"chest": 98.0,  "bodyLength": 68.0, "sleeveLength": 18.0, "sleeveOpening": 41.0},
+    "M":  {"chest": 104.0, "bodyLength": 70.0, "sleeveLength": 19.0, "sleeveOpening": 43.0},
+    "L":  {"chest": 110.0, "bodyLength": 72.0, "sleeveLength": 20.0, "sleeveOpening": 45.0},
+    "XL": {"chest": 116.0, "bodyLength": 74.0, "sleeveLength": 21.0, "sleeveOpening": 47.0},
 }
 SHIRT_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
 
@@ -132,12 +134,12 @@ SWEATER_SIZE_CHART = {
     "XL": {"chest": 118.0, "bodyLength": 70.0, "armFit": 64.0, "cuff": 24.0},
 }
 # AO KHOAC: co co + nep, rong hon so mi ~10cm (mac ngoai ao khac), dai hon,
-# co tay rong.
+# co tay rong. Nguc +4 (tu 108-126): M tren nguoi to C keo vai 1.6 lan.
 JACKET_SIZE_CHART = {
-    "S":  {"chest": 108.0, "bodyLength": 70.0, "armFit": 59.0, "cuff": 27.0},
-    "M":  {"chest": 114.0, "bodyLength": 72.0, "armFit": 61.0, "cuff": 28.0},
-    "L":  {"chest": 120.0, "bodyLength": 74.0, "armFit": 63.0, "cuff": 29.0},
-    "XL": {"chest": 126.0, "bodyLength": 76.0, "armFit": 65.0, "cuff": 30.0},
+    "S":  {"chest": 112.0, "bodyLength": 70.0, "armFit": 59.0, "cuff": 27.0},
+    "M":  {"chest": 118.0, "bodyLength": 72.0, "armFit": 61.0, "cuff": 28.0},
+    "L":  {"chest": 124.0, "bodyLength": 74.0, "armFit": 63.0, "cuff": 29.0},
+    "XL": {"chest": 130.0, "bodyLength": 76.0, "armFit": 65.0, "cuff": 30.0},
 }
 
 # Dai tay cua co the tham chieu (1.63 m; avatar dung 0.345 x chieu cao). Tay
@@ -334,11 +336,12 @@ SKIRT_SIZE_CHART = {
 }
 # Phan vay cua DAM: than dam dung lai croptop (gau ngang eo), vay dai toi
 # goi va xoe hon chan vay thuong.
+# waist = vong CAP (cao 10cm tren eo, duoi nguc) nen rong hon eo ~8cm.
 DRESS_SKIRT_SIZE_CHART = {
-    "S":  {"waist": 66.0, "hip": 94.0,  "length": 70.0, "hem": 150.0},
-    "M":  {"waist": 72.0, "hip": 100.0, "length": 71.0, "hem": 156.0},
-    "L":  {"waist": 78.0, "hip": 106.0, "length": 72.0, "hem": 162.0},
-    "XL": {"waist": 84.0, "hip": 112.0, "length": 73.0, "hem": 168.0},
+    "S":  {"waist": 74.0, "hip": 94.0,  "length": 57.0, "hem": 150.0},
+    "M":  {"waist": 80.0, "hip": 100.0, "length": 58.0, "hem": 156.0},
+    "L":  {"waist": 86.0, "hip": 106.0, "length": 59.0, "hem": 162.0},
+    "XL": {"waist": 92.0, "hip": 112.0, "length": 60.0, "hem": 168.0},
 }
 SKIRT_ANGLES = 48        # so dinh moi vong
 SKIRT_RING_STEP = 0.015  # khoang cach giua hai vong ngang (m), bang DECIMATE_CELL
@@ -1921,6 +1924,29 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # ban kinh dui de goc noi vao mong khong bi gay.
     thigh_r_ref = {s: ref_leg_r(s, 0.02, 0.10) for s in ("right", "left")}
 
+    # Ban kinh ong chan tham chieu theo tung doan doc truc chan. Truoc day ong
+    # bop theo MOT ti le (gau / dui) nhan len hinh chan that, nen gau lay dung
+    # co chan cua co the tham chieu (~23cm) thay vi `hem` trong bang size
+    # (38-44cm). Len nguoi khac gau roi len bap chan to hon -> vong gau bi keo
+    # gian 1.8-2.4 lan, mep rang cua, gai nhon o mat ca. Gio ong lay ban kinh
+    # MONG MUON noi suy tu dui (da scale) toi gau theo bang size.
+    LEG_BINS = 24
+    leg_bins = {s: [[0.0, 0] for _ in range(LEG_BINS)] for s in ("right", "left")}
+    for q in body.positions:
+        perp, t, s = body.leg_coords(q)
+        if s in leg_bins and 0.0 <= t <= LEG_LENGTH_REF and perp < LEG_PICK_RADIUS:
+            k = min(LEG_BINS - 1, int(t / LEG_LENGTH_REF * LEG_BINS))
+            leg_bins[s][k][0] += perp
+            leg_bins[s][k][1] += 1
+
+    def ref_r_at(side, t):
+        k = min(LEG_BINS - 1, max(0, int(t / LEG_LENGTH_REF * LEG_BINS)))
+        for d in range(LEG_BINS):
+            for kk in (k - d, k + d):
+                if 0 <= kk < LEG_BINS and leg_bins[side][kk][1]:
+                    return leg_bins[side][kk][0] / leg_bins[side][kk][1]
+        return thigh_r_ref[side]
+
     # Day thun eo: mep tren cung (waist_cut) truoc day dung CHUNG scale_waist
     # phang voi ca doan duoi no -- vi waist_cut (day chau + rise, ~0.94m o
     # short M) nam THAP HON body.waist_y (~1.01m, eo tu nhien tren co the
@@ -1954,9 +1980,13 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
         origin, axis = body.leg_axis(side)
         b = min(1.0, max(0.0, (body.crotch_y - y) / max(natural_leg, 1e-6)))
         b = b * b * (3.0 - 2.0 * b)
-        squeeze_end = hem_r_target / max(thigh_r_ref[side] * scale_hip, 1e-4)
-        squeeze_end = min(1.15, max(0.7, squeeze_end))  # chan combo cuc doan
-        sq = 1.0 + (squeeze_end - 1.0) * b
+        _, t_ref, _ = body.leg_coords(p)
+        r_ref = max(ref_r_at(side, t_ref), 0.03)
+        r_want = thigh_r_ref[side] * scale_hip * (1.0 - b) + hem_r_target * b
+        # Khong bop ong nho hon chan that (+ FABRIC_GAP) -- quan khong duoc
+        # ngam vao bap chan cua chinh co the tham chieu.
+        sq = max(r_want, r_ref + FABRIC_GAP) / (r_ref * scale_hip)
+        sq = 1.0 + (sq - 1.0) * b
         d = sub3((nx, ny, nz), origin)
         t = dot(d, axis)
         perpv = (d[0] - axis[0] * t, d[1] - axis[1] * t, d[2] - axis[2] * t)
@@ -2263,7 +2293,8 @@ def build_shorts_from_pants(
     }
 
 
-def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SIZE_CHART) -> dict:
+def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SIZE_CHART,
+                     rise: float = 0.0) -> dict:
     """Dung chan vay chu A: mot luoi ong (vong ngang x goc) quanh truc than.
 
     Khong cat tu mesh co the nhu ao/quan -- vay khong bam theo tung chan, nen
@@ -2279,11 +2310,12 @@ def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SI
     spec = size_chart[size]
     waist_target = spec["waist"] * CM
     hip_target = spec["hip"] * CM
-    length = spec["length"] * CM
+    length = spec["length"] * CM + rise
     hem_target = spec["hem"] * CM
 
     n = SKIRT_ANGLES
-    y_top = body.waist_y
+    # rise > 0: cap vay nam TREN eo (vay cua dam -- phu len vat than).
+    y_top = body.waist_y + rise
     y_hem = y_top - length
     n_rings = max(2, round(length / SKIRT_RING_STEP)) + 1
     ring_ys = [y_top - length * i / (n_rings - 1) for i in range(n_rings)]
@@ -2297,6 +2329,10 @@ def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SI
             continue
         dx, dz = p[0], p[2] - body.axis_z
         if math.hypot(dx, dz) > 0.35:
+            continue
+        # Tren eo (cap cao cua dam) canh tay chu A ep sat suon -- bo dinh
+        # ngoai be ngang than de duong bao khong om ca tay.
+        if p[1] > body.waist_y and abs(dx) > abs(body.acromion["right"][0]) * 0.95:
             continue
         pts.append((p[1], dx, dz))
 
@@ -2735,7 +2771,9 @@ def main() -> None:
     capris = [build_shorts_from_pants(p, body, s, CAPRI_SIZE_CHART) for p, s in zip(pants, SIZE_ORDER)]
     skirts = [build_skirt_size(body, s) for s in SIZE_ORDER]
 
-    long_base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.38)
+    # Bap tay rong 0.42 x nguc (truoc 0.38): nguoi to (C, nguc 108) mac vua nguc
+    # van bi bap tay keo gian 1.9 lan.
+    long_base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.42)
                  for k, v in LONGSHIRT_SIZE_CHART.items()}
     long_shirts = [
         add_shirt_collar(
@@ -2745,7 +2783,7 @@ def main() -> None:
         for s in SIZE_ORDER
     ]
     def long_sleeved(chart, collar):
-        base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.38)
+        base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.42)
                 for k, v in chart.items()}
         out = []
         for s in SIZE_ORDER:
@@ -2763,7 +2801,9 @@ def main() -> None:
 
     sweaters = long_sleeved(SWEATER_SIZE_CHART, collar=False)
     jackets = long_sleeved(JACKET_SIZE_CHART, collar=True)
-    dress_skirts = [build_skirt_size(body, s, DRESS_SKIRT_SIZE_CHART) for s in SIZE_ORDER]
+    # Cap cao 10cm tren eo: than dam co len khi ru (gau than ve ~eo), cap vay o
+    # dung eo de lo mot khe da. Cap cao phu len vat than, cung mot mau vai.
+    dress_skirts = [build_skirt_size(body, s, DRESS_SKIRT_SIZE_CHART, rise=0.10) for s in SIZE_ORDER]
     # Than dam: croptop keo dai toi 4cm duoi eo (phu len cap vay) roi bop eo
     # cho gau than = cap vay + 2cm -> than va vay noi lien, khong lo go.
     hps_y = body.shoulder_y + HPS_RISE
@@ -2774,7 +2814,7 @@ def main() -> None:
     bodice_chart = {k: dict(v, bodyLength=bodice_len + extra[k])
                     for k, v in CROPTOP_SIZE_CHART.items()}
     bodices = [taper_bodice_to_waist(build_size(body, s, bodice_chart), body,
-                                     (DRESS_SKIRT_SIZE_CHART[s]["waist"] + 2.0) * CM)
+                                     (DRESS_SKIRT_SIZE_CHART[s]["waist"] - 6.0) * CM)
                for s in SIZE_ORDER]
     for group in (shirts, tanks, croptops, long_shirts, dress_shirts, sweaters, jackets, bodices):
         add_body_binding(group, body, body.shoulder_y, legs=False)

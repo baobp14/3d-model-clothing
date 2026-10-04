@@ -14,6 +14,7 @@ import {
   type MorphRig,
 } from '@/lib/avatar/avatarMorphService';
 import { FEMALE_PROFILES, FORM_FIELDS, PROFILES } from '@/lib/avatar/bodyProfiles';
+import { applyPose, POSES, type AvatarRig, type PoseKey } from '@/lib/avatar/pose';
 import {
   removeGarmentBackground,
   trimToContent,
@@ -22,6 +23,7 @@ import {
 } from '@/lib/tryon/backgroundRemoval';
 import {
   buildBodyCollider,
+  deformPositions,
   placeGarment,
   GARMENT_REGION,
   buildConstraints,
@@ -246,6 +248,7 @@ type Loaded = {
   garments: Record<GarmentKind, SizedGeom>;
   meta: GarmentMeta;
   bodyRef?: Float32Array;
+  poseRigs: Record<string, AvatarRig>;
 };
 
 /**
@@ -487,6 +490,7 @@ export default function GarmentTestApp() {
   const [error, setError] = useState<string | null>(null);
 
   const [profileKey, setProfileKey] = useState<string>('B');
+  const [pose, setPose] = useState<PoseKey>('apose');
   const [customMode, setCustomMode] = useState(false);
   const [custom, setCustom] = useState<AvatarBodyInput>({ ...PROFILES.B });
   // Per-field: ticked = the user sets it, unticked = the app estimates it.
@@ -694,6 +698,7 @@ export default function GarmentTestApp() {
         const rigs: Record<string, MorphRig> = {};
         const avatars: Record<string, THREE.Object3D> = {};
         const meshes: Record<string, THREE.Mesh> = {};
+        const poseRigs: Record<string, AvatarRig> = {};
         for (const gender of ['male', 'female'] as const) {
           const gltf = await loader.loadAsync(`/models/avatar-${gender}.glb`);
           let body: THREE.Mesh | null = null;
@@ -706,7 +711,9 @@ export default function GarmentTestApp() {
           if (!morphs) throw new Error(`avatar-${gender}.glb has no position morph targets`);
           rigs[gender] = createMorphRig(
             {
-              position: g.attributes.position.array as Float32Array,
+              // A copy: posing writes the skinned body into the mesh's own
+              // position buffer, which must not become the rig's rest shape.
+              position: Float32Array.from(g.attributes.position.array as Float32Array),
               morphDeltas: morphs.map((a) => a.array as Float32Array),
             },
             metadata,
@@ -714,6 +721,12 @@ export default function GarmentTestApp() {
           );
           avatars[gender] = gltf.scene;
           meshes[gender] = body as THREE.Mesh;
+          // Keep the unposed base so switching back to chữ A restores morphs.
+          (body as THREE.Mesh).userData.basePosition = Float32Array.from(
+            g.attributes.position.array as Float32Array,
+          );
+          const rigRes = await fetch(`/models/avatar-rig-${gender}.json`);
+          if (rigRes.ok) poseRigs[gender] = await rigRes.json();
         }
 
         const gMetaRes = await fetch('/models/garment-metadata.json');
@@ -728,7 +741,7 @@ export default function GarmentTestApp() {
           const r = await fetch(`/models/${refInfo.file}`);
           if (r.ok) bodyRef = new Float32Array(await r.arrayBuffer());
         }
-        const BOTTOM_PREFIXES = ['pants_', 'shorts_', 'capri_', 'skirt_'];
+        const BOTTOM_PREFIXES = ['pants_', 'shorts_', 'capri_', 'skirt_', 'dressskirt_'];
         const originOf = (prefix: string): [number, number, number] | undefined =>
           refInfo
             ? [0, BOTTOM_PREFIXES.includes(prefix) ? refInfo.waistY : refInfo.shoulderY, refInfo.axisZ]
@@ -779,7 +792,7 @@ export default function GarmentTestApp() {
         };
 
         if (cancelled) return;
-        setLoaded({ rigs, avatars, meshes, garments, meta, bodyRef });
+        setLoaded({ rigs, avatars, meshes, garments, meta, bodyRef, poseRigs });
       } catch (err) {
         if (cancelled) return;
         console.error('[garment-test]', err);
@@ -814,29 +827,37 @@ export default function GarmentTestApp() {
     const influences = axesToInfluences(rig, solved.axes);
 
     const mesh = loaded.meshes[profile.gender];
-    if (!mesh.morphTargetInfluences || mesh.morphTargetInfluences.length !== influences.length) {
-      mesh.morphTargetInfluences = Array.from(influences);
+    const poseRig = loaded.poseRigs[profile.gender];
+    // Posed: skin on the CPU and show the result directly (morphs baked in,
+    // influences zeroed). Chữ A: the untouched base + GPU morphs as before.
+    const posed =
+      pose !== 'apose' && poseRig
+        ? applyPose(poseRig, deformPositions(rig, influences), pose)
+        : undefined;
+    const posAttr = mesh.geometry.attributes.position as THREE.BufferAttribute;
+    const base = mesh.userData.basePosition as Float32Array;
+    (posAttr.array as Float32Array).set(posed ?? base);
+    posAttr.needsUpdate = true;
+    mesh.geometry.computeVertexNormals();
+    mesh.geometry.computeBoundingSphere();
+    const shown = posed ? new Array(influences.length).fill(0) : Array.from(influences);
+    if (!mesh.morphTargetInfluences || mesh.morphTargetInfluences.length !== shown.length) {
+      mesh.morphTargetInfluences = shown;
     } else {
-      for (let i = 0; i < influences.length; i++) mesh.morphTargetInfluences[i] = influences[i];
+      for (let i = 0; i < shown.length; i++) mesh.morphTargetInfluences[i] = shown[i];
     }
 
     const index = mesh.geometry.index;
     if (!index) throw new Error('Body mesh has no index buffer');
-    const collider: BodyCollider = buildBodyCollider(rig, influences, index.array);
+    const collider: BodyCollider = buildBodyCollider(rig, influences, index.array, 0.05, posed);
     collider.yaw = 0;
     collider.refPositions = loaded.bodyRef;
 
     // Lowest point of the morphed body = where the floor must sit, otherwise a
     // shorter body hangs above the disc or a taller one sinks through it.
-    const base = mesh.geometry.attributes.position.array as Float32Array;
-    const deltas = (mesh.geometry.morphAttributes.position ?? []).map(
-      (a) => a.array as Float32Array,
-    );
     let groundY = Infinity;
-    for (let i = 1; i < base.length; i += 3) {
-      let y = base[i];
-      for (let m = 0; m < deltas.length; m++) y += influences[m] * deltas[m][i];
-      if (y < groundY) groundY = y;
+    for (let i = 1; i < collider.positions.length; i += 3) {
+      if (collider.positions[i] < groundY) groundY = collider.positions[i];
     }
 
     return {
@@ -849,7 +870,7 @@ export default function GarmentTestApp() {
         .filter((d) => d.outOfRange)
         .map((d) => MEASURE_FIELDS[d.dimension as (typeof FORM_FIELDS)[number]]?.label ?? d.dimension),
     };
-  }, [loaded, profile]);
+  }, [loaded, profile, pose]);
 
   // One resolved { geom, constraints, entry } per slot that currently has a
   // kind chosen -- feeds both the 3D pieces array and each slot's own
@@ -952,7 +973,10 @@ export default function GarmentTestApp() {
         resolved.state.kind === 'jacket',
       pattern: resolved.state.front || resolved.state.back ? 'plain' : resolved.state.pattern,
       color2: resolved.state.color2,
-      clipProfile: slot === 'bottom' ? topHemProfile : undefined,
+      // A dress's skirt is the same cloth as its bodice: overlapping is fine,
+      // and cutting it under the bodice hem bared the hips.
+      clipProfile:
+        slot === 'bottom' && resolved.state.kind !== 'dressskirt' ? topHemProfile : undefined,
       clipPull:
         resolved.state.kind === 'skirt' || resolved.state.kind === 'dressskirt' ? 0.035 : 0.012,
     });
@@ -1425,6 +1449,13 @@ export default function GarmentTestApp() {
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Chuyển động
             </h2>
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {(Object.keys(POSES) as PoseKey[]).map((k) => (
+                <Button key={k} active={pose === k} onClick={() => setPose(k)}>
+                  {POSES[k].label}
+                </Button>
+              ))}
+            </div>
             <div className="flex flex-col gap-1.5">
               <Button active={spinning} onClick={() => setSpinning((v) => !v)}>
                 {spinning ? 'Đang quay — dừng' : 'Quay người liên tục'}

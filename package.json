@@ -13,7 +13,9 @@
     "avatar:report": "node --experimental-strip-types tools/avatar-pipeline/solve_report.mjs",
     "garment:build": "python tools/garment-pipeline/build_garment_glb.py",
     "garment:report": "node --experimental-strip-types tools/garment-pipeline/fit_report.mjs",
-    "prints:build": "node tools/garment-pipeline/build_prints.mjs"
+    "prints:build": "node tools/garment-pipeline/build_prints.mjs",
+    "garment:audit": "node --experimental-strip-types tools/garment-pipeline/audit_all.mjs",
+    "avatar:rig": "python tools/avatar-pipeline/build_avatar_rig.py"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
