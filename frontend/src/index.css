@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=PT+Serif:ital,wght@0,400;1,400&display=swap');
+@import "tailwindcss";
+@source not "../.qa";
+@source not "../e2e";
+
+.product-description-panel .product-description-content {
+  color: #222;
+  font-size: 18px;
+  line-height: 1.9;
+  font-weight: 400;
+}
+
+@theme {
+  /* Đường cong chung cho mọi chuyển động: chạy nhanh lúc đầu rồi giảm tốc dần
+     về cuối, nên mắt thấy "mềm" hơn ease mặc định của trình duyệt. */
+  --ease-soft: cubic-bezier(.22, 1, .36, 1);
+  --radius-control: 6px;
+  --color-background: #ffffff; --color-foreground: #111111; --color-muted: #f4f1ec;
+  --color-alabaster: #fbf9f6; --color-obsidian: #111111; --color-charcoal: #222222;
+  --color-feather: #e5e5e5; --color-champagne: #9a7b2e; --color-taupe: #8c827a; --color-stone: #a8a29e;
+  /* Chữ phụ nhưng vẫn phải đọc được: taupe chỉ đạt 3.58:1 và stone 2.40:1 trên
+     nền kem, dưới ngưỡng WCAG AA 4.5:1. Màu này giữ sắc nâu ấm mà đạt 5.35:1. */
+  --color-slate: #6f665d;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  a, button { transition: color .3s var(--ease-soft), opacity .3s var(--ease-soft), border-color .3s var(--ease-soft); }
+  /* Ai bật "giảm chuyển động" trong hệ điều hành thì tắt hết hiệu ứng */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  }
+  body { margin: 0; min-width: 320px; font-family: 'Inter', sans-serif; color: #111; background: #fff; }
+  button, a, input { font: inherit; } button, a { cursor: pointer; }
+  button, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea { border-radius: var(--radius-control); }
+  /* Chrome tô nền xanh cho ô được tự điền — đè lại cho khớp nền trang */
+  input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #111; -webkit-box-shadow: 0 0 0 1000px #fff inset; transition: background-color 9999s;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid #9a7b2e; outline-offset: 3px; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@layer components {
+  /* Studio backdrop shared by catalog cards, showcase and product gallery. */
+  .product-image-surface {
+    isolation: isolate;
+    background: linear-gradient(180deg, #dedddb 0%, #eae9e7 55%, #f3f2f0 100%);
+  }
+  .product-image-blend {
+    mix-blend-mode: multiply;
+  }
+  .font-display { font-family: 'PT Serif', serif; }
+  .eyebrow { font-size: 11px; letter-spacing: .3em; text-transform: uppercase; }
+  .display-title { font-family: 'PT Serif', serif; font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 400; line-height: 1.08; letter-spacing: .06em; text-transform: uppercase; }
+  .button { display: inline-flex; align-items: center; justify-content: center; gap: .65rem; padding: 1rem 2.25rem; border: 1px solid #111; border-radius: var(--radius-control); font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; transition: background-color .4s var(--ease-soft), color .4s var(--ease-soft), border-color .4s var(--ease-soft); }
+  .button:hover { background: #111; color: #fff; }
+  .button--light { border-color: #fff; background: #fff; color: #111; }
+  .button--light:hover { background: transparent; color: #fff; }
+  .button--ghost-light { border-color: rgb(255 255 255 / .55); color: #fff; }
+  .button--ghost-light:hover { background: #fff; color: #111; }
+  .button--sm { gap: .5rem; padding: .7rem 1.6rem; font-size: 10px; letter-spacing: .18em; }
+  /* Khung giới hạn bề ngang: trên màn 2K/4K mà để tràn viền thì mỗi thẻ sản
+     phẩm rộng cả gang tay, chữ thì dài quá tầm mắt. */
+  .shell { width: 100%; max-width: 1600px; margin-inline: auto; }
+  .section-shell { padding: 6rem 2rem; max-width: 1600px; margin-inline: auto; }
+  .ticker { display: flex; justify-content: space-between; gap: 1.5rem; max-width: 1600px; margin-inline: auto; padding: 1.25rem 2rem; border-bottom: 1px solid #e5e5e5; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; }
+  .image-zoom { overflow: hidden; } .image-zoom img { transition: transform .9s var(--ease-soft); } .image-zoom:hover img { transform: scale(1.03); }
+  .campaign-banner { position: relative; height: 560px; overflow: hidden; }
+  .campaign-banner > img { width: 100%; height: 100%; object-fit: cover; }
+  .campaign-banner__overlay { position: absolute; inset: 0; background: rgb(17 17 17 / .35); }
+  .campaign-banner__content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+}
+
+@media (max-width: 767px) {
+  .section-shell { padding: 4rem 1.25rem; }
+  .ticker { overflow-x: auto; padding-inline: 1.25rem; white-space: nowrap; } .ticker span:nth-child(2) { display: none; }
+  .button { width: 100%; padding-inline: 1rem; } .campaign-banner { height: 440px; }
+  .campaign-banner__content { padding: 1.25rem; }
+}
+
+/* Máy nhỏ (iPhone SE và tương đương): nới chữ và bỏ bớt khoảng đệm */
+@media (max-width: 380px) {
+  .button { padding-block: .85rem; font-size: 10px; letter-spacing: .14em; }
+  .display-title { font-size: 1.9rem; letter-spacing: .04em; }
+  .eyebrow { font-size: 10px; letter-spacing: .22em; }
+  .ticker { font-size: 9px; letter-spacing: .18em; }
+}
+
+@layer components {
+  .shop-shell { width: 100%; max-width: 1280px; margin-inline: auto; padding: 2.5rem 2rem 6rem; }
+  .shop-input { border: 1px solid #dedbd5; border-radius: var(--radius-control); background: white; padding: .75rem; font-size: 14px; }
+  .shop-input:focus-visible { outline: 2px solid #9a7b2e; outline-offset: 2px; }
+  @media (max-width: 640px) { .shop-shell { padding: 2rem 1rem 4rem; } }
+}
+
+/* A shared scale for the homepage, including its header and footer. */
+.home-page {
+  --home-width: 1440px;
+  --home-gutter: clamp(1.25rem, 3vw, 3rem);
+}
+.home-page .shell,
+.home-page .section-shell,
+.home-page .ticker { max-width: var(--home-width); }
+.home-page .shell,
+.home-page .ticker { padding-inline: var(--home-gutter); }
+.home-page .section-shell {
+  padding: clamp(3rem, 5vw, 4.5rem) var(--home-gutter);
+}
+.home-page .display-title {
+  font-size: clamp(1.75rem, 2.7vw, 2.75rem);
+  line-height: 1.18;
+  letter-spacing: .04em;
+  overflow-wrap: anywhere;
+}
+.home-page .eyebrow { letter-spacing: .22em; line-height: 1.6; }
+.home-page .button {
+  min-height: 44px;
+  padding: .8rem 1.5rem;
+  font-size: 10px;
+  letter-spacing: .16em;
+}
+.home-page .ticker {
+  padding-block: 1rem;
+  font-size: 9px;
+  letter-spacing: .18em;
+}
+.home-page #collection,
+.home-page #products,
+.home-page #studio { scroll-margin-top: 96px; }
+.home-page .home-studio {
+  max-width: var(--home-width);
+  margin-inline: auto;
+}
+.home-page .campaign-banner { height: clamp(320px, 35vw, 460px); }
+.home-page .campaign-banner__content .display-title { max-width: 900px; }
+.home-page .campaign-banner__content .button { margin-top: 1.5rem; }
+.home-page > footer > .shell { padding-block: 2rem; }
+.home-page > footer > .shell:first-child { padding-block: 2rem; }
+.home-page > footer > .shell:last-child { padding-block: 1.25rem; }
+.home-page > footer .image-zoom { height: clamp(220px, 19vw, 260px); }
+.home-page > footer .bg-obsidian { height: auto; min-height: 260px; padding: 1.5rem; }
+.home-page > footer h3 { font-size: 1.3rem; }
+
+@media (max-width: 767px) {
+  .home-page .button { width: 100%; }
+  .home-page .home-studio .display-title { max-width: 30rem; }
+  .home-page > footer .bg-obsidian { min-height: 240px; }
+}
+@media (min-width: 768px) {
+  .home-page .button { width: auto; }
+}
+@media (max-height: 500px) and (min-width: 640px) {
+  .home-page #hero-title { font-size: 1.4rem; }
+  .home-page #hero-title + div { margin-block: .75rem; }
+}
+
+/* Registration follows the site's PT Serif typography and monochrome palette. */
+.registration-panel { font-family: 'PT Serif', serif; color: #222; }
+.registration-card { max-width: 720px; border: 1px solid #e5e5e5; }
+.registration-panel h1, .registration-panel h2 { color: #111; font-size: clamp(28px, 3vw, 34px); font-weight: 400; letter-spacing: .04em; }
+.registration-panel p { color: #48443f; }
+.registration-panel > p { font-size: 16px; line-height: 1.65; }
+.registration-panel > p.text-right { margin-top: 18px; font-size: 12px; letter-spacing: .08em; }
+.registration-panel form { margin-top: 24px; }
+.registration-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 24px; }
+.registration-fields > div { min-width: 0; margin-bottom: 0; }
+.registration-fields > div > label { color: #222; font-size: 13px; font-weight: 400; letter-spacing: .07em; margin-bottom: 9px; }
+.registration-panel input:not([type="checkbox"]), .registration-panel select { width: 100%; min-height: 52px; background: #fff; color: #222; border-color: #a8a29e; border-radius: var(--radius-control); font-family: inherit; font-size: 16px; }
+.registration-panel input::placeholder { color: #6f665d; opacity: 1; }
+.registration-panel input:focus, .registration-panel select:focus { outline: 2px solid #9a7b2e; outline-offset: 2px; border-color: #9a7b2e; }
+.registration-panel [aria-invalid="true"] { border-color: #b91c1c !important; }
+.registration-panel p[id$="-err"], .registration-panel [role="alert"] { color: #b91c1c; }
+.registration-panel form > label { color: #222; font-size: 14px; line-height: 1.65; margin-top: 26px; margin-bottom: 24px; }
+.registration-panel input[type="checkbox"] { flex-shrink: 0; width: 18px; height: 18px; margin-top: 3px; accent-color: #111; }
+.registration-panel button, .registration-panel a { font-family: inherit; }
+.registration-panel button[type="submit"] { width: 100%; min-height: 52px; background: #111; color: #fff; border-color: #111; border-radius: var(--radius-control); font-size: 13px; font-weight: 400; letter-spacing: .12em; }
+.registration-panel button[type="submit"]:hover { background: #222; border-color: #222; }
+.registration-panel > p:last-child a, .registration-panel > p:last-child button { color: #111; }
+@media (max-width: 639px) {
+  .registration-fields { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .registration-card { padding: 28px 20px; }
+}
+
+.login-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.login-actions .button { width: 100%; min-height: 48px; margin-top: 0; padding: 14px 8px; letter-spacing: .12em; }
+.login-google .button { width: 100%; min-height: 48px; }
+
+/* Keep the product loop scrollable without a visible scrollbar. */
+.product-showcase-rail { scrollbar-width: none; -ms-overflow-style: none; }
+.product-showcase-rail::-webkit-scrollbar { display: none; }

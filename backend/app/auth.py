@@ -1,0 +1,61 @@
+from dataclasses import dataclass
+from uuid import UUID
+
+import httpx
+from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from .errors import fail
+
+bearer = HTTPBearer(auto_error=False)
+
+
+@dataclass(frozen=True)
+class User:
+    id: str
+    role: str = 'customer'
+
+
+def require_user(request: Request, credentials: HTTPAuthorizationCredentials | None = Depends(bearer)):
+    if credentials is None:
+        fail('NB_AUTH_REQUIRED', 401)
+    config = request.app.state.settings
+    if not config.supabase_url or not config.supabase_anon_key:
+        fail('NB_AUTH_NOT_CONFIGURED', 503)
+    # The Auth server validates the token and returns authoritative app_metadata.
+    # Never trust a decoded JWT payload or user_metadata.role from the browser.
+    try:
+        response = request.app.state.auth_http.get(
+            config.supabase_url + '/auth/v1/user',
+            headers={'apikey': config.supabase_anon_key, 'Authorization': f'Bearer {credentials.credentials}'},
+        )
+    except httpx.HTTPError:
+        fail('NB_AUTH_UNAVAILABLE', 503)
+    if response.status_code in (401, 403):
+        fail('NB_AUTH_REQUIRED', 401)
+    if response.status_code != 200:
+        fail('NB_AUTH_UNAVAILABLE', 503)
+    try:
+        data = response.json()
+        user_id = str(UUID(data['id']))
+        if data.get('is_anonymous') or not data.get('email_confirmed_at'):
+            fail('NB_AUTH_REQUIRED', 401)
+        metadata = data.get('app_metadata') or {}
+        if not isinstance(metadata, dict):
+            fail('NB_AUTH_REQUIRED', 401)
+        role = 'admin' if metadata.get('role') == 'admin' else 'customer'
+    except (ValueError, KeyError, TypeError):
+        fail('NB_AUTH_REQUIRED', 401)
+    return User(user_id, role)
+
+
+def require_admin(user: User = Depends(require_user)):
+    if user.role != 'admin':
+        fail('NB_ADMIN_REQUIRED', 403)
+    return user
+
+
+def require_customer(user: User = Depends(require_user)):
+    if user.role != 'customer':
+        fail('NB_CUSTOMER_REQUIRED', 403)
+    return user

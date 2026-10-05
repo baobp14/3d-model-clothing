@@ -1,0 +1,11 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    watch: { usePolling: true, interval: 200, ignored: ['**/.qa/**', '**/e2e/**'] },
+    proxy: { '/api': 'http://127.0.0.1:8000' },
+  },
+})

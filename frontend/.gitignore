@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.qa/
+.env
+.env.*
+!.env.example
+*.local
+
+# cache tai ve tu Kaggle (580MB) - dung lai duoc, khong commit
+tools/.kaggle-cache/
