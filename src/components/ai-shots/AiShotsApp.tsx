@@ -124,6 +124,9 @@ export default function AiShotsApp() {
   const [picked, setPicked] = useState<Set<View>>(new Set(['front', 'back', 'threequarter']));
   const [shots, setShots] = useState<Partial<Record<View, Shot>>>({});
   const [busy, setBusy] = useState(false);
+  // Off by default: generating costs OpenRouter credit. The page opens as a
+  // gallery of the shots the batch script already made.
+  const [genMode, setGenMode] = useState(false);
 
   useEffect(() => {
     fetch('/api/ai-shots/samples')
@@ -155,6 +158,9 @@ export default function AiShotsApp() {
   }
 
   const current = useMemo(() => samples.find((s) => s.folder === folder), [samples, folder]);
+  const gallery = useMemo(() => samples.filter((s) => s.saved.length > 0), [samples]);
+  const scores = VIEWS.map((v) => shots[v]?.score).filter((x): x is number => typeof x === 'number');
+  const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
 
   async function run() {
     if (!front || !back || busy) return;
@@ -195,131 +201,198 @@ export default function AiShotsApp() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
-      <header>
-        <h1 className="text-xl font-semibold">Tạo ảnh người mẫu từ ảnh sản phẩm</h1>
-        <p className="mt-1 text-sm text-stone-500">
-          Đưa vào ảnh trải phẳng mặt trước và mặt sau của món đồ. AI tạo ảnh người mẫu mặc đúng món đó ở nhiều góc,
-          rồi tự so lại với ảnh gốc và chấm độ giống 0–10.
-        </p>
-      </header>
-
-      <section className="grid gap-4 rounded-xl border border-stone-200 bg-white p-4 md:grid-cols-[1fr_1fr_1.2fr]">
-        <Upload label="Ảnh trước" src={front} onFile={(u) => { setFront(u); setFolder(''); setShots({}); }} />
-        <Upload label="Ảnh sau" src={back} onFile={(u) => { setBack(u); setFolder(''); setShots({}); }} />
-
-        <div className="flex flex-col gap-3 text-sm">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-stone-500">Hoặc chọn sản phẩm có sẵn trong dataset</span>
-            <select
-              value={folder}
-              onChange={(e) => {
-                const s = samples.find((x) => x.folder === e.target.value);
-                if (s) choose(s);
-              }}
-              className="rounded border border-stone-300 px-2 py-1.5"
-            >
-              <option value="">— ảnh tự tải lên —</option>
-              {samples.map((s) => (
-                <option key={s.folder} value={s.folder}>
-                  {s.folder.replace(/_/g, ' ')}
-                  {s.saved.length ? ` (đã có ${s.saved.length} ảnh AI)` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div>
-            <div className="mb-1 text-xs font-medium text-stone-500">Loại đồ</div>
-            <div className="flex flex-wrap gap-1.5">
-              {(Object.keys(KIND_LABEL) as Kind[]).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setKind(k)}
-                  className={`rounded border px-2 py-1 text-xs ${kind === k ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300'}`}
-                >
-                  {KIND_LABEL[k]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-1 text-xs font-medium text-stone-500">Góc chụp cần tạo</div>
-            <div className="grid grid-cols-2 gap-1">
-              {VIEWS.map((v) => (
-                <label key={v} className="flex items-center gap-1.5 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={picked.has(v)}
-                    onChange={(e) =>
-                      setPicked((p) => {
-                        const n = new Set(p);
-                        if (e.target.checked) n.add(v);
-                        else n.delete(v);
-                        // Other views copy the model from the front shot.
-                        if (n.size && !n.has('front')) n.add('front');
-                        return n;
-                      })
-                    }
-                  />
-                  {VIEW_LABEL[v]}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            disabled={!front || !back || busy || picked.size === 0}
-            onClick={run}
-            className="mt-auto rounded-lg bg-stone-900 px-4 py-2 font-medium text-white disabled:opacity-40"
-          >
-            {busy ? 'Đang tạo…' : `Tạo ${picked.size} ảnh bằng AI`}
-          </button>
-          <p className="text-[11px] text-stone-400">
-            Mỗi ảnh mất khoảng 20–40 giây và tốn một lượt gọi OpenRouter (có phí).
-            {current?.saved.length ? ' Ảnh đang hiện bên dưới là ảnh đã tạo trước, chưa tốn phí.' : ''}
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Ảnh người mẫu tạo bằng AI từ ảnh sản phẩm</h1>
+          <p className="mt-1 text-sm text-stone-500">
+            Đầu vào chỉ là 2 ảnh trải phẳng mặt trước và mặt sau. AI tạo ảnh người mẫu mặc đúng món đó, rồi tự so với
+            ảnh gốc và chấm độ giống 0–10. {gallery.length} sản phẩm đã có ảnh tạo sẵn.
           </p>
         </div>
-      </section>
+        <button
+          type="button"
+          onClick={() => setGenMode((g) => !g)}
+          className={`rounded-lg border px-3 py-1.5 text-xs ${genMode ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 text-stone-600'}`}
+        >
+          {genMode ? 'Quay lại xem ảnh có sẵn' : 'Tạo ảnh mới (cần nạp OpenRouter)'}
+        </button>
+      </header>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        {VIEWS.filter((v) => shots[v]).map((v) => {
-          const s = shots[v]!;
-          return (
-            <figure key={v} className="flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-white">
-              <div className="relative flex aspect-[3/4] items-center justify-center bg-stone-100">
-                {s.status === 'running' && <span className="animate-pulse text-sm text-stone-500">AI đang vẽ…</span>}
-                {s.status === 'error' && <span className="px-3 text-center text-xs text-rose-700">{s.error}</span>}
-                {s.image && <img src={s.image} alt={VIEW_LABEL[v]} className="h-full w-full object-cover" />}
-                {s.status === 'done' && (
-                  <span className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium text-white ${scoreClass(s.score)}`}>
-                    {s.score == null ? 'chưa chấm' : `giống ${s.score}/10`}
-                  </span>
-                )}
+      {!genMode && (
+        <section>
+          <div className="mb-2 text-xs font-medium text-stone-500">Chọn sản phẩm</div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {gallery.map((s) => (
+              <button
+                key={s.folder}
+                type="button"
+                onClick={() => choose(s)}
+                title={s.folder.replace(/_/g, ' ')}
+                className={`relative h-24 w-20 shrink-0 overflow-hidden rounded-lg border-2 bg-white ${s.folder === folder ? 'border-stone-900' : 'border-transparent hover:border-stone-300'}`}
+              >
+                <img src={fileUrl(s.folder, 'ai_front.jpg')} alt="" className="h-full w-full object-cover" loading="lazy" />
+                <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-[10px] text-white">
+                  {s.saved.length} ảnh
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {genMode && (
+        <section className="grid gap-4 rounded-xl border border-stone-200 bg-white p-4 md:grid-cols-[1fr_1fr_1.2fr]">
+          <Upload label="Ảnh trước" src={front} onFile={(u) => { setFront(u); setFolder(''); setShots({}); }} />
+          <Upload label="Ảnh sau" src={back} onFile={(u) => { setBack(u); setFolder(''); setShots({}); }} />
+
+          <div className="flex flex-col gap-3 text-sm">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-stone-500">Hoặc chọn sản phẩm có sẵn trong dataset</span>
+              <select
+                value={folder}
+                onChange={(e) => {
+                  const s = samples.find((x) => x.folder === e.target.value);
+                  if (s) choose(s);
+                }}
+                className="rounded border border-stone-300 px-2 py-1.5"
+              >
+                <option value="">— ảnh tự tải lên —</option>
+                {samples.map((s) => (
+                  <option key={s.folder} value={s.folder}>
+                    {s.folder.replace(/_/g, ' ')}
+                    {s.saved.length ? ` (đã có ${s.saved.length} ảnh AI)` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div>
+              <div className="mb-1 text-xs font-medium text-stone-500">Loại đồ</div>
+              <div className="flex flex-wrap gap-1.5">
+                {(Object.keys(KIND_LABEL) as Kind[]).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setKind(k)}
+                    className={`rounded border px-2 py-1 text-xs ${kind === k ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300'}`}
+                  >
+                    {KIND_LABEL[k]}
+                  </button>
+                ))}
               </div>
-              <figcaption className="space-y-1 p-3 text-xs">
-                <div className="font-medium">
-                  {VIEW_LABEL[v]}
-                  <span className="ml-1 font-normal text-stone-400">
-                    {s.saved ? '· ảnh đã tạo trước' : s.ms ? `· ${(s.ms / 1000).toFixed(0)} giây` : ''}
-                  </span>
-                </div>
-                {s.differences?.length ? (
-                  <ul className="list-disc space-y-0.5 pl-4 text-stone-500">
-                    {s.differences.map((d, i) => (
-                      <li key={i}>{d}</li>
-                    ))}
-                  </ul>
-                ) : s.status === 'done' ? (
-                  <div className="text-emerald-700">Không thấy sai khác với ảnh gốc.</div>
-                ) : null}
-              </figcaption>
-            </figure>
-          );
-        })}
-      </section>
+            </div>
+
+            <div>
+              <div className="mb-1 text-xs font-medium text-stone-500">Góc chụp cần tạo</div>
+              <div className="grid grid-cols-2 gap-1">
+                {VIEWS.map((v) => (
+                  <label key={v} className="flex items-center gap-1.5 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={picked.has(v)}
+                      onChange={(e) =>
+                        setPicked((p) => {
+                          const n = new Set(p);
+                          if (e.target.checked) n.add(v);
+                          else n.delete(v);
+                          // Other views copy the model from the front shot.
+                          if (n.size && !n.has('front')) n.add('front');
+                          return n;
+                        })
+                      }
+                    />
+                    {VIEW_LABEL[v]}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={!front || !back || busy || picked.size === 0}
+              onClick={run}
+              className="mt-auto rounded-lg bg-stone-900 px-4 py-2 font-medium text-white disabled:opacity-40"
+            >
+              {busy ? 'Đang tạo…' : `Tạo ${picked.size} ảnh bằng AI`}
+            </button>
+            <p className="text-[11px] text-stone-400">
+              Mỗi ảnh mất khoảng 20–40 giây và tốn một lượt gọi OpenRouter (có phí).
+            </p>
+          </div>
+        </section>
+      )}
+
+      {!genMode && current && (
+        <section className="grid gap-4 md:grid-cols-[220px_1fr]">
+          <div className="rounded-xl border border-stone-200 bg-white p-3">
+            <div className="text-xs font-medium text-stone-500">Đầu vào: ảnh trải phẳng</div>
+            <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-1">
+              {(
+                [
+                  ['Trước', front],
+                  ['Sau', back],
+                ] as const
+              ).map(([label, src]) => (
+                <figure key={label} className="bg-stone-50 p-1">
+                  {src && <img src={src} alt={label} className="mx-auto max-h-44 object-contain" />}
+                  <figcaption className="text-center text-[11px] text-stone-500">{label}</figcaption>
+                </figure>
+              ))}
+            </div>
+            <div className="mt-3 space-y-0.5 text-[11px] text-stone-500">
+              <div className="font-medium text-stone-700">{current.folder.replace(/_/g, ' ')}</div>
+              <div>Loại: {KIND_LABEL[current.kind]}</div>
+              <div>Đã tạo: {current.saved.length}/6 góc</div>
+              {avg != null && <div>Độ giống trung bình: {avg.toFixed(1)}/10</div>}
+            </div>
+          </div>
+          <div>
+            <div className="mb-2 text-xs font-medium text-stone-500">Đầu ra: ảnh người mẫu do AI tạo</div>
+            <Shots shots={shots} />
+          </div>
+        </section>
+      )}
+
+      {genMode && <Shots shots={shots} />}
+    </div>
+  );
+}
+
+function Shots({ shots }: { shots: Partial<Record<View, Shot>> }) {
+  return (
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      {VIEWS.filter((v) => shots[v]).map((v) => {
+        const s = shots[v]!;
+        return (
+          <figure key={v} className="flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-white">
+            <div className="relative flex aspect-[3/4] items-center justify-center bg-stone-100">
+              {s.status === 'running' && <span className="animate-pulse text-sm text-stone-500">AI đang vẽ…</span>}
+              {s.status === 'error' && <span className="px-3 text-center text-xs text-rose-700">{s.error}</span>}
+              {s.image && <img src={s.image} alt={VIEW_LABEL[v]} className="h-full w-full object-cover" />}
+              {s.status === 'done' && (
+                <span className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium text-white ${scoreClass(s.score)}`}>
+                  {s.score == null ? 'chưa chấm' : `giống ${s.score}/10`}
+                </span>
+              )}
+            </div>
+            <figcaption className="space-y-1 p-3 text-xs">
+              <div className="font-medium">
+                {VIEW_LABEL[v]}
+                {s.ms ? <span className="ml-1 font-normal text-stone-400">· {(s.ms / 1000).toFixed(0)} giây</span> : null}
+              </div>
+              {s.differences?.length ? (
+                <ul className="list-disc space-y-0.5 pl-4 text-stone-500">
+                  {s.differences.map((d, i) => (
+                    <li key={i}>{d}</li>
+                  ))}
+                </ul>
+              ) : s.status === 'done' ? (
+                <div className="text-emerald-700">Không thấy sai khác với ảnh gốc.</div>
+              ) : null}
+            </figcaption>
+          </figure>
+        );
+      })}
     </div>
   );
 }
