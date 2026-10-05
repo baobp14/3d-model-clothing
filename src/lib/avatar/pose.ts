@@ -59,7 +59,8 @@ export const POSES: Record<PoseKey, { label: string; turns: BoneTurn }> = {
       ['upperleg01.L', 'x', -18], ['upperleg01.R', 'x', 12],
       ['lowerleg01.R', 'x', 22],
       ['upperarm01.L', 'z', -33], ['upperarm01.R', 'z', 33],
-      ['upperarm01.L', 'x', 14], ['upperarm01.R', 'x', -16],
+      // Vung tay nho (6 do): 14-16 do xe vai o nach ao (gian 1.6-2.7 lan).
+      ['upperarm01.L', 'x', 6], ['upperarm01.R', 'x', -6],
       ['lowerarm01.L', 'x', -10], ['lowerarm01.R', 'x', -18],
     ],
   },
@@ -119,12 +120,63 @@ function jointPos(j: RigJoint, pos: ArrayLike<number>): number[] {
   return out;
 }
 
+/**
+ * Dinh thuoc ban tay (co tay, xuong ban tay, ngon). Vai khong va cham voi
+ * chung: tay chong hong / buong xuoi nam DE LEN ao ngoai doi, con trong mo
+ * phong ban tay day vai ra va vai quan quanh ngon -- gian 2-4 lan o suon ao.
+ */
+export function handMask(rig: AvatarRig): Uint8Array {
+  const isHand = rig.bones.map((b) => /^(finger|metacarpal|wrist)/.test(b.name));
+  const n = rig.skinIndex.length / rig.skinK;
+  const out = new Uint8Array(n);
+  for (let v = 0; v < n; v++) {
+    let w = 0;
+    for (let k = 0; k < rig.skinK; k++)
+      if (isHand[rig.skinIndex[v * rig.skinK + k]]) w += rig.skinWeight[v * rig.skinK + k];
+    if (w > 0.5) out[v] = 1;
+  }
+  return out;
+}
+
+/** Dinh canh tay duoi khuyu + bap tay duoi (than ao khong va cham, xem garmentFit armMask). */
+export function armMask(rig: AvatarRig): Uint8Array {
+  const isArm = rig.bones.map((b) => /^(upperarm02|lowerarm|wrist|finger|metacarpal)/.test(b.name));
+  const n = rig.skinIndex.length / rig.skinK;
+  const out = new Uint8Array(n);
+  for (let v = 0; v < n; v++) {
+    let w = 0;
+    for (let k = 0; k < rig.skinK; k++)
+      if (isArm[rig.skinIndex[v * rig.skinK + k]]) w += rig.skinWeight[v * rig.skinK + k];
+    if (w > 0.5) out[v] = 1;
+  }
+  return out;
+}
+
+/** 1 = dinh khong thuoc vai / canh tay (tay ao khong va cham, xem garmentFit trunkMask). */
+export function trunkMask(rig: AvatarRig): Uint8Array {
+  const isLimb = rig.bones.map((b) =>
+    /^(shoulder01|upperarm|lowerarm|wrist|finger|metacarpal)/.test(b.name),
+  );
+  const n = rig.skinIndex.length / rig.skinK;
+  const out = new Uint8Array(n);
+  for (let v = 0; v < n; v++) {
+    let w = 0;
+    for (let k = 0; k < rig.skinK; k++)
+      if (isLimb[rig.skinIndex[v * rig.skinK + k]]) w += rig.skinWeight[v * rig.skinK + k];
+    if (w < 0.3) out[v] = 1;
+  }
+  return out;
+}
+
 const AXES: Record<Axis, number[]> = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] };
 
-/** Tra ve luoi da tao dang (mang moi); pose 'apose' tra lai ban sao. */
-export function applyPose(rig: AvatarRig, positions: Float32Array, pose: PoseKey): Float32Array {
+/**
+ * Ma tran tung xuong cho dang `pose`, tinh tren luoi CHUA tao dang (khop xuong
+ * lay tu luoi). null neu la chu A (khong xoay gi).
+ */
+export function poseMatrices(rig: AvatarRig, positions: Float32Array, pose: PoseKey): M4[] | null {
   const turns = POSES[pose].turns;
-  if (!turns.length) return new Float32Array(positions);
+  if (!turns.length) return null;
 
   const byBone = new Map<number, [Axis, number][]>();
   const nameIdx = new Map(rig.bones.map((b, i) => [b.name, i]));
@@ -147,7 +199,13 @@ export function applyPose(rig: AvatarRig, positions: Float32Array, pose: PoseKey
     }
     mats[b] = m;
   }
+  return mats;
+}
 
+/** Tra ve luoi da tao dang (mang moi); pose 'apose' tra lai ban sao. */
+export function applyPose(rig: AvatarRig, positions: Float32Array, pose: PoseKey): Float32Array {
+  const mats = poseMatrices(rig, positions, pose);
+  if (!mats) return new Float32Array(positions);
   const n = positions.length / 3;
   const out = new Float32Array(positions.length);
   const K = rig.skinK;

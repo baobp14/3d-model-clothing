@@ -24,6 +24,7 @@ import {
   verdictForEase,
   FABRICS,
 } from '../../src/lib/tryon/garmentFit.ts';
+import { applyPose, armMask, handMask, poseMatrices, trunkMask } from '../../src/lib/avatar/pose.ts';
 import { buildBodyGrid, computeVertexNormals, signedDistance } from './bodyProbe.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -41,7 +42,7 @@ const FABRIC_OF = {
 const MAX_INSIDE_CM = 1.5;
 const MAX_INSIDE_PCT = 5;
 const MAX_EDGE_RATIO = 1.6;
-const STEPS = 240;
+const STEPS = Number(process.env.AUDIT_STEPS ?? 240);
 // Canh ngan hon 6mm la vet gop dinh (cluster_decimate) -- gian vai lan van chi
 // la vai mm, khuat trong nach / cap, khong nhin thay. Khong tinh.
 const MIN_REST_M = 0.006;
@@ -112,7 +113,15 @@ async function loadKind(kind) {
 }
 
 async function main() {
-  const only = process.argv.slice(2);
+  // --pose=hips (mac dinh chu A); con lai la ten mon.
+  const poseArg = process.argv.find((a) => a.startsWith('--pose='));
+  const pose = poseArg ? poseArg.slice(7) : 'apose';
+  console.log('dang:', pose);
+  const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+  const poseRigs = {
+    male: JSON.parse(readFileSync(path.join(MODELS_DIR, 'avatar-rig-male.json'), 'utf-8')),
+    female: JSON.parse(readFileSync(path.join(MODELS_DIR, 'avatar-rig-female.json'), 'utf-8')),
+  };
   const kinds = Object.keys(meta.garments).filter((k) => !only.length || only.includes(k));
   const rigs = { male: await buildRig('male'), female: await buildRig('female') };
   const profiles = [
@@ -122,10 +131,34 @@ async function main() {
   const bodies = profiles.map(([key, profile]) => {
     const rig = rigs[profile.gender];
     const influences = axesToInfluences(rig, solveAxes(rig, profile).axes);
-    const collider = buildBodyCollider(rig, influences, bodyIndices[profile.gender]);
+    const pos = applyPose(poseRigs[profile.gender], deformPositions(rig, influences), pose);
+    const hands = handMask(poseRigs[profile.gender]);
+    const collider = buildBodyCollider(rig, influences, bodyIndices[profile.gender], 0.05, pos, hands);
     collider.refPositions = bodyRef;
-    const pos = deformPositions(rig, influences);
-    const probe = { grid: buildBodyGrid(pos, 0.03), normals: computeVertexNormals(pos, bodyIndices[profile.gender]) };
+    collider.armMask = armMask(poseRigs[profile.gender]);
+    collider.trunkMask = trunkMask(poseRigs[profile.gender]);
+    const PR = poseRigs[profile.gender];
+    const unposed = deformPositions(rig, influences);
+    const mats = poseMatrices(PR, unposed, pose);
+    if (mats) {
+      collider.unposed = unposed;
+      collider.pose = { skinK: PR.skinK, skinIndex: PR.skinIndex, skinWeight: PR.skinWeight, mats };
+    }
+    // Ban tay nam de len ao (khong va cham) -- khong tinh la "xuyen".
+    const probePos = Float32Array.from(pos);
+    // Canh tay cung vay: than ao / quan nam DUOI canh tay la dung (armMask).
+    for (let v = 0; v < hands.length; v++)
+      if (hands[v] || collider.armMask[v]) probePos[v * 3 + 1] = 1e3;
+    const normals = computeVertexNormals(pos, bodyIndices[profile.gender]);
+    // Tay ao van va cham voi canh tay -> do voi ca co the (tru ban tay).
+    const sleevePos = Float32Array.from(pos);
+    for (let v = 0; v < hands.length; v++)
+      if (hands[v] || collider.trunkMask[v]) sleevePos[v * 3 + 1] = 1e3;
+    const probe = {
+      grid: buildBodyGrid(probePos, 0.03),
+      sleeveGrid: buildBodyGrid(sleevePos, 0.03),
+      normals,
+    };
     return { key, collider, probe, body: measure(rig, solveAxes(rig, profile).axes) };
   });
 
@@ -156,7 +189,9 @@ async function main() {
 
         let inside = 0, judged = 0, maxIn = 0, worstIn = -1;
         for (let v = 0; v < n; v++) {
-          const sd = signedDistance(probe.grid, probe.normals, P[v * 3], P[v * 3 + 1], P[v * 3 + 2]);
+          const r = state.regions[v];
+          const sleeve = !waist && r >= 6 && r <= 9; // sleeveRight..cuffLeft
+          const sd = signedDistance(sleeve ? probe.sleeveGrid : probe.grid, probe.normals, P[v * 3], P[v * 3 + 1], P[v * 3 + 2]);
           if (sd === null) continue;
           judged++;
           if (sd < 0) {

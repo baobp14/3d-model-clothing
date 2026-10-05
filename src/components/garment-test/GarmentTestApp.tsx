@@ -14,7 +14,7 @@ import {
   type MorphRig,
 } from '@/lib/avatar/avatarMorphService';
 import { FEMALE_PROFILES, FORM_FIELDS, PROFILES } from '@/lib/avatar/bodyProfiles';
-import { applyPose, POSES, type AvatarRig, type PoseKey } from '@/lib/avatar/pose';
+import { applyPose, armMask, handMask, poseMatrices, trunkMask, POSES, type AvatarRig, type PoseKey } from '@/lib/avatar/pose';
 import {
   removeGarmentBackground,
   trimToContent,
@@ -830,10 +830,9 @@ export default function GarmentTestApp() {
     const poseRig = loaded.poseRigs[profile.gender];
     // Posed: skin on the CPU and show the result directly (morphs baked in,
     // influences zeroed). Chữ A: the untouched base + GPU morphs as before.
-    const posed =
-      pose !== 'apose' && poseRig
-        ? applyPose(poseRig, deformPositions(rig, influences), pose)
-        : undefined;
+    const unposed = pose !== 'apose' && poseRig ? deformPositions(rig, influences) : undefined;
+    const mats = unposed && poseRig ? poseMatrices(poseRig, unposed, pose) : null;
+    const posed = unposed && poseRig ? applyPose(poseRig, unposed, pose) : undefined;
     const posAttr = mesh.geometry.attributes.position as THREE.BufferAttribute;
     const base = mesh.userData.basePosition as Float32Array;
     (posAttr.array as Float32Array).set(posed ?? base);
@@ -849,9 +848,24 @@ export default function GarmentTestApp() {
 
     const index = mesh.geometry.index;
     if (!index) throw new Error('Body mesh has no index buffer');
-    const collider: BodyCollider = buildBodyCollider(rig, influences, index.array, 0.05, posed);
+    const collider: BodyCollider = buildBodyCollider(
+      rig,
+      influences,
+      index.array,
+      0.05,
+      posed,
+      poseRig ? handMask(poseRig) : undefined,
+    );
     collider.yaw = 0;
     collider.refPositions = loaded.bodyRef;
+    if (poseRig) {
+      collider.armMask = armMask(poseRig);
+      collider.trunkMask = trunkMask(poseRig);
+    }
+    if (unposed && mats && poseRig) {
+      collider.unposed = unposed;
+      collider.pose = { skinK: poseRig.skinK, skinIndex: poseRig.skinIndex, skinWeight: poseRig.skinWeight, mats };
+    }
 
     // Lowest point of the morphed body = where the floor must sit, otherwise a
     // shorter body hangs above the disc or a taller one sinks through it.
