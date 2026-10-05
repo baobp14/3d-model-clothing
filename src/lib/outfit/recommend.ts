@@ -164,6 +164,33 @@ function scoreSeason(a: OutfitProduct, b: OutfitProduct): Reason[] {
 
 // ---------------------------------------------------------------------------
 
+function rgbDist(a: string, b: string): number {
+  const n = (h: string) => parseInt(h.replace('#', '').slice(0, 6).padEnd(6, '0'), 16);
+  const x = n(a);
+  const y = n(b);
+  return Math.hypot(((x >> 16) & 255) - ((y >> 16) & 255), ((x >> 8) & 255) - ((y >> 8) & 255), (x & 255) - (y & 255));
+}
+
+/**
+ * One piece's base colour repeats a print/trim colour of the other ("navy
+ * jeans pick up the navy in the print"). Small bonus that mostly breaks ties
+ * between otherwise equally good bottoms.
+ */
+function scoreEcho(a: OutfitProduct, b: OutfitProduct): Reason[] {
+  for (const [x, y] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const base = baseColor(y);
+    const own = baseColor(x);
+    const hit = x.colors.find(
+      (c) => c.role === 'accent' && rgbDist(c.hex, base.hex) < 60 && rgbDist(c.hex, own.hex) > 60,
+    );
+    if (hit) return [{ points: 1, text: `Màu ${base.name} lặp lại màu chi tiết ${hit.name} trên món kia` }];
+  }
+  return [];
+}
+
 export function scorePair(a: OutfitProduct, b: OutfitProduct): { score: number; reasons: Reason[] } {
   const reasons = [
     ...scoreColor(a, b),
@@ -171,6 +198,7 @@ export function scorePair(a: OutfitProduct, b: OutfitProduct): { score: number; 
     ...scoreStyle(a, b),
     ...scoreFormality(a, b),
     ...scoreSeason(a, b),
+    ...scoreEcho(a, b),
   ];
   return { score: reasons.reduce((s, r) => s + r.points, 0), reasons };
 }
@@ -181,9 +209,7 @@ export interface RecommendOptions {
   preferredStyles?: string[];
 }
 
-/** Best items of the OTHER category to wear with `item`. */
-export function recommend(item: OutfitProduct, catalog: OutfitProduct[], opts: RecommendOptions = {}): OutfitMatch[] {
-  const { limit = 4, preferredStyles = [] } = opts;
+function rankAll(item: OutfitProduct, catalog: OutfitProduct[], preferredStyles: string[]): OutfitMatch[] {
   return catalog
     .filter((c) => c.category !== item.category && c.id !== item.id)
     .map((c) => {
@@ -192,10 +218,24 @@ export function recommend(item: OutfitProduct, catalog: OutfitProduct[], opts: R
       if (liked.length) reasons.push({ points: 1, text: 'Hợp gu bạn hay xem' });
       return { item: c, score: score + (liked.length ? 1 : 0), reasons };
     })
-    .sort((x, y) => y.score - x.score)
-    .filter((m, i, all) => {
-      const p = m.item.product ?? m.item.id;
-      return all.findIndex((o) => (o.item.product ?? o.item.id) === p) === i;
-    })
-    .slice(0, limit);
+    .sort((x, y) => y.score - x.score);
+}
+
+/** One entry per product (not four colours of the same pants). */
+function onePerProduct(list: OutfitMatch[]): OutfitMatch[] {
+  return list.filter((m, i, all) => {
+    const p = m.item.product ?? m.item.id;
+    return all.findIndex((o) => (o.item.product ?? o.item.id) === p) === i;
+  });
+}
+
+/** Best items of the OTHER category to wear with `item`. */
+export function recommend(item: OutfitProduct, catalog: OutfitProduct[], opts: RecommendOptions = {}): OutfitMatch[] {
+  const { limit = 4, preferredStyles = [] } = opts;
+  return onePerProduct(rankAll(item, catalog, preferredStyles)).slice(0, limit);
+}
+
+/** Worst pairings, to show what the scorer steers away from and why. */
+export function avoid(item: OutfitProduct, catalog: OutfitProduct[], limit = 2): OutfitMatch[] {
+  return onePerProduct(rankAll(item, catalog, []).reverse()).slice(0, limit);
 }

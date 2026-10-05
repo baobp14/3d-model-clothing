@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { recommend, type OutfitMatch, type OutfitProduct } from '@/lib/outfit/recommend';
+import { avoid, recommend, type OutfitMatch, type OutfitProduct } from '@/lib/outfit/recommend';
 
 type Item = OutfitProduct & { model_img?: boolean };
 // Flat-lays come from the background-removed prints the 3D try-on uses.
@@ -32,15 +32,17 @@ function Tags({ p }: { p: OutfitProduct }) {
   );
 }
 
-function MatchCard({ base, m, rank }: { base: OutfitProduct; m: OutfitMatch; rank: number }) {
+function MatchCard({ base, m, rank, bad = false }: { base: OutfitProduct; m: OutfitMatch; rank: number; bad?: boolean }) {
   const [top, bottom] = base.category === 'top' ? [base, m.item] : [m.item, base];
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-black/10 bg-white">
       <div className="relative flex h-64 items-center justify-center gap-1 bg-[#efece7] p-2">
         <img src={img(top, true)} alt="" className="h-full w-1/2 object-contain" />
         <img src={img(bottom, true)} alt="" className="h-full w-1/2 object-contain" />
-        <span className="absolute left-2 top-2 rounded-full bg-black px-2 py-0.5 text-xs font-medium text-white">
-          #{rank} · {m.score.toFixed(1)} điểm
+        <span
+          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium text-white ${bad ? 'bg-rose-700' : 'bg-black'}`}
+        >
+          {bad ? '✕ Không nên' : `#${rank}`} · {m.score.toFixed(1)} điểm
         </span>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
@@ -80,6 +82,7 @@ export default function OutfitDemo() {
   }, []);
 
   const current = catalog.find((p) => p.id === selected);
+  const worst = useMemo(() => (current ? avoid(current, catalog, 2) : []), [current, catalog]);
   const matches = useMemo(
     () => (current ? recommend(current, catalog, { limit: 4, preferredStyles: taste }) : []),
     [current, catalog, taste],
@@ -123,6 +126,12 @@ export default function OutfitDemo() {
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {matches.map((m, i) => (
                 <MatchCard key={m.item.id} base={current} m={m} rank={i + 1} />
+              ))}
+            </div>
+            <div className="mb-2 mt-6 text-sm font-medium text-rose-800">Không nên phối — điểm thấp nhất</div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {worst.map((m, i) => (
+                <MatchCard key={m.item.id} base={current} m={m} rank={i + 1} bad />
               ))}
             </div>
           </div>

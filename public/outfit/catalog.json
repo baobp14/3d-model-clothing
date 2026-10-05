@@ -61,7 +61,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen trơn",
+  "name_vi": "Áo thun đen trơn – Classic Pocket",
   "product": "ascolour_5027_classic_pocket_tee_black",
   "model_img": true
  },
@@ -72,7 +72,7 @@
   "colors": [
    {
     "name": "bone",
-    "hex": "#ddd4ca",
+    "hex": "#e0d7cd",
     "role": "base"
    }
   ],
@@ -90,7 +90,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (bone)",
+  "name_vi": "Áo thun trơn – Classic Pocket (bone)",
   "product": "ascolour_5027_classic_pocket_tee_black",
   "model_img": false
  },
@@ -101,7 +101,7 @@
   "colors": [
    {
     "name": "ecru",
-    "hex": "#e7dbcb",
+    "hex": "#ebe0d0",
     "role": "base"
    }
   ],
@@ -119,7 +119,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (ecru)",
+  "name_vi": "Áo thun trơn – Classic Pocket (ecru)",
   "product": "ascolour_5027_classic_pocket_tee_black",
   "model_img": false
  },
@@ -130,7 +130,7 @@
   "colors": [
    {
     "name": "navy",
-    "hex": "#23232f",
+    "hex": "#21212d",
     "role": "base"
    }
   ],
@@ -148,7 +148,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (navy)",
+  "name_vi": "Áo thun trơn – Classic Pocket (navy)",
   "product": "ascolour_5027_classic_pocket_tee_black",
   "model_img": false
  },
@@ -159,7 +159,7 @@
   "colors": [
    {
     "name": "petrol blue",
-    "hex": "#404751",
+    "hex": "#3e454f",
     "role": "base"
    }
   ],
@@ -177,7 +177,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (petrol blue)",
+  "name_vi": "Áo thun trơn – Classic Pocket (petrol blue)",
   "product": "ascolour_5027_classic_pocket_tee_black",
   "model_img": false
  },
@@ -188,7 +188,7 @@
   "colors": [
    {
     "name": "white",
-    "hex": "#f1f1f5",
+    "hex": "#efeff3",
     "role": "base"
    }
   ],
@@ -206,7 +206,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (white)",
+  "name_vi": "Áo thun trơn – Classic Pocket (white)",
   "product": "ascolour_5027_classic_pocket_tee_black",
   "model_img": false
  },
@@ -249,7 +249,7 @@
   "colors": [
    {
     "name": "natural mid blue",
-    "hex": "#6c9bbe",
+    "hex": "#6e9bbd",
     "role": "base"
    }
   ],
@@ -276,7 +276,7 @@
   "colors": [
    {
     "name": "white red",
-    "hex": "#c23949",
+    "hex": "#cf7784",
     "role": "base"
    }
   ],
@@ -321,7 +321,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen trơn",
+  "name_vi": "Áo thun đen trơn – Basic",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": true
  },
@@ -332,7 +332,7 @@
   "colors": [
    {
     "name": "butter",
-    "hex": "#ebe3c9",
+    "hex": "#ece4cc",
     "role": "base"
    }
   ],
@@ -350,7 +350,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (butter)",
+  "name_vi": "Áo thun trơn – Basic (butter)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -361,7 +361,7 @@
   "colors": [
    {
     "name": "granite",
-    "hex": "#88847e",
+    "hex": "#86827d",
     "role": "base"
    }
   ],
@@ -379,7 +379,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (granite)",
+  "name_vi": "Áo thun trơn – Basic (granite)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -390,7 +390,7 @@
   "colors": [
    {
     "name": "grey marle",
-    "hex": "#a4a4a6",
+    "hex": "#a2a2a4",
     "role": "base"
    }
   ],
@@ -408,7 +408,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (grey marle)",
+  "name_vi": "Áo thun trơn – Basic (grey marle)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -419,7 +419,7 @@
   "colors": [
    {
     "name": "lemonade",
-    "hex": "#ece295",
+    "hex": "#eae093",
     "role": "base"
    }
   ],
@@ -437,7 +437,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (lemonade)",
+  "name_vi": "Áo thun trơn – Basic (lemonade)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -448,7 +448,7 @@
   "colors": [
    {
     "name": "mineral",
-    "hex": "#7d9092",
+    "hex": "#7b8e90",
     "role": "base"
    }
   ],
@@ -466,7 +466,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (mineral)",
+  "name_vi": "Áo thun trơn – Basic (mineral)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -477,7 +477,7 @@
   "colors": [
    {
     "name": "orchid",
-    "hex": "#d9ccd1",
+    "hex": "#d7cacf",
     "role": "base"
    }
   ],
@@ -495,7 +495,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (orchid)",
+  "name_vi": "Áo thun trơn – Basic (orchid)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -506,7 +506,7 @@
   "colors": [
    {
     "name": "petrol blue",
-    "hex": "#343b45",
+    "hex": "#343a44",
     "role": "base"
    }
   ],
@@ -524,7 +524,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (petrol blue)",
+  "name_vi": "Áo thun trơn – Basic (petrol blue)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -535,7 +535,7 @@
   "colors": [
    {
     "name": "seafoam",
-    "hex": "#ccdfdb",
+    "hex": "#d2e4e0",
     "role": "base"
    }
   ],
@@ -553,7 +553,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (seafoam)",
+  "name_vi": "Áo thun trơn – Basic (seafoam)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -564,7 +564,7 @@
   "colors": [
    {
     "name": "watermelon",
-    "hex": "#cd454f",
+    "hex": "#ce454f",
     "role": "base"
    }
   ],
@@ -582,7 +582,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (watermelon)",
+  "name_vi": "Áo thun trơn – Basic (watermelon)",
   "product": "ascolour_5051_basic_tee_black",
   "model_img": false
  },
@@ -615,7 +615,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen trơn",
+  "name_vi": "Áo thun đen trơn – Oversized",
   "product": "ascolour_5052_block_oversized_tee_black",
   "model_img": true
  },
@@ -626,7 +626,7 @@
   "colors": [
    {
     "name": "ecru",
-    "hex": "#ded8cb",
+    "hex": "#e2dbcf",
     "role": "base"
    }
   ],
@@ -643,7 +643,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (ecru)",
+  "name_vi": "Áo thun trơn – Oversized (ecru)",
   "product": "ascolour_5052_block_oversized_tee_black",
   "model_img": false
  },
@@ -654,7 +654,7 @@
   "colors": [
    {
     "name": "navy",
-    "hex": "#151e2a",
+    "hex": "#151d2a",
     "role": "base"
    }
   ],
@@ -671,7 +671,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (navy)",
+  "name_vi": "Áo thun trơn – Oversized (navy)",
   "product": "ascolour_5052_block_oversized_tee_black",
   "model_img": false
  },
@@ -682,7 +682,7 @@
   "colors": [
    {
     "name": "white",
-    "hex": "#ececec",
+    "hex": "#eaeaea",
     "role": "base"
    }
   ],
@@ -699,7 +699,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trơn (white)",
+  "name_vi": "Áo thun trơn – Oversized (white)",
   "product": "ascolour_5052_block_oversized_tee_black",
   "model_img": false
  },
@@ -732,7 +732,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi đen",
+  "name_vi": "Áo sơ mi đen – Oxford",
   "product": "ascolour_5401_oxford_shirt_black",
   "model_img": true
  },
@@ -743,7 +743,7 @@
   "colors": [
    {
     "name": "light blue",
-    "hex": "#b9c0d4",
+    "hex": "#b7bed2",
     "role": "base"
    }
   ],
@@ -760,7 +760,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi (light blue)",
+  "name_vi": "Áo sơ mi – Oxford (light blue)",
   "product": "ascolour_5401_oxford_shirt_black",
   "model_img": false
  },
@@ -771,7 +771,7 @@
   "colors": [
    {
     "name": "white",
-    "hex": "#ededef",
+    "hex": "#ebebed",
     "role": "base"
    }
   ],
@@ -788,7 +788,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi (white)",
+  "name_vi": "Áo sơ mi – Oxford (white)",
   "product": "ascolour_5401_oxford_shirt_black",
   "model_img": false
  },
@@ -926,7 +926,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi đen",
+  "name_vi": "Áo sơ mi đen – Work Shirt",
   "product": "ascolour_5422_work_shirt_black",
   "model_img": true
  },
@@ -937,7 +937,7 @@
   "colors": [
    {
     "name": "navy",
-    "hex": "#101d27",
+    "hex": "#0f1c26",
     "role": "base"
    }
   ],
@@ -954,7 +954,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi (navy)",
+  "name_vi": "Áo sơ mi – Work Shirt (navy)",
   "product": "ascolour_5422_work_shirt_black",
   "model_img": false
  },
@@ -996,7 +996,7 @@
   "colors": [
    {
     "name": "carolina blue",
-    "hex": "#7995af",
+    "hex": "#7994af",
     "role": "base"
    }
   ],
@@ -1048,7 +1048,7 @@
   "colors": [
    {
     "name": "petrol blue",
-    "hex": "#373b49",
+    "hex": "#373a48",
     "role": "base"
    }
   ],
@@ -1108,7 +1108,7 @@
   "colors": [
    {
     "name": "bone",
-    "hex": "#cac0b9",
+    "hex": "#c9bfb8",
     "role": "base"
    }
   ],
@@ -1137,7 +1137,7 @@
   "colors": [
    {
     "name": "cypress",
-    "hex": "#474a3a",
+    "hex": "#474a3b",
     "role": "base"
    }
   ],
@@ -1166,7 +1166,7 @@
   "colors": [
    {
     "name": "ink blue",
-    "hex": "#2b2834",
+    "hex": "#2c2935",
     "role": "base"
    }
   ],
@@ -1195,7 +1195,7 @@
   "colors": [
    {
     "name": "storm",
-    "hex": "#a1a3a3",
+    "hex": "#9fa1a1",
     "role": "base"
    }
   ],
@@ -1357,7 +1357,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Chân váy jean xanh",
+  "name_vi": "Chân váy jean xanh đậm",
   "product": "everlane_denim_mini_skirt_dark_indigo",
   "model_img": true
  },
@@ -1385,7 +1385,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Chân váy jean xanh",
+  "name_vi": "Chân váy jean xanh nhạt",
   "product": "everlane_denim_mini_skirt_deep_atlantic",
   "model_img": true
  },
@@ -1536,7 +1536,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen in hình Jump The Dark",
+  "name_vi": "Áo thun đen in hình Jump The Dark – Badge Holds Weight",
   "product": "jtd_badge_holds_weight_graphic_t_shirt",
   "model_img": true
  },
@@ -1568,7 +1568,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in chữ trắng",
+  "name_vi": "Áo thun đen in chữ trắng – Blackletter",
   "product": "jtd_blackletter_black",
   "model_img": true
  },
@@ -1579,7 +1579,7 @@
   "colors": [
    {
     "name": "white",
-    "hex": "#f7f8f9",
+    "hex": "#f4f5f6",
     "role": "base"
    },
    {
@@ -1600,7 +1600,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun in chữ (white)",
+  "name_vi": "Áo thun in chữ – Blackletter (white)",
   "product": "jtd_blackletter_black",
   "model_img": false
  },
@@ -1643,7 +1643,7 @@
   "colors": [
    {
     "name": "grey",
-    "hex": "#97969b",
+    "hex": "#99989c",
     "role": "base"
    },
    {
@@ -1697,7 +1697,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trắng in hình đầu lâu",
+  "name_vi": "Áo thun trắng in hình đầu lâu – Bone Riot",
   "product": "jtd_bone_riot_heavy_graphic_t_shirt",
   "model_img": true
  },
@@ -1746,7 +1746,7 @@
   "colors": [
    {
     "name": "rown",
-    "hex": "#41332e",
+    "hex": "#42332e",
     "role": "base"
    },
    {
@@ -1816,7 +1816,7 @@
   "colors": [
    {
     "name": "rown",
-    "hex": "#40322d",
+    "hex": "#41332e",
     "role": "base"
    },
    {
@@ -1869,7 +1869,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in hình đầu lâu",
+  "name_vi": "Áo thun đen in hình đầu lâu – Consumed",
   "product": "jtd_consumed_heavy_graphic_t_shirt",
   "model_img": true
  },
@@ -1901,7 +1901,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen in chữ Jump The Dark",
+  "name_vi": "Áo thun đen in chữ Jump The Dark – Decay",
   "product": "jtd_decay_premium_heavy_graphic_t_shirt",
   "model_img": true
  },
@@ -2040,7 +2040,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen in chữ Jump The Dark",
+  "name_vi": "Áo thun đen in chữ Jump The Dark – Grey Logo",
   "product": "jtd_jump_the_dark_grey_logo_heavy_graphic_t_shirt",
   "model_img": true
  },
@@ -2217,7 +2217,7 @@
   "colors": [
    {
     "name": "white",
-    "hex": "#f8f8f9",
+    "hex": "#f4f4f5",
     "role": "base"
    },
    {
@@ -2281,7 +2281,7 @@
   "colors": [
    {
     "name": "sand",
-    "hex": "#ba9d77",
+    "hex": "#bb9e78",
     "role": "base"
    },
    {
@@ -2350,7 +2350,7 @@
   "colors": [
    {
     "name": "white",
-    "hex": "#f4f4f5",
+    "hex": "#f2f2f3",
     "role": "base"
    },
    {
@@ -2451,7 +2451,7 @@
   "colors": [
    {
     "name": "sand",
-    "hex": "#ad916b",
+    "hex": "#ae926c",
     "role": "base"
    },
    {
@@ -2538,7 +2538,7 @@
    "winter"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in chữ trắng",
+  "name_vi": "Áo thun đen in chữ trắng – Shadowz",
   "product": "jtd_shadowz_graphic_t_shirt",
   "model_img": true
  },
@@ -2575,7 +2575,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trắng in hình đầu lâu",
+  "name_vi": "Áo thun trắng in hình đầu lâu – Step Through",
   "product": "jtd_step_through_heavy_graphic_t_shirt",
   "model_img": true
  },
@@ -2586,7 +2586,7 @@
   "colors": [
    {
     "name": "grey",
-    "hex": "#969499",
+    "hex": "#97969b",
     "role": "base"
    },
    {
@@ -2612,7 +2612,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun in hình đầu lâu (grey)",
+  "name_vi": "Áo thun in hình đầu lâu – Step Through (grey)",
   "product": "jtd_step_through_heavy_graphic_t_shirt",
   "model_img": false
  },
@@ -2677,7 +2677,7 @@
    "winter"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in hình Jump The Dark",
+  "name_vi": "Áo thun đen in hình Jump The Dark – The Last Witness",
   "product": "jtd_the_last_witness_heavy_graphic_t_shirt",
   "model_img": true
  },
@@ -2746,7 +2746,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in hình đầu lâu",
+  "name_vi": "Áo thun đen in hình đầu lâu – Tidebreaker",
   "product": "jtd_tidebreaker_back_print_heavy_graphic_t_shirt",
   "model_img": true
  },

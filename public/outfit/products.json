@@ -59,7 +59,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen trơn"
+  "name_vi": "Áo thun đen trơn – Classic Pocket"
  },
  {
   "id": "ascolour_5028_staple_stripe_tee_black_white",
@@ -116,7 +116,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen trơn"
+  "name_vi": "Áo thun đen trơn – Basic"
  },
  {
   "id": "ascolour_5052_block_oversized_tee_black",
@@ -147,7 +147,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen trơn"
+  "name_vi": "Áo thun đen trơn – Oversized"
  },
  {
   "id": "ascolour_5401_oxford_shirt_black",
@@ -178,7 +178,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi đen"
+  "name_vi": "Áo sơ mi đen – Oxford"
  },
  {
   "id": "ascolour_5417_check_shirt_army_black",
@@ -282,7 +282,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo sơ mi đen"
+  "name_vi": "Áo sơ mi đen – Work Shirt"
  },
  {
   "id": "ascolour_5903_beach_shorts_atlantic",
@@ -477,7 +477,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Chân váy jean xanh"
+  "name_vi": "Chân váy jean xanh đậm"
  },
  {
   "id": "everlane_denim_mini_skirt_deep_atlantic",
@@ -503,7 +503,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Chân váy jean xanh"
+  "name_vi": "Chân váy jean xanh nhạt"
  },
  {
   "id": "everlane_lace_knit_skirt_black",
@@ -644,7 +644,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen in hình Jump The Dark"
+  "name_vi": "Áo thun đen in hình Jump The Dark – Badge Holds Weight"
  },
  {
   "id": "jtd_blackletter_black",
@@ -674,7 +674,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in chữ trắng"
+  "name_vi": "Áo thun đen in chữ trắng – Blackletter"
  },
  {
   "id": "jtd_blind_surveillance_heavy_graphic_t_shirt_black",
@@ -735,7 +735,7 @@
    "winter"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trắng in hình đầu lâu"
+  "name_vi": "Áo thun trắng in hình đầu lâu – Bone Riot"
  },
  {
   "id": "jtd_broken_saint_heavy_graphic_t_shirt_black",
@@ -831,7 +831,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in hình đầu lâu"
+  "name_vi": "Áo thun đen in hình đầu lâu – Consumed"
  },
  {
   "id": "jtd_decay_premium_heavy_graphic_t_shirt",
@@ -861,7 +861,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen in chữ Jump The Dark"
+  "name_vi": "Áo thun đen in chữ Jump The Dark – Decay"
  },
  {
   "id": "jtd_doomsday_diagnosis_graphic_t_shirt",
@@ -992,7 +992,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun đen in chữ Jump The Dark"
+  "name_vi": "Áo thun đen in chữ Jump The Dark – Grey Logo"
  },
  {
   "id": "jtd_london_underground_heavy_graphic_t_shirt",
@@ -1335,7 +1335,7 @@
    "winter"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in chữ trắng"
+  "name_vi": "Áo thun đen in chữ trắng – Shadowz"
  },
  {
   "id": "jtd_step_through_heavy_graphic_t_shirt",
@@ -1370,7 +1370,7 @@
    "autumn"
   ],
   "fit": "regular",
-  "name_vi": "Áo thun trắng in hình đầu lâu"
+  "name_vi": "Áo thun trắng in hình đầu lâu – Step Through"
  },
  {
   "id": "jtd_sunny_parade_heavy_graphic_t_shirt",
@@ -1431,7 +1431,7 @@
    "winter"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in hình Jump The Dark"
+  "name_vi": "Áo thun đen in hình Jump The Dark – The Last Witness"
  },
  {
   "id": "jtd_the_vandal_organic_graphic_t_shirt",
@@ -1496,7 +1496,7 @@
    "autumn"
   ],
   "fit": "relaxed",
-  "name_vi": "Áo thun đen in hình đầu lâu"
+  "name_vi": "Áo thun đen in hình đầu lâu – Tidebreaker"
  },
  {
   "id": "jtd_tidebreaker_heavy_graphic_t_shirt",
