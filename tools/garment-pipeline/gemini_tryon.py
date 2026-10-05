@@ -28,7 +28,7 @@ from PIL import Image
 # mien phi cua Google khong cho tao anh.
 IMAGE_MODEL = os.environ.get("TRYON_IMAGE_MODEL", "google/gemini-2.5-flash-image")
 CHECK_MODEL = os.environ.get("TRYON_CHECK_MODEL", "google/gemini-2.5-flash")
-RETRIES = 2
+RETRIES = 1
 PASS_SCORE = 8
 
 PROMPT = """You are a product photographer doing a VIRTUAL TRY-ON, not a designer.
@@ -41,10 +41,9 @@ piece of text (exact spelling, letter case, font style), every graphic and its
 position/size relative to the chest or back, collar type, sleeve length,
 pockets, buttons, seams, labels, hem shape.
 
-STEP 2 - Generate ONE photo: a {model} standing straight, {view}, plain light
-grey studio background, soft even light, full body from head to knees, arms
-relaxed, garment fully visible and not covered by hands, hair or other items.
-Plain neutral {other}.
+STEP 2 - Generate ONE photo: a {model}, {view}, plain light grey studio
+background, soft even light, full body from head to knees, garment not
+covered by hands, hair or other items. Plain neutral {other}.{identity}
 
 HARD RULES - the garment must be a pixel-faithful transfer of the flat-lay:
 - Do NOT redesign, restyle, simplify, "improve" or re-letter anything.
@@ -57,9 +56,20 @@ HARD RULES - the garment must be a pixel-faithful transfer of the flat-lay:
 Only natural fabric folds and body shape may change."""
 
 VIEWS = {
-    "front": "facing the camera, front of the garment visible",
-    "back": "seen from directly behind, back of the garment visible",
+    "front": "standing straight facing the camera, arms relaxed, front of the garment visible",
+    "back": "standing straight seen from directly behind, arms relaxed, back of the garment visible",
+    "left": "standing in strict left profile (camera at the model's left side, 90 degrees), arms relaxed",
+    "right": "standing in strict right profile (camera at the model's right side, 90 degrees), arms relaxed",
+    "threequarter": "body turned 45 degrees to the camera, weight on one leg, one hand in trouser pocket, front of the garment still clearly visible",
+    "walk": "walking toward the camera mid-stride, natural arm swing, relaxed confident expression, front of the garment visible",
 }
+# Anh nghieng nhin thay ca mat truoc lan sau -> gui ca hai anh cat can.
+SIDE_REF = {"front": "front", "back": "back", "left": "both", "right": "both",
+            "threequarter": "front", "walk": "front"}
+IDENTITY = """
+SAME PERSON: the last reference image shows the model already wearing this
+garment. Use the exact same person (face, hair, skin tone, body), same
+bottoms and shoes, same studio and lighting -- only the pose/angle changes."""
 
 CHECK = """Image 1-2: flat-lay photos of a real garment (reference).
 Image 3: generated photo of a model wearing it ({view} view).
@@ -145,12 +155,19 @@ def run(client, d: Path) -> None:
     front, back = side("front"), side("back")
     kind, other = kind_of(d.name)
     model = "female model" if kind == "skirt" else "model"
-    report = {}
-    for view, main in [v for v in (("front", front), ("back", back)) if v[0] in VIEWS_TO_RUN]:
-        refs = [part(front), part(back), part(print_crop(main))]
-        prompt = PROMPT.format(kind=kind, model=model, view=VIEWS[view], other=other)
+    rp = d / "ai_report.json"
+    report = json.loads(rp.read_text(encoding="utf-8")) if rp.exists() else {}
+    for view in [v for v in VIEWS if v in VIEWS_TO_RUN]:
         if (d / f"ai_{view}.jpg").exists():
             continue
+        crops = {"front": [front], "back": [back], "both": [front, back]}[SIDE_REF[view]]
+        refs = [part(front), part(back)] + [part(print_crop(c)) for c in crops]
+        identity = ""
+        if view != "front" and (d / "ai_front.jpg").exists():
+            refs.append(part(Image.open(d / "ai_front.jpg")))
+            identity = IDENTITY
+        prompt = PROMPT.format(kind=kind, model=model, view=VIEWS[view], other=other,
+                               identity=identity)
         best = None
         for attempt in range(1, RETRIES + 1):
             img = generate(client, refs, prompt)
