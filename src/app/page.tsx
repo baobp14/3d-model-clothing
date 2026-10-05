@@ -4,6 +4,8 @@ const PAGES = [
   ['/avatar-test', 'Avatar 3D', 'Dựng người theo số đo, kiểm tra sai số từng vòng.'],
   ['/garment-test', 'Mặc thử áo', 'Mesh áo thật theo bảng size, mô phỏng vải.'],
   ['/mask-test', 'Tách nền ảnh áo', 'Chạy hàm tách nền của phần mặc thử, soi mép cắt.'],
+  ['/ai-shots', 'Ảnh người mẫu bằng AI', 'Từ ảnh áo trước/sau, tạo ảnh người mẫu mặc đúng món đó ở nhiều góc.'],
+  ['/outfit-demo', 'Gợi ý phối đồ', 'Chọn một món, xem các món hợp nhất kèm lý do, mặc thử cả bộ 3D.'],
 ];
 
 export default function HomePage() {
