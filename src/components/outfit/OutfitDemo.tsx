@@ -96,21 +96,7 @@ export default function OutfitDemo() {
         <section className="mt-6 grid gap-6 lg:grid-cols-[280px_1fr]">
           <div className="rounded-xl border border-black/10 bg-white p-3">
             <div className="text-xs uppercase tracking-wide text-neutral-500">Đang xem</div>
-            {/* Every colour shows someone wearing the product: its own AI model shot
-        if there is one, else the shot of the product's representative colour. */}
-            <div className="relative mt-2">
-              <img
-                src={current.model_img || !current.product ? img(current) : `/outfit/img/${current.product}.jpg`}
-                alt=""
-                className="h-80 w-full rounded-lg bg-[#efece7] object-contain"
-              />
-              {!current.model_img && current.product && current.product !== current.id && (
-                <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-md bg-white/90 p-1 pr-2 text-[11px] shadow">
-                  <img src={img(current, true)} alt="" className="h-10 w-10 rounded bg-[#efece7] object-contain" />
-                  Ảnh người mẫu mặc màu khác — màu bạn chọn ở ô bên trái
-                </div>
-              )}
-            </div>
+            <img src={img(current, true)} alt="" className="mt-2 h-80 w-full rounded-lg bg-[#efece7] object-contain p-4" />
             <div className="mt-2 font-medium">{current.name_vi}</div>
             <div className="mt-1">
               <Tags p={current} />
