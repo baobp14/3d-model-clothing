@@ -13,12 +13,8 @@ alter table products add constraint products_tryon_kind_check
 -- Sơ mi → dài tay; polo giữ 'shirt' (tay ngắn, có cổ).
 update products set tryon_kind = 'longshirt'
   where category = 'm-shirts' and name_vi ilike 'áo sơ mi%' and tryon_kind = 'shirt';
--- Áo len, hoodie → áo len.
-update products set tryon_kind = 'sweater'
-  where category in ('m-knit', 'w-knit') and tryon_kind is null;
--- Vest, măng tô, áo khoác → áo khoác.
-update products set tryon_kind = 'jacket'
-  where category in ('m-jackets', 'w-jackets') and tryon_kind is null;
+-- Áo len / áo khoác: phần 3D tạm ẩn 2 loại này -> không có nút mặc thử.
+update products set tryon_kind = null where tryon_kind in ('sweater', 'jacket');
 update products set tryon_kind = 'dress'
   where category = 'w-dresses' and tryon_kind is null;
 

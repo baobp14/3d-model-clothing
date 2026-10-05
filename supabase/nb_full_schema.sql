@@ -138,8 +138,7 @@ update products set tryon_kind = 'tshirt' where tryon_kind is null and category 
 -- Sơ mi → dài tay; polo → 'shirt' (tay ngắn, có cổ).
 update products set tryon_kind = 'longshirt' where tryon_kind is null and category = 'm-shirts' and name_vi ilike 'áo sơ mi%';
 update products set tryon_kind = 'shirt'  where tryon_kind is null and category = 'm-shirts';
-update products set tryon_kind = 'sweater' where tryon_kind is null and category in ('m-knit', 'w-knit');
-update products set tryon_kind = 'jacket' where tryon_kind is null and category in ('m-jackets', 'w-jackets');
+-- Áo len / áo khoác: phần 3D tạm ẩn, để null (không có nút mặc thử).
 update products set tryon_kind = 'dress'  where tryon_kind is null and category = 'w-dresses';
 update products set tryon_kind = 'pants'  where tryon_kind is null and category in ('m-trousers', 'w-trousers');
 update products set tryon_kind = 'skirt'  where tryon_kind is null and category = 'w-skirts';

@@ -132,7 +132,7 @@ Phần 3D đọc dữ liệu, không ghi vào bảng nào của phần E-commerc
 
 | Dữ liệu | Ai nhập | Dùng để |
 |---|---|---|
-| `products.tryon_kind` | Admin; SQL đã gán sẵn theo danh mục | Chọn mesh 3D: `tshirt`, `tank`, `croptop`, `shirt` (tay ngắn/polo), `longshirt` (sơ mi dài tay), `sweater` (áo len/hoodie), `jacket` (vest/măng tô/khoác), `dress` (đầm), `pants`, `shorts`, `capri`, `skirt`. `null` = ẩn nút "Mặc thử" (hiện chỉ có đồng hồ). |
+| `products.tryon_kind` | Admin; SQL đã gán sẵn theo danh mục | Chọn mesh 3D: `tshirt`, `tank`, `croptop`, `shirt` (tay ngắn/polo), `longshirt` (sơ mi dài tay), `dress` (đầm), `pants`, `shorts`, `capri`, `skirt`. `null` = ẩn nút "Mặc thử" (đồng hồ, áo len, áo khoác). `sweater`/`jacket` vẫn hợp lệ trong ràng buộc nhưng phần 3D tạm ẩn, đừng gán. |
 | `product_size_charts` | Admin nhập theo bảng size của hãng | Chấm Chật/Vừa/Rộng. Áo so `chest_cm`, quần/váy so `waist_cm`. |
 | `product_prints` | Người làm 3D tạo ảnh .webp đã xoá nền | Dán hoa văn lên mesh theo màu đang chọn. |
 | `body_profiles` | Khách nhập ở trang "Số đo của tôi" | Dựng avatar đúng dáng người. |
