@@ -41,7 +41,7 @@ for group in rep_of.values():
             # Ten goc co the chua mau cua thu muc dai dien ("Ao thun den tron").
             plain = re.sub(r"\s*\b(màu\s+)?(đen|trắng|xám|nâu|be|kem|xanh( (lá|dương|navy|rêu|đậm|nhạt))?|đỏ|hồng|vàng|cam|tím|kaki|olive|ghi)\b", "", t["name_vi"], flags=re.I).strip()
             item["name_vi"] = f"{plain} ({colour})"
-            flat = Image.open(next(d.glob("front.*"))).convert("RGB")
+            flat = Image.open(next(p for p in d.glob("front.*") if not p.name.endswith(".cut.png"))).convert("RGB")
             flat.thumbnail((360, 360))
             flat.save(OUT / "img" / f"{d.name}__flat.jpg", "JPEG", quality=82)
         item["model_img"] = (OUT / "img" / f"{d.name}.jpg").exists()

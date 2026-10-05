@@ -151,7 +151,7 @@ def check(client, refs: list[dict], out: Image.Image, view: str) -> dict:
 
 
 def run(client, d: Path) -> None:
-    side = lambda n: Image.open(next(d.glob(n + ".*")))  # .jpg / .webp
+    side = lambda n: Image.open(next(p for p in d.glob(n + ".*") if not p.name.endswith(".cut.png")))  # .jpg / .webp
     front, back = side("front"), side("back")
     kind, other = kind_of(d.name)
     model = "female model" if kind == "skirt" else "model"

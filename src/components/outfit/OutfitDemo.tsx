@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { recommend, type OutfitMatch, type OutfitProduct } from '@/lib/outfit/recommend';
 
 type Item = OutfitProduct & { model_img?: boolean };
-const img = (p: Item, flat = false) => `/outfit/img/${p.id}${flat || !p.model_img ? '__flat' : ''}.jpg`;
+// Flat-lays come from the background-removed prints the 3D try-on uses.
+const img = (p: Item, flat = false) =>
+  flat || !p.model_img ? `/prints/${p.id}__front.webp` : `/outfit/img/${p.id}.jpg`;
 
 const STYLES = ['streetwear', 'casual', 'smart-casual', 'minimal', 'sporty', 'feminine', 'vintage'];
 

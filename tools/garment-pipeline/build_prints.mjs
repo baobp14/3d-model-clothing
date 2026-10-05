@@ -43,7 +43,8 @@ function garmentKindOf(folder) {
 }
 
 async function findSide(dir, side) {
-  for (const ext of EXTS) {
+  // A BiRefNet cutout from cutout.py wins over the raw photo.
+  for (const ext of ['cut.png', ...EXTS]) {
     const p = path.join(dir, `${side}.${ext}`);
     try {
       await readFile(p);
@@ -163,8 +164,11 @@ async function processSide(srcPath, destPath) {
   // better a boxy print than an empty one. (The failed pass has already
   // cleared alpha in `data`, so each try works on a fresh copy.)
   const original = Buffer.from(data);
-  let keyed = false;
-  for (const tol of [TOL, 20, 10, 5]) {
+  // Already cut out by cutout.py (BiRefNet): its alpha is the mask. The
+  // colour key below is only the fallback -- it eats white/cream fabric on a
+  // light studio floor.
+  let keyed = srcPath.endsWith('.cut.png');
+  for (const tol of keyed ? [] : [TOL, 20, 10, 5]) {
     data.set(original);
     const frac = keyOutBackground(data, info.width, info.height, tol);
     if (frac > 0.04 && frac < 0.9) {

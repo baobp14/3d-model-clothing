@@ -70,7 +70,7 @@ def main() -> None:
     for d in products():
         if d.name in done:
             continue
-        flat = Image.open(next(d.glob("front.*"))).convert("RGB")
+        flat = Image.open(next(p for p in d.glob("front.*") if not p.name.endswith(".cut.png"))).convert("RGB")
         flat.thumbnail((768, 768))
         buf = io.BytesIO(); flat.save(buf, "JPEG", quality=88)
         tags = None
@@ -86,7 +86,7 @@ def main() -> None:
                 print("  retry", d.name, str(e)[:80]); time.sleep(5)
         if tags is None:
             tags = ask_openrouter(buf.getvalue())
-        shot = d / "ai_front.jpg" if (d / "ai_front.jpg").exists() else next(d.glob("front.*"))
+        shot = d / "ai_front.jpg" if (d / "ai_front.jpg").exists() else next(p for p in d.glob("front.*") if not p.name.endswith(".cut.png"))
         im = Image.open(shot).convert("RGB"); im.thumbnail((480, 640))
         im.save(OUT / "img" / f"{d.name}.jpg", "JPEG", quality=82)
         flat.thumbnail((360, 360)); flat.save(OUT / "img" / f"{d.name}__flat.jpg", "JPEG", quality=82)
