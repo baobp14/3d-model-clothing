@@ -16,6 +16,19 @@ lid = (cq.Workplane().box(300, 300, 3, centered=(True, True, False))
        .faces(">Z").workplane().rect(o, o).rect(o - 2 * LIP_T, o - 2 * LIP_T).extrude(LIP_H)
        .translate((C, C, 0)))
 
+# --- Ngam gai: 8 lay tren vanh nap, gờ moc vao mep tren lo cua so cua de (z 5-20) ---
+# Toa do nap: z_nap = 28 - z_de. Lay dai toi z_de=16, go moc o z_de 19.5 (mep lo z_de=20).
+SNAP_W, SNAP_TIP, BUMP, SLIT = 18.0, 12.0, 1.0, 1.0
+y0 = 5 + 5 + GAP   # mat ngoai vanh nap (canh y nho)
+for cx in (22.5, 287.5):           # tam lo cua so
+    slits = cq.Workplane().box(SNAP_W + 2 * SLIT, LIP_T + 1, LIP_H, centered=(True, False, False)).translate((cx, y0 - 0.5, 3))
+    tab = cq.Workplane().box(SNAP_W, LIP_T, SNAP_TIP - 3, centered=(True, False, False)).translate((cx, y0, 3))
+    bump = (cq.Workplane("YZ").polyline([(y0, SNAP_TIP), (y0 - BUMP, 9.5), (y0 - BUMP, 8.5), (y0 + 0.01, 8.5)]).close()
+            .extrude(SNAP_W - 2).translate((cx - (SNAP_W - 2) / 2, 0, 0)))
+    for a in (0, 90, 180, 270):
+        rot = lambda w: w.rotate((C, C, 0), (C, C, 1), a)
+        lid = lid.cut(rot(slits)).union(rot(tab)).union(rot(bump))
+
 def region(axis, off):
     """Vung 'duoi' cua duong cat (x<C neu axis='x'), co duoi en, noi rong them off."""
     c = C + off
