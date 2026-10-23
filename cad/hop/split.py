@@ -47,7 +47,9 @@ riser = (cq.Workplane().rect(300, 300).extrude(RISER_H).edges(">Z").chamfer(FOOT
          .faces(">Z").workplane().rect(300 - 2 * WALL, 300 - 2 * WALL).cutThruAll().translate((C, C, 0)))
 riser = pockets(riser, 2.0, RISER_H - 5)   # mep tren ranh cach dinh 5mm, giong de
 ri = 290 - 2 * (GAP + LIP_T)   # go noi vanh duoi voi thanh (day 2mm, phia trong)
-riser = riser.union(cq.Workplane().rect(300 - 2 * WALL + 0.2, 300 - 2 * WALL + 0.2).rect(ri, ri).extrude(2).translate((C, C, 0)))
+GH = (300 - 2 * WALL + 0.2 - ri) / 2   # go vat 45 do -> in up khong bi treo
+cone = cq.Workplane().rect(ri, ri).workplane(offset=GH).rect(ri + 2 * GH, ri + 2 * GH).loft()
+riser = riser.union((cq.Workplane().rect(ri + 2 * GH, ri + 2 * GH).extrude(GH).cut(cone)).translate((C, C, 0)))
 lip = lid.intersect(cq.Workplane().box(400, 400, 20, centered=(True, True, False)).translate((C, C, 3)))
 riser = riser.union(lip.rotate((0, 0, 0), (1, 0, 0), 180).translate((0, 2 * C, 3)))   # z = 3 - z_nap, keo xuong duoi
 
@@ -90,7 +92,7 @@ for name, obj, walls, zs in [("de", base, W4, (10, 18)), ("vongnang", riser, W4,
         for sy, q in (("duoi", Lo), ("tren", Hi)):
             bb = q.val().BoundingBox()
             q = q.translate((-bb.xmin, -bb.ymin, -bb.zmin))
-            if name != "de": q = q.rotate((0, 0, 0), (1, 0, 0), 180).translate((0, bb.ylen, bb.zlen))  # mat tren up xuong ban in
+            if name == "vongnang": q = q.rotate((0, 0, 0), (1, 0, 0), 180).translate((0, bb.ylen, bb.zlen))  # vong nang in up; nap da san mat tren o duoi
             fn = f"{OUT}/{name}_{sx}_{sy}"
             cq.exporters.export(q, fn + ".stl", tolerance=0.02)
             b = q.val().BoundingBox(); print(fn, round(b.xlen, 1), round(b.ylen, 1), round(b.zlen, 1), q.val().isValid())
