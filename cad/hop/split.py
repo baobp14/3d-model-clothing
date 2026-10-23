@@ -29,6 +29,19 @@ for cx in (22.5, 287.5):           # tam lo cua so
         rot = lambda w: w.rotate((C, C, 0), (C, C, 1), a)
         lid = lid.cut(rot(slits)).union(rot(tab)).union(rot(bump))
 
+# --- Vong nang: khung vien cao RISER_H, tren co lo cua so de nap gai vao, duoi co vanh + lay gai vao de ---
+RISER_H, WALL = 15.0, 5.0
+WIN_W, WIN_Z0, WIN_Z1 = 25.0, 2.0, RISER_H - 5   # mep tren lo cach dinh 5mm, giong de
+riser = (cq.Workplane().rect(300, 300).rect(300 - 2 * WALL, 300 - 2 * WALL).extrude(RISER_H).translate((C, C, 0)))
+for cx in (22.5, 287.5):
+    win = cq.Workplane().box(WIN_W, WALL + 2, WIN_Z1 - WIN_Z0, centered=(True, False, False)).translate((cx, 4, WIN_Z0))
+    for a in (0, 90, 180, 270):
+        riser = riser.cut(win.rotate((C, C, 0), (C, C, 1), a))
+ri = 290 - 2 * (GAP + LIP_T)   # go noi vanh duoi voi thanh (day 2mm, phia trong)
+riser = riser.union(cq.Workplane().rect(300 - 2 * WALL + 0.2, 300 - 2 * WALL + 0.2).rect(ri, ri).extrude(2).translate((C, C, 0)))
+lip = lid.intersect(cq.Workplane().box(400, 400, 20, centered=(True, True, False)).translate((C, C, 3)))
+riser = riser.union(lip.rotate((0, 0, 0), (1, 0, 0), 180).translate((0, 2 * C, 3)))   # z = 3 - z_nap, keo xuong duoi
+
 def region(axis, off):
     """Vung 'duoi' cua duong cat (x<C neu axis='x'), co duoi en, noi rong them off."""
     c = C + off
@@ -44,10 +57,10 @@ def region(axis, off):
 def split(solid, axis):
     lo = solid.intersect(region(axis, -CLR)); hi = solid.cut(region(axis, CLR)); return lo, hi
 
-def pins(part, walls):
+def pins(part, walls, zs):
     """Lo chot ngang qua mat cat o giua thanh tuong."""
     for axis, wc in walls:
-        for z in (10, 18):
+        for z in zs:
             if axis == "x":   # mat cat x=C, tuong chay theo x
                 cyl = cq.Workplane("YZ").center(wc, z).circle(PIN_D / 2).extrude(PIN_L, both=True).translate((C, 0, 0))
             else:
@@ -55,16 +68,20 @@ def pins(part, walls):
             part = part.cut(cyl)
     return part
 
-for name, obj, walls in [("de", base, [("x", 7.5), ("x", 302.5), ("y", 7.5), ("y", 302.5)]), ("nap", lid, [])]:
-    cq.exporters.export(obj, f"{OUT}/{name}_nguyen.step")
-    obj = pins(obj, walls)
+W4 = [("x", 7.5), ("x", 302.5), ("y", 7.5), ("y", 302.5)]
+# File STEP lap rap chung (de + vong nang + nap o dung vi tri)
+asm = (cq.Assembly().add(base, name="de").add(riser, name="vong_nang", loc=cq.Location((0, 0, 25)))
+       .add(lid, name="nap", loc=cq.Location((0, 2 * C, 25 + RISER_H + 3), (1, 0, 0), 180)))
+asm.save(f"{OUT}/hop_lap_rap.step")
+for name, obj, walls, zs in [("de", base, W4, (10, 18)), ("vongnang", riser, W4, (6.5,)), ("nap", lid, [], ())]:
+    obj = pins(obj, walls, zs)
     L, R = split(obj, "x")
     for sx, half in (("trai", L), ("phai", R)):
         Lo, Hi = split(half, "y")
         for sy, q in (("duoi", Lo), ("tren", Hi)):
             bb = q.val().BoundingBox()
             q = q.translate((-bb.xmin, -bb.ymin, -bb.zmin))
-            if name == "nap": q = q.rotate((0, 0, 0), (1, 0, 0), 180).translate((0, bb.ylen, bb.zlen))  # mat tren up xuong ban in
+            if name != "de": q = q.rotate((0, 0, 0), (1, 0, 0), 180).translate((0, bb.ylen, bb.zlen))  # mat tren up xuong ban in
             fn = f"{OUT}/{name}_{sx}_{sy}"
-            cq.exporters.export(q, fn + ".step"); cq.exporters.export(q, fn + ".stl", tolerance=0.02)
+            cq.exporters.export(q, fn + ".stl", tolerance=0.02)
             b = q.val().BoundingBox(); print(fn, round(b.xlen, 1), round(b.ylen, 1), round(b.zlen, 1), q.val().isValid())
