@@ -17,8 +17,8 @@ lid = (cq.Workplane().box(300, 300, 3, centered=(True, True, False))
        .translate((C, C, 0)))
 
 # --- Ngam gai: 8 lay tren vanh nap, gờ moc vao mep tren lo cua so cua de (z 5-20) ---
-# Toa do nap: z_nap = 28 - z_de. Lay dai toi z_de=16, go moc o z_de 19.5 (mep lo z_de=20).
-SNAP_W, SNAP_TIP, BUMP, SLIT = 18.0, 12.0, 1.0, 1.0
+# Toa do nap: z_nap = 28 - z_de. Lay dai toi z_de=17.5, go moc o z_de 19.5 (mep lo z_de=20).
+SNAP_W, SNAP_TIP, BUMP, SLIT = 18.0, 10.5, 0.8, 1.0
 y0 = 5 + 5 + GAP   # mat ngoai vanh nap (canh y nho)
 for cx in (22.5, 287.5):           # tam lo cua so
     slits = cq.Workplane().box(SNAP_W + 2 * SLIT, LIP_T + 1, LIP_H, centered=(True, False, False)).translate((cx, y0 - 0.5, 3))
@@ -30,7 +30,7 @@ for cx in (22.5, 287.5):           # tam lo cua so
         lid = lid.cut(rot(slits)).union(rot(tab)).union(rot(bump))
 
 # --- Vong nang: khung vien cao RISER_H, tren co lo cua so de nap gai vao, duoi co vanh + lay gai vao de ---
-RISER_H, WALL = 15.0, 5.0
+RISER_H, WALL = 10.0, 5.0
 WIN_W, WIN_Z0, WIN_Z1 = 25.0, 2.0, RISER_H - 5   # mep tren lo cach dinh 5mm, giong de
 riser = (cq.Workplane().rect(300, 300).rect(300 - 2 * WALL, 300 - 2 * WALL).extrude(RISER_H).translate((C, C, 0)))
 for cx in (22.5, 287.5):
@@ -73,7 +73,7 @@ W4 = [("x", 7.5), ("x", 302.5), ("y", 7.5), ("y", 302.5)]
 asm = (cq.Assembly().add(base, name="de").add(riser, name="vong_nang", loc=cq.Location((0, 0, 25)))
        .add(lid, name="nap", loc=cq.Location((0, 2 * C, 25 + RISER_H + 3), (1, 0, 0), 180)))
 asm.save(f"{OUT}/hop_lap_rap.step")
-for name, obj, walls, zs in [("de", base, W4, (10, 18)), ("vongnang", riser, W4, (6.5,)), ("nap", lid, [], ())]:
+for name, obj, walls, zs in [("de", base, W4, (10, 18)), ("vongnang", riser, W4, (7,)), ("nap", lid, [], ())]:
     obj = pins(obj, walls, zs)
     L, R = split(obj, "x")
     for sx, half in (("trai", L), ("phai", R)):
