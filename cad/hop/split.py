@@ -7,7 +7,19 @@ NECK, HEAD, DEPTH = 9.0, 14.0, 8.0
 TABS = [(60, 1), (110, -1), (200, 1), (250, -1)]   # vi tri tab, huong
 PIN_D, PIN_L = 2.0, 7.0   # lo chot filament 1.75mm
 
-base = cq.importers.importStep(os.path.join(D, "de_goc.step"))
+# --- De: dung lai theo de_goc.step (300x300x25, day 3, thanh 5) nhung thanh kin, khong lo ---
+WALL, FLOOR, BASE_H, FOOT = 5.0, 3.0, 25.0, 0.6   # FOOT: vat chan chong phinh lop dau
+POCKET_W, POCKET_D = 22.0, 1.2                     # ranh ngam phia trong thanh cho lay moc vao
+base = (cq.Workplane().box(300, 300, BASE_H, centered=(True, True, False)).edges("<Z").chamfer(FOOT)
+        .faces(">Z").workplane().rect(300 - 2 * WALL, 300 - 2 * WALL).cutBlind(-(BASE_H - FLOOR)).translate((C, C, 0)))
+
+def pockets(part, z0, z1):
+    for cx in (22.5, 287.5):
+        p = cq.Workplane().box(POCKET_W, POCKET_D + 0.5, z1 - z0, centered=(True, False, False)).translate((cx, 10 - POCKET_D, z0))
+        for a in (0, 90, 180, 270):
+            part = part.cut(p.rotate((C, C, 0), (C, C, 1), a))
+    return part
+base = pockets(base, 17.0, 20.0)   # mep tren ranh z=20, go lay o z 17.5-19.5
 
 # --- Nap: tam 300x300x3 + vanh lot vao trong long de (trong 290x290) ---
 GAP, LIP_T, LIP_H = 0.3, 2.0, 6.0
@@ -16,11 +28,11 @@ lid = (cq.Workplane().box(300, 300, 3, centered=(True, True, False))
        .faces(">Z").workplane().rect(o, o).rect(o - 2 * LIP_T, o - 2 * LIP_T).extrude(LIP_H)
        .translate((C, C, 0)))
 
-# --- Ngam gai: 8 lay tren vanh nap, gờ moc vao mep tren lo cua so cua de (z 5-20) ---
-# Toa do nap: z_nap = 28 - z_de. Lay dai toi z_de=17.5, go moc o z_de 19.5 (mep lo z_de=20).
+# --- Ngam gai: 8 lay tren vanh nap, gờ moc vao mep tren lo ranh ngam trong thanh de (z 17-20) ---
+# Toa do nap: z_nap = 28 - z_de. Lay dai toi z_de=17.5, go moc o z_de 19.5 (mep ranh z_de=20).
 SNAP_W, SNAP_TIP, BUMP, SLIT = 18.0, 10.5, 0.8, 1.0
 y0 = 5 + 5 + GAP   # mat ngoai vanh nap (canh y nho)
-for cx in (22.5, 287.5):           # tam lo cua so
+for cx in (22.5, 287.5):           # tam ranh
     slits = cq.Workplane().box(SNAP_W + 2 * SLIT, LIP_T + 1, LIP_H, centered=(True, False, False)).translate((cx, y0 - 0.5, 3))
     tab = cq.Workplane().box(SNAP_W, LIP_T, SNAP_TIP - 3, centered=(True, False, False)).translate((cx, y0, 3))
     bump = (cq.Workplane("YZ").polyline([(y0, SNAP_TIP), (y0 - BUMP, 9.5), (y0 - BUMP, 8.5), (y0 + 0.01, 8.5)]).close()
@@ -30,13 +42,10 @@ for cx in (22.5, 287.5):           # tam lo cua so
         lid = lid.cut(rot(slits)).union(rot(tab)).union(rot(bump))
 
 # --- Vong nang: khung vien cao RISER_H, tren co lo cua so de nap gai vao, duoi co vanh + lay gai vao de ---
-RISER_H, WALL = 10.0, 5.0
-WIN_W, WIN_Z0, WIN_Z1 = 25.0, 2.0, RISER_H - 5   # mep tren lo cach dinh 5mm, giong de
-riser = (cq.Workplane().rect(300, 300).rect(300 - 2 * WALL, 300 - 2 * WALL).extrude(RISER_H).translate((C, C, 0)))
-for cx in (22.5, 287.5):
-    win = cq.Workplane().box(WIN_W, WALL + 2, WIN_Z1 - WIN_Z0, centered=(True, False, False)).translate((cx, 4, WIN_Z0))
-    for a in (0, 90, 180, 270):
-        riser = riser.cut(win.rotate((C, C, 0), (C, C, 1), a))
+RISER_H = 10.0
+riser = (cq.Workplane().rect(300, 300).extrude(RISER_H).edges(">Z").chamfer(FOOT)   # in up, mat tren xuong ban
+         .faces(">Z").workplane().rect(300 - 2 * WALL, 300 - 2 * WALL).cutThruAll().translate((C, C, 0)))
+riser = pockets(riser, 2.0, RISER_H - 5)   # mep tren ranh cach dinh 5mm, giong de
 ri = 290 - 2 * (GAP + LIP_T)   # go noi vanh duoi voi thanh (day 2mm, phia trong)
 riser = riser.union(cq.Workplane().rect(300 - 2 * WALL + 0.2, 300 - 2 * WALL + 0.2).rect(ri, ri).extrude(2).translate((C, C, 0)))
 lip = lid.intersect(cq.Workplane().box(400, 400, 20, centered=(True, True, False)).translate((C, C, 3)))
