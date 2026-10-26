@@ -28,6 +28,7 @@ const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Promotions = lazy(() => import('./pages/Promotions'))
 const StockAlerts = lazy(() => import('./pages/StockAlerts'))
 const Returns = lazy(() => import('./pages/Returns'))
+const TryOn = lazy(() => import('./pages/TryOn'))
 const Terms = lazy(() => import('./pages/Legal').then(module => ({ default: module.Terms })))
 const Privacy = lazy(() => import('./pages/Legal').then(module => ({ default: module.Privacy })))
 
@@ -63,6 +64,7 @@ function AppContent() {
       <Route path="/men/ready-to-wear" element={<ProductList department="men" />} />
       <Route path="/women/ready-to-wear" element={<ProductList department="women" />} />
       <Route path="/product/:id" element={<ProductDetail />} />
+      <Route path="/try-on" element={<TryOn />} />
       <Route path="/cart" element={<RequireCustomer><Cart /></RequireCustomer>} />
       <Route path="/checkout" element={<RequireCustomer><Checkout /></RequireCustomer>} />
       <Route path="/account/addresses" element={<RequireCustomer><Addresses /></RequireCustomer>} />

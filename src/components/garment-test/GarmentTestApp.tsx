@@ -212,8 +212,8 @@ const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
   // Đầm sits in the top slot: its bodice is the croptop mesh and it brings
   // its own skirt (dressskirt) into the bottom slot -- see resolveSlot.
   // Áo len / áo khoác: mesh vẫn build được nhưng tạm ẩn khỏi trang thử.
-  top: ['tshirt', 'tank', 'croptop', 'shirt', 'longshirt', 'dress'],
-  bottom: ['pants', 'shorts', 'capri', 'skirt'],
+  top: ['tshirt', 'shirt', 'longshirt'],
+  bottom: ['pants', 'shorts', 'skirt'],
 };
 const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
 
@@ -246,7 +246,7 @@ type Loaded = {
   rigs: Record<string, MorphRig>;
   avatars: Record<string, THREE.Object3D>;
   meshes: Record<string, THREE.Mesh>;
-  garments: Record<GarmentKind, SizedGeom>;
+  garments: Partial<Record<GarmentKind, SizedGeom>>;
   meta: GarmentMeta;
   bodyRef?: Float32Array;
   poseRigs: Record<string, AvatarRig>;
@@ -776,20 +776,18 @@ export default function GarmentTestApp() {
           return out;
         };
 
-        const garments = {
-          tshirt: await loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
-          tank: await loadGarment('/models/garment-tank.glb', 'tank_'),
-          croptop: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
-          shirt: await loadGarment('/models/garment-shirt.glb', 'shirt_'),
-          longshirt: await loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
-          sweater: await loadGarment('/models/garment-sweater.glb', 'sweater_'),
-          jacket: await loadGarment('/models/garment-jacket.glb', 'jacket_'),
-          dress: await loadGarment('/models/garment-dress.glb', 'dress_'),
-          dressskirt: await loadGarment('/models/garment-dressskirt.glb', 'dressskirt_'),
-          pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
-          shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
-          capri: await loadGarment('/models/garment-capri.glb', 'capri_'),
-          skirt: await loadGarment('/models/garment-skirt.glb', 'skirt_'),
+        // Only the everyday kinds the catalogue actually sells; the other meshes
+        // (tank, croptop, dress, capri, sweater, jacket) stay on disk unused.
+        const [tshirt, shirt, longshirt, pants, shorts, skirt] = await Promise.all([
+          loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
+          loadGarment('/models/garment-shirt.glb', 'shirt_'),
+          loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
+          loadGarment('/models/garment-pants.glb', 'pants_'),
+          loadGarment('/models/garment-shorts.glb', 'shorts_'),
+          loadGarment('/models/garment-skirt.glb', 'skirt_'),
+        ]);
+        const garments: Partial<Record<GarmentKind, Awaited<ReturnType<typeof loadGarment>>>> = {
+          tshirt, shirt, longshirt, pants, shorts, skirt,
         };
 
         if (cancelled) return;

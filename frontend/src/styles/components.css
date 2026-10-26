@@ -98,3 +98,23 @@
 .login-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
 .login-actions .button { width: 100%; margin-top: 0; padding-inline: .5rem; }
 .login-google .button { width: 100%; }
+
+/* Phòng thử đồ 3D: mã dùng chung với app Next.js, viết bằng bảng màu stone của Tailwind.
+   Đổi bảng stone sang màu của shop trong phạm vi trang này, và cho khung 3D vừa dưới header. */
+.tryon-embed {
+  --color-stone-50: var(--color-cream);
+  --color-stone-200: var(--color-line);
+  --color-stone-300: #cfc9c0;
+  --color-stone-400: #8a8178;
+  --color-stone-500: var(--color-ink-muted);
+  --color-stone-600: #4d463f;
+  --color-stone-700: #3a342e;
+  --color-stone-800: #221f1b;
+  --color-stone-900: var(--color-ink);
+}
+.tryon-embed > .h-screen { height: calc(100dvh - var(--header-h) - 4.5rem); min-height: 560px; }
+.tryon-embed > .h-screen > header { display: none; }
+.tryon-embed aside { width: 18rem; }
+.tryon-embed aside h2 { font-size: var(--text-caption); letter-spacing: .04em; color: var(--color-ink); }
+.tryon-embed .text-\[11px\] { font-size: var(--text-micro); }
+.tryon-embed button.rounded { border-radius: var(--radius-control); }

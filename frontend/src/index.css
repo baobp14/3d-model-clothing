@@ -4,3 +4,4 @@
 @import "./styles/components.css";
 @source not "../.qa";
 @source not "../e2e";
+@source "../../src/components/garment-test";
