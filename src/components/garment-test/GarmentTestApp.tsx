@@ -35,6 +35,7 @@ import {
 } from '@/lib/tryon/garmentFit';
 import type { CameraView, FabricPatternKey, GarmentPieceInput } from './GarmentClothCanvas';
 import { CLIP_BINS } from './clipProfile';
+import { chartForPrint, fitCircCm, meshScale, type BrandChart, type SizeLetter } from '@/lib/tryon/brandSizes';
 
 const GarmentClothCanvas = dynamic(() => import('./GarmentClothCanvas'), {
   ssr: false,
@@ -516,6 +517,8 @@ export default function GarmentTestApp() {
   const [showBottom, setShowBottom] = useState(true);
   const [showStretch, setShowStretch] = useState(false);
   const [showFaces, setShowFaces] = useState(false);
+  // Brand-scaled meshes, built once per kind/size/chart (constraints are costly).
+  const brandGeoms = useRef(new Map<string, { geom: GarmentGeometry; constraints: GarmentConstraints }>());
   const [wireframe, setWireframe] = useState(false);
   const [view, setView] = useState<CameraView>('full');
 
@@ -632,7 +635,10 @@ export default function GarmentTestApp() {
     const q = new URLSearchParams(window.location.search);
     // Opened for one garment (e.g. from a product page): show just that piece.
     if (q.get('top') && !q.get('bottom')) setShowBottom(false);
-    if (q.get('bottom') && !q.get('top')) setShowTop(false);
+    if (q.get('bottom') && !q.get('top')) {
+      setShowTop(false);
+      setActiveSlot('bottom');
+    }
     for (const slot of ['top', 'bottom'] as const) {
       const entry = presets.find((p) => p.id === q.get(slot));
       if (!entry) continue;
@@ -893,23 +899,52 @@ export default function GarmentTestApp() {
   // kind chosen -- feeds both the 3D pieces array and each slot's own
   // ease/size numbers.
   const wearingDress = slots.top.kind === 'dress';
+  // The print a slot wears decides its brand: its real size chart replaces the
+  // generic one, and the base mesh is scaled to the brand's measurements.
+  function chartOf(st: SlotState): BrandChart | null {
+    if (!st.kind || st.presetIdx < 0) return null;
+    const entry = presets.filter((p) => presetMatchesKind(p.kind ?? 'tshirt', st.kind!))[st.presetIdx];
+    const chart = chartForPrint(entry?.id);
+    return chart && chart.kind === st.kind ? chart : null;
+  }
+  function brandSized(kind: GarmentKind, size: string, chart: BrandChart, base: { geom: GarmentGeometry; constraints: GarmentConstraints }) {
+    const key = `${kind}:${size}:${chart.id}`;
+    const hit = brandGeoms.current.get(key);
+    if (hit) return hit;
+    const { sx, sy } = meshScale(chart, size as SizeLetter, loaded!.meta.garments[kind]!.sizes[size] as unknown as Record<string, number>);
+    const positions = new Float32Array(base.geom.positions);
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] *= sx;
+      positions[i + 1] *= sy;
+      positions[i + 2] *= sx;
+    }
+    const geom = { ...base.geom, positions };
+    const out = { geom, constraints: buildConstraints(geom, []) };
+    brandGeoms.current.set(key, out);
+    return out;
+  }
   function resolveSlot(slot: Slot) {
     // A dress fills both slots: the bottom becomes the dress's own skirt, cut
     // from the same cloth and size as its bodice.
     const st: SlotState =
       slot === 'bottom' && wearingDress ? { ...slots.top, kind: 'dressskirt' } : slots[slot];
     if (!loaded || !st.kind) return null;
-    const sized = loaded.garments[st.kind]?.[st.size];
-    if (!sized) return null;
+    const base = loaded.garments[st.kind]?.[st.size];
+    if (!base) return null;
     const entry = loaded.meta.garments[st.kind];
-    return { state: st, entry, ...sized };
+    const chart = chartOf(st);
+    const sized = chart ? brandSized(st.kind, st.size, chart, base) : base;
+    return { state: st, entry, chart, ...sized };
   }
   const topResolved = resolveSlot('top');
   const bottomResolved = resolveSlot('bottom');
 
   const activeResolved = activeSlot === 'top' ? topResolved : bottomResolved;
+  const activeChart = activeResolved?.chart ?? null;
   const garmentCircCm = activeResolved
-    ? activeResolved.entry?.sizes[activeResolved.state.size]?.[fitKey]
+    ? activeResolved.chart
+      ? fitCircCm(activeResolved.chart, activeResolved.state.size as SizeLetter)
+      : activeResolved.entry?.sizes[activeResolved.state.size]?.[fitKey]
     : undefined;
   const bodyCircCm = scene ? (fitKey === 'waistCircCm' ? scene.body.waist : scene.body.chest) : 0;
   const ease =
@@ -1248,10 +1283,24 @@ export default function GarmentTestApp() {
                       active={active.size === s}
                       onClick={() => updateSlot(activeSlot, { size: s })}
                     >
-                      {s} · {Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0)}cm
+                      {activeChart
+                        ? `${s} (${activeChart.sizes[s as SizeLetter].label}) · ${Math.round(fitCircCm(activeChart, s as SizeLetter) ?? 0)}cm`
+                        : `${s} · ${Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0)}cm`}
                     </Button>
                   ))}
                 </div>
+                <p className="mt-1.5 text-[11px] leading-snug text-stone-500">
+                  {activeChart ? (
+                    <>
+                      Bảng size thật: <b>{activeChart.brand}</b> · {activeChart.style}
+                      {activeChart.waistStretchCm ? ` (lưng thun, tính thêm ${activeChart.waistStretchCm}cm co giãn)` : ''}.{' '}
+                      <a className="underline" href={activeChart.source} target="_blank" rel="noopener noreferrer">Nguồn</a>
+                      {activeChart.estimate && <span className="block text-amber-700">{activeChart.estimate}</span>}
+                    </>
+                  ) : (
+                    'Bảng size chung (chọn họa tiết của một sản phẩm để dùng size thật của hãng).'
+                  )}
+                </p>
               </>
             )}
           </section>

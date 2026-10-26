@@ -13,6 +13,7 @@ import { Skeleton } from '../components/ui/Skeleton'
 import EmptyState from '../components/ui/EmptyState'
 import ProductReviews from '../components/ProductReviews'
 import OutfitSuggestions from '../components/OutfitSuggestions'
+import SizeChart, { sizeChartFor } from '../components/SizeChart'
 import { tryOnLink } from '../tryon/links'
 
 export const departmentPath = d => ({ men: '/men/ready-to-wear', women: '/women/ready-to-wear', bags: '/bags', watches: '/watches' }[d] || '/')
@@ -59,6 +60,7 @@ function Detail({ product, colors }) {
   const gallery = product.colorImages?.[color] || []
   const image = gallery[imageIndex] || product.images[product.colors.indexOf(color)] || product.images[0]
   const tryOn = tryOnLink(product.category, gallery[0] || image)
+  const sizeChart = sizeChartFor(gallery[0] || image)
   const colorName = c => colors.find(x => x.id === c)?.[lang] || product.colorNames?.[c]?.[lang] || c
   const shopper = canShop(user, authLoading, recovery)
   const needsSize = product.sizes.length > 0 && !size
@@ -175,6 +177,7 @@ function Detail({ product, colors }) {
 
           <div className="mt-10 border-t border-line">
             <AccordionItem title={t('pdp.description')} defaultOpen><ProductDescription product={product} productColors={colors} /></AccordionItem>
+            {sizeChart && <AccordionItem title={vi ? 'Bảng size (số đo thật của hãng)' : 'Size chart (brand measurements)'}><SizeChart chart={sizeChart} /></AccordionItem>}
             <AccordionItem title={t('pdp.delivery')}>{t('pdp.deliveryText')}</AccordionItem>
           </div>
         </div>
