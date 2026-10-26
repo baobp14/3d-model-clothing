@@ -119,7 +119,7 @@ export function fromSaved(saved: SavedChart | null | undefined): BrandChart | nu
   if (!saved) return null;
   if (saved.source === 'brand') return byId.get(saved.brand_chart) ?? null;
   const sizes = Object.fromEntries(Object.entries(saved.sizes).map(([letter, size]) => [letter, { ...size, label: size?.label || letter }]));
-  return { id: `measured_${saved.product_id}`, brand: 'N&B', style: 'Số đo shop tự đo', kind: saved.kind, source: '', measured: true, note: saved.note, sizes } as BrandChart;
+  return { id: `measured_${saved.product_id}`, brand: 'N&B', style: 'Số đo thực tế của N&B', kind: saved.kind, source: '', measured: true, note: saved.note, sizes } as BrandChart;
 }
 
 // Charts saved in the shop take precedence over the built-in brand lookup.
