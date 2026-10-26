@@ -11,6 +11,18 @@ const words = {
   vi: { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipped: 'Đang giao', delivered: 'Đã giao', canceled: 'Đã hủy' },
   en: { pending: 'Awaiting confirmation', confirmed: 'Confirmed', shipped: 'Shipping', delivered: 'Delivered', canceled: 'Canceled' },
 }
+export const statusTone = { pending: 'warning', confirmed: 'info', shipped: 'info', delivered: 'success', canceled: 'danger' }
+const steps = ['pending', 'confirmed', 'shipped', 'delivered']
+
+function OrderProgress({ status, lang }) {
+  const current = steps.indexOf(status)
+  return <ol className="mt-5 grid grid-cols-4 gap-2" aria-label={lang === 'vi' ? 'Tiến trình đơn hàng' : 'Order progress'}>
+    {steps.map((step, index) => <li key={step} aria-current={index === current ? 'step' : undefined} className="min-w-0">
+      <span className={`block h-1.5 rounded-full ${index <= current ? 'bg-success' : 'bg-line'}`} />
+      <span className={`mt-2 block truncate text-xs ${index <= current ? 'font-semibold text-ink' : 'text-ink-muted'}`}>{words[lang][step]}</span>
+    </li>)}
+  </ol>
+}
 const transitions = { pending: ['confirmed', 'canceled'], confirmed: ['shipped', 'canceled'], shipped: ['delivered'] }
 const eventWords = {
   vi: { created: 'Đặt hàng', status: 'Đổi trạng thái', payment: 'Ghi nhận thanh toán', refund_required: 'Cần hoàn tiền', refunded: 'Đã hoàn tiền', return_requested: 'Khách yêu cầu đổi trả', return_approved: 'Duyệt đổi trả', return_rejected: 'Từ chối đổi trả', return_received: 'Nhận hàng trả' },
@@ -132,11 +144,11 @@ export default function Orders({ admin = false }) {
     } catch { setError(failure) }
   }
   const field = (key, label, type = 'text') => <label className="block text-sm">{label}<input type={type} value={filters[key]} maxLength={key === 'q' ? 120 : undefined} onChange={e => setFilters(current => ({ ...current, [key]: e.target.value }))} className="shop-input mt-2 w-full" /></label>
-  return <main className={admin ? 'p-5 lg:p-8' : 'shop-shell'}>
+  return <main className={admin ? 'p-5 lg:p-8' : 'shop-shell bg-cream'}>
     <div className="flex flex-wrap items-center justify-between gap-4"><title>{(admin ? (vi ? 'Quản lý đơn hàng' : 'Manage orders') : (vi ? 'Đơn hàng của tôi' : 'My orders')) + ' – N&B'}</title><h1 className="font-display text-title">{admin ? (vi ? 'Quản lý đơn hàng' : 'Manage orders') : (vi ? 'Đơn hàng của tôi' : 'My orders')}</h1><button className="button" disabled={loading || busy} onClick={() => setRevision(x => x + 1)}>{vi ? 'Tải lại' : 'Reload'}</button></div>
     {!admin && <Link to="/products" className="mt-5 inline-block underline">{vi ? 'Tiếp tục mua sắm' : 'Continue shopping'}</Link>}
     {admin && <div className="mt-5"><ExportButton endpoint={`/admin/orders/export?${exportParams}`} disabled={loading || busy || !!error} /></div>}
-    <form onSubmit={apply} className="mt-7 border border-line bg-white p-5"><fieldset disabled={busy || loading} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <form onSubmit={apply} className="card mt-7 p-5"><fieldset disabled={busy || loading} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {field('q', vi ? 'Mã đơn, người nhận, số điện thoại hoặc email' : 'Order ID, recipient, phone or email')}
       <label className="text-sm">{vi ? 'Trạng thái đơn' : 'Order status'}<select value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} className="shop-input mt-2 w-full"><option value="">{vi ? 'Tất cả' : 'All'}</option>{Object.entries(words[lang]).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       <label className="text-sm">{vi ? 'Thu tiền' : 'Payment receipt'}<select value={filters.paid} onChange={e => setFilters(f => ({ ...f, paid: e.target.value }))} className="shop-input mt-2 w-full"><option value="">{vi ? 'Tất cả' : 'All'}</option><option value="received">{vi ? 'Đã thu tiền' : 'Payment received'}</option><option value="unpaid">{vi ? 'Chưa ghi nhận thu tiền' : 'Receipt not recorded'}</option></select></label>
@@ -148,8 +160,9 @@ export default function Orders({ admin = false }) {
     {loading && <p role="status" className="mt-8">{vi ? 'Đang tải đơn hàng…' : 'Loading orders…'}</p>}
     {!loading && !error && <p className="mt-5 text-sm">{result.total} {vi ? 'đơn hàng' : 'orders'} · {vi ? 'Trang' : 'Page'} {result.page}/{result.pages}</p>}
     {!loading && !result.orders.length && !error && <p className="mt-5">{vi ? 'Không có đơn phù hợp.' : 'No matching orders.'}</p>}
-    <div className="mt-8 space-y-6">{!loading && result.orders.map(order => <article key={order.id} className="border border-line bg-white p-5 sm:p-7">
-      <div className="flex flex-wrap justify-between gap-3"><h2 className="break-all text-sm font-semibold">{vi ? 'Mã đơn' : 'Order'}: {order.id}</h2><p className="font-semibold">{words[lang][order.status] || order.status}</p></div>
+    <div className="mt-8 space-y-6">{!loading && result.orders.map(order => <article key={order.id} className="card p-5 sm:p-7">
+      <div className="flex flex-wrap justify-between gap-3"><h2 className="break-all text-sm font-semibold">{vi ? 'Mã đơn' : 'Order'}: {order.id}</h2><span className={`badge badge--${statusTone[order.status] || 'info'}`}>{words[lang][order.status] || order.status}</span></div>
+      {!admin && order.status !== 'canceled' && <OrderProgress status={order.status} lang={lang} />}
       <p className="mt-2 text-xs text-ink-muted">{new Date(order.created_at).toLocaleString(vi ? 'vi-VN' : 'en-US', { timeZone: 'Asia/Ho_Chi_Minh' })} · {order.payment === 'cod' ? (vi ? 'Trả tiền khi nhận hàng' : 'Cash on delivery') : (vi ? 'Chuyển khoản QR' : 'QR bank transfer')}</p>
       <p className="mt-3 text-sm font-semibold">{order.payment_status === 'received' ? (vi ? 'Đã thu tiền' : 'Payment received') : (vi ? 'Chưa ghi nhận thu tiền' : 'Receipt not recorded')}{order.received_at && ` · ${new Date(order.received_at).toLocaleString(vi ? 'vi-VN' : 'en-US', { timeZone: 'Asia/Ho_Chi_Minh' })}`}</p>
       {order.refund_status && <p className={`mt-2 text-sm font-semibold ${order.refund_status === 'done' ? 'text-success' : 'text-danger'}`}>{order.refund_status === 'done' ? (vi ? `Đã hoàn tiền ${money(order.refund_amount)}` : `Refunded ${money(order.refund_amount)}`) : (vi ? `Cần hoàn tiền ${money(order.refund_amount)}` : `Refund due: ${money(order.refund_amount)}`)}</p>}
@@ -164,7 +177,7 @@ export default function Orders({ admin = false }) {
         .filter(status => admin || status !== 'canceled' || order.payment_status !== 'received')
         // A QR order is prepaid: it cannot be confirmed before the money arrives.
         .filter(status => status === 'canceled' || order.payment !== 'qr' || order.payment_status === 'received')
-        .map(status => <button key={status} disabled={busy} className="button" onClick={() => update(order, status)}>{status === 'canceled' ? (vi ? 'Hủy đơn' : 'Cancel order') : `${vi ? 'Chuyển sang' : 'Mark as'}: ${words[lang][status]}`}</button>)}
+        .map(status => <button key={status} disabled={busy} className={`button ${status === 'canceled' ? 'button--danger' : 'button--primary'}`} onClick={() => update(order, status)}>{status === 'canceled' ? (vi ? 'Hủy đơn' : 'Cancel order') : `${vi ? 'Chuyển sang' : 'Mark as'}: ${words[lang][status]}`}</button>)}
         {!admin && order.payment === 'qr' && order.status === 'pending' && order.payment_status !== 'received' && payingId !== order.id && <button disabled={busy} className="button button--primary" onClick={() => setPayingId(order.id)}>{vi ? 'Thanh toán bằng QR' : 'Pay by QR'}</button>}
         {admin && order.payment === 'qr' && order.payment_status !== 'received' && <button disabled={busy} className="button" onClick={() => checkPayment(order)}>{vi ? 'Kiểm tra thanh toán QR' : 'Check QR payment'}</button>}
         {admin && order.status !== 'canceled' && order.payment_status !== 'received' && <button disabled={busy} className="button" onClick={() => update(order, null, true)}>{vi ? 'Ghi nhận đã thu tiền' : 'Record payment received'}</button>}

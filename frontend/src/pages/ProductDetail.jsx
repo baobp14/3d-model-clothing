@@ -126,7 +126,7 @@ function Detail({ product, colors }) {
         <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)]">
           <p className="eyebrow text-ink-muted">N&B · {product.id}</p>
           <h1 className="mt-3 font-display text-title">{product[lang]}</h1>
-          <p className="mt-4 text-lead font-medium"><Price value={product.price} /></p>
+          <p className="mt-4 text-title-sm font-semibold"><Price value={product.price} /></p>
 
           {product.colors.length > 0 && <fieldset className="mt-8">
             <legend className="mb-3 text-body-sm">{t('plp.color')}: <span className="font-medium">{colorName(color)}</span></legend>
@@ -176,7 +176,7 @@ function Detail({ product, colors }) {
             </div>
           </div>
           <p role="status" className={`text-body-sm ${message ? 'mt-4' : ''} ${added ? 'text-success' : ''}`}>{message}</p>
-          {tryOn && <a href={tryOn} target="_blank" rel="noopener" className="button mt-3 w-full">{vi ? 'Mặc thử 3D' : 'Try on in 3D'}</a>}
+          {tryOn && <a href={tryOn} target="_blank" rel="noopener" className="button mt-3 w-full border-accent text-accent">{vi ? '✦ Mặc thử 3D trên người mẫu' : '✦ Try on a 3D model'}</a>}
           {added && <Link to="/cart" className="button mt-3 w-full">{vi ? 'Xem giỏ hàng' : 'View bag'}</Link>}
           {pending && <p className="mt-4 border border-warning/30 bg-warning-soft px-4 py-3 text-body-sm text-warning"><Link to="/checkout" className="underline">{vi ? 'Có đơn đang chờ xác nhận. Kiểm tra lại đơn trước khi thêm sản phẩm.' : 'An order is awaiting confirmation. Check it before adding products.'}</Link></p>}
 

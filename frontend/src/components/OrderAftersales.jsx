@@ -51,10 +51,10 @@ export default function OrderAftersales({ order, reviewed, returnRequest, onChan
   return <div className="mt-5 border-t border-line pt-4">
     <div className="flex flex-wrap gap-3">
       {products.map(item => reviewed.has(`${order.id}:${item.product_id}`)
-        ? <span key={item.product_id} className="text-sm text-success">{vi ? 'Đã đánh giá' : 'Reviewed'}: {item[`name_${lang}`] || item.name}</span>
+        ? <span key={item.product_id} className="badge badge--success">{vi ? 'Đã đánh giá' : 'Reviewed'}: {item[`name_${lang}`] || item.name}</span>
         : <button key={item.product_id} type="button" disabled={busy} className="button" onClick={() => start(item.product_id)}>{vi ? 'Đánh giá' : 'Review'}: {item[`name_${lang}`] || item.name}</button>)}
       {returnRequest
-        ? <span className="text-sm font-semibold">{vi ? 'Đổi trả' : 'Return'}: {returnWords[lang][returnRequest.status]}{returnRequest.admin_note && ` · ${returnRequest.admin_note}`}</span>
+        ? <span className="badge badge--info">{vi ? 'Đổi trả' : 'Return'}: {returnWords[lang][returnRequest.status]}{returnRequest.admin_note && ` · ${returnRequest.admin_note}`}</span>
         : <button type="button" disabled={busy} className="button" onClick={() => start('return')}>{vi ? 'Yêu cầu đổi trả' : 'Request a return'}</button>}
     </div>
     {open !== null && <form onSubmit={submit} className="mt-4 space-y-3">

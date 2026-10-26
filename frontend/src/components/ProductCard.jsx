@@ -28,9 +28,9 @@ export default function ProductCard({ product, wishlist = true, priority = false
       {wishlist && <WishlistButton productId={product.id} className="absolute right-1 top-1 grid size-11 place-items-center text-ink" />}
     </div>
     <div className="pt-3 pr-2">
-      {product.isNew && <p className="mb-1 text-micro font-medium tracking-[.14em] text-ink-muted uppercase">{t('plp.new')}</p>}
-      <Heading className="-my-1 text-body-sm leading-snug"><Link to={href} state={state} className="line-clamp-2 py-1 hover:underline hover:underline-offset-4">{name}</Link></Heading>
-      <p className="mt-1 text-body-sm font-medium"><Price value={product.price} /></p>
+      {product.isNew && <p className="mb-1.5"><span className="rounded-sm bg-ink px-1.5 py-0.5 text-micro font-semibold text-on-ink">{t('plp.new')}</span></p>}
+      <Heading className="-my-1 text-body leading-snug"><Link to={href} state={state} className="line-clamp-2 py-1 hover:underline hover:underline-offset-4">{name}</Link></Heading>
+      <p className="mt-1.5 text-body font-semibold"><Price value={product.price} /></p>
       {product.colors.length > 1 && <p className="mt-1 text-caption text-ink-muted">{product.colors.length} {t('plp.colorsCount')}</p>}
     </div>
   </article>

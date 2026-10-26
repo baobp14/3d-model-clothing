@@ -58,10 +58,10 @@ export default function Returns() {
     {error && <p role="alert" className="my-5 text-danger">{error}</p>}
     {loading && <p role="status" className="mt-8">{vi ? 'Đang tải…' : 'Loading…'}</p>}
     {!loading && !result.returns.length && !error && <p className="mt-8">{vi ? 'Không có yêu cầu nào.' : 'No requests.'}</p>}
-    <div className="mt-8 space-y-6">{!loading && result.returns.map(request => <article key={request.id} className="border border-line bg-white p-5 sm:p-7">
+    <div className="mt-8 space-y-6">{!loading && result.returns.map(request => <article key={request.id} className="card p-5 sm:p-7">
       <div className="flex flex-wrap justify-between gap-3">
         <h2 className="break-all text-sm font-semibold">{vi ? 'Đơn' : 'Order'}: <Link className="underline" to={`/admin/orders?q=${request.order.id}`}>{request.order.id}</Link></h2>
-        <p className="font-semibold">{returnWords[lang][request.status]}{request.status === 'received' && (request.restocked ? (vi ? ' · đã nhập lại kho' : ' · restocked') : (vi ? ' · không nhập kho' : ' · not restocked'))}</p>
+        <p className={`badge badge--${{ pending: 'warning', approved: 'info', received: 'success', rejected: 'danger' }[request.status]}`}>{returnWords[lang][request.status]}{request.status === 'received' && (request.restocked ? (vi ? ' · đã nhập lại kho' : ' · restocked') : (vi ? ' · không nhập kho' : ' · not restocked'))}</p>
       </div>
       <p className="mt-2 text-xs text-ink-muted">{new Date(request.created_at).toLocaleString(vi ? 'vi-VN' : 'en-US', { timeZone: 'Asia/Ho_Chi_Minh' })} · {request.order.delivery.name} · {request.order.delivery.phone}</p>
       <p className="mt-4 whitespace-pre-wrap text-sm"><span className="font-semibold">{vi ? 'Lý do' : 'Reason'}:</span> {request.reason}</p>

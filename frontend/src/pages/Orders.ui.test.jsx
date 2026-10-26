@@ -22,7 +22,7 @@ it('customer history displays saved discount and replaces cancel action after co
   })
   render(<MemoryRouter><LanguageProvider><Orders /></LanguageProvider></MemoryRouter>)
   fireEvent.click(await screen.findByRole('button', { name: 'Cancel order' }))
-  await screen.findByText('Canceled', { selector: 'p' })
+  await screen.findByText('Canceled', { selector: '.badge' })
   expect(screen.queryByRole('button', { name: 'Cancel order' })).toBe(null)
   expect(request.mock.calls[1]).toEqual(['/orders/order-id', { auth: true, method: 'PATCH', body: { status: 'canceled', expected_status: 'pending' } }])
   expect(screen.getByRole('link', { name: /Shirt/ }).getAttribute('href')).toBe('/product/1')

@@ -10,10 +10,10 @@
   --color-ink: #111111;          /* 18.9:1 trên paper */
 
   /* Chữ và viền */
-  --color-ink-muted: #6f665d;    /* 5.6:1 paper · 5.1:1 cream · 4.7:1 surface */
+  --color-ink-muted: #5c544c;    /* 7.2:1 paper · 6.6:1 cream · 6:1 surface */
   --color-on-ink: #ffffff;
   --color-on-ink-muted: #a8a29e; /* 7.5:1 trên ink — không dùng trên nền sáng */
-  --color-line: #e5e2dc;         /* chỉ trang trí, không làm viền control */
+  --color-line: #dedad3;         /* chỉ trang trí, không làm viền control */
   --color-line-strong: #8a8178;  /* 3.8:1 paper — viền control (WCAG 1.4.11) */
   --color-accent: #7d6424;       /* 5.6:1 paper — vòng focus, điểm nhấn nhỏ */
 
@@ -27,20 +27,19 @@
 
   /* Font: một họ sans hình học kiểu Futura cho cả tiêu đề và nội dung (Jost giống hơn nhưng thiếu subset tiếng Việt) */
   --font-display: "Afacad", "Futura", "Century Gothic", system-ui, sans-serif;
-  --font-sans: "Afacad", "Futura", "Century Gothic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  /* Thang chữ — sàn 13px (Afacad có x-height thấp nên đặt lớn hơn mặc định một bậc);
-     tiêu đề co giãn với giá trị nhỏ nhất bằng rem */
+  /* Thang chữ — sàn 13px; tiêu đề co giãn với giá trị nhỏ nhất bằng rem */
   --text-micro: 0.8125rem;   --text-micro--line-height: 1.5;
   --text-caption: 0.875rem;  --text-caption--line-height: 1.5;
-  --text-body-sm: 0.9375rem; --text-body-sm--line-height: 1.55;
-  --text-body: 1.0625rem;    --text-body--line-height: 1.6;
-  --text-lead: 1.1875rem;    --text-lead--line-height: 1.6;
-  /* Lớp mặc định của Tailwind dùng ở trang tài khoản và admin, nâng cùng bậc */
+  --text-body-sm: 0.9375rem; --text-body-sm--line-height: 1.6;
+  --text-body: 1rem;         --text-body--line-height: 1.65;
+  --text-lead: 1.125rem;     --text-lead--line-height: 1.6;
+  /* Lớp mặc định của Tailwind dùng ở trang tài khoản và admin, cùng thang */
   --text-xs: 0.8125rem;      --text-xs--line-height: 1.5;
-  --text-sm: 0.9375rem;      --text-sm--line-height: 1.55;
-  --text-base: 1.0625rem;    --text-base--line-height: 1.6;
-  --text-lg: 1.1875rem;      --text-lg--line-height: 1.6;
+  --text-sm: 0.9375rem;      --text-sm--line-height: 1.6;
+  --text-base: 1rem;         --text-base--line-height: 1.65;
+  --text-lg: 1.125rem;       --text-lg--line-height: 1.6;
   --text-title-sm: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); --text-title-sm--line-height: 1.25;
   --text-title: clamp(1.75rem, 1.35rem + 1.4vw, 2.5rem);     --text-title--line-height: 1.15;
   --text-display: clamp(2.25rem, 1.5rem + 3vw, 4rem);        --text-display--line-height: 1.05;
@@ -52,7 +51,8 @@
   --container-checkout: 72rem;
 
   /* Hình dạng, bóng, tỉ lệ ảnh, chuyển động */
-  --radius-control: 0px;
+  --radius-control: 6px;
+  --radius-card: 10px;
   --radius-pill: 9999px;
   --shadow-overlay: 0 0 40px rgb(17 17 17 / 0.12);
   --aspect-product: 3 / 4;
