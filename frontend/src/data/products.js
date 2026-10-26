@@ -252,7 +252,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Dfys",
     "en": "Dfys Graphic T Shirt",
-    "price": 19900000,
+    "price": 199000,
     "stock": 1556,
     "colors": [
       "cream"
@@ -304,7 +304,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun túi ngực Classic AS Colour",
     "en": "Classic Pocket T-shirt AS Colour",
-    "price": 15800000,
+    "price": 229000,
     "stock": 1342,
     "colors": [
       "black",
@@ -458,7 +458,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun sọc Staple AS Colour",
     "en": "Staple Stripe T-shirt AS Colour",
-    "price": 12400000,
+    "price": 259000,
     "stock": 1556,
     "colors": [
       "black_white",
@@ -549,7 +549,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun Basic AS Colour",
     "en": "Basic T-shirt AS Colour",
-    "price": 11800000,
+    "price": 289000,
     "stock": 1342,
     "colors": [
       "black",
@@ -787,7 +787,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun phom rộng Block AS Colour",
     "en": "Block Oversized T-shirt AS Colour",
-    "price": 9100000,
+    "price": 319000,
     "stock": 1556,
     "colors": [
       "black",
@@ -899,7 +899,7 @@ export const products = [
     "category": "m-shirts",
     "vi": "Áo sơ mi Oxford AS Colour",
     "en": "Oxford Shirt AS Colour",
-    "price": 35300000,
+    "price": 499000,
     "stock": 1342,
     "colors": [
       "black",
@@ -990,7 +990,7 @@ export const products = [
     "category": "m-shirts",
     "vi": "Áo sơ mi kẻ Check AS Colour",
     "en": "Check Shirt AS Colour",
-    "price": 34500000,
+    "price": 349000,
     "stock": 1556,
     "colors": [
       "army_black",
@@ -1060,7 +1060,7 @@ export const products = [
     "category": "m-shirts",
     "vi": "Áo sơ mi nhung Cord AS Colour",
     "en": "Cord Shirt AS Colour",
-    "price": 14800000,
+    "price": 379000,
     "stock": 1342,
     "colors": [
       "black"
@@ -1109,7 +1109,7 @@ export const products = [
     "category": "m-shirts",
     "vi": "Áo sơ mi ngắn tay Work AS Colour",
     "en": "Work Short-sleeve Shirt AS Colour",
-    "price": 21300000,
+    "price": 409000,
     "stock": 1556,
     "colors": [
       "black"
@@ -1158,7 +1158,7 @@ export const products = [
     "category": "m-shirts",
     "vi": "Áo sơ mi Work AS Colour",
     "en": "Work Shirt AS Colour",
-    "price": 26900000,
+    "price": 439000,
     "stock": 1342,
     "colors": [
       "black",
@@ -1228,7 +1228,7 @@ export const products = [
     "category": "m-trousers",
     "vi": "Quần short Beach AS Colour",
     "en": "Beach Shorts AS Colour",
-    "price": 26700000,
+    "price": 249000,
     "stock": 1556,
     "colors": [
       "atlantic",
@@ -1340,7 +1340,7 @@ export const products = [
     "category": "m-trousers",
     "vi": "Quần dài Relax AS Colour",
     "en": "Relax Track Pants AS Colour",
-    "price": 31200000,
+    "price": 299000,
     "stock": 1342,
     "colors": [
       "black",
@@ -1473,7 +1473,7 @@ export const products = [
     "category": "w-skirts",
     "vi": "Chân váy ngắn Cargo Everlane",
     "en": "Cargo Mini Skirt Everlane",
-    "price": 35000000,
+    "price": 299000,
     "stock": 1556,
     "colors": [
       "black",
@@ -1553,7 +1553,7 @@ export const products = [
     "category": "w-skirts",
     "vi": "Chân váy ngắn Circle Everlane",
     "en": "Circle Mini Skirt Everlane",
-    "price": 40200000,
+    "price": 329000,
     "stock": 1342,
     "colors": [
       "navy",
@@ -1633,7 +1633,7 @@ export const products = [
     "category": "w-skirts",
     "vi": "Chân váy ngắn denim Everlane",
     "en": "Denim Mini Skirt Everlane",
-    "price": 31100000,
+    "price": 359000,
     "stock": 1556,
     "colors": [
       "dark_indigo",
@@ -1713,7 +1713,7 @@ export const products = [
     "category": "w-skirts",
     "vi": "Chân váy dệt ren Everlane",
     "en": "Lace Knit Skirt Everlane",
-    "price": 31900000,
+    "price": 389000,
     "stock": 1342,
     "colors": [
       "black"
@@ -1767,7 +1767,7 @@ export const products = [
     "category": "w-skirts",
     "vi": "Chân váy ngắn linen Everlane",
     "en": "Stretch Linen Mini Skirt Everlane",
-    "price": 43800000,
+    "price": 419000,
     "stock": 1556,
     "colors": [
       "chambray"
@@ -1821,7 +1821,7 @@ export const products = [
     "category": "w-skirts",
     "vi": "Chân váy dài cotton lụa Everlane",
     "en": "Cotton Silk Maxi Skirt Everlane",
-    "price": 26900000,
+    "price": 449000,
     "stock": 1342,
     "colors": [
       "black"
@@ -1871,7 +1871,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Afterform",
     "en": "Afterform - Heavy Graphic T-Shirt",
-    "price": 14900000,
+    "price": 199000,
     "stock": 1556,
     "colors": [
       "original"
@@ -1922,7 +1922,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình BADGE HOLDS WEIGHT",
     "en": "BADGE HOLDS WEIGHT - Graphic T-Shirt",
-    "price": 19700000,
+    "price": 229000,
     "stock": 1342,
     "colors": [
       "original"
@@ -1973,7 +1973,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Blind Surveillance",
     "en": "Blind Surveillance - Heavy Graphic T-Shirt",
-    "price": 19900000,
+    "price": 259000,
     "stock": 1556,
     "colors": [
       "black",
@@ -2047,7 +2047,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Bone Riot",
     "en": "Bone Riot - Heavy Graphic T-shirt",
-    "price": 15800000,
+    "price": 289000,
     "stock": 1342,
     "colors": [
       "original"
@@ -2099,7 +2099,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Broken Saint",
     "en": "Broken Saint - Heavy Graphic T-Shirt",
-    "price": 12400000,
+    "price": 319000,
     "stock": 1556,
     "colors": [
       "black",
@@ -2173,7 +2173,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Chaos And Order",
     "en": "Chaos And Order - Heavy Graphic T-Shirt",
-    "price": 11800000,
+    "price": 349000,
     "stock": 1342,
     "colors": [
       "black",
@@ -2247,7 +2247,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Consumed",
     "en": "Consumed - Heavy Graphic T-shirt",
-    "price": 9100000,
+    "price": 199000,
     "stock": 1556,
     "colors": [
       "original"
@@ -2298,7 +2298,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình DECAY",
     "en": "DECAY - Premium Heavy Graphic T-Shirt",
-    "price": 13800000,
+    "price": 229000,
     "stock": 1342,
     "colors": [
       "original"
@@ -2352,7 +2352,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình DOOMSDAY DIAGNOSIS",
     "en": "DOOMSDAY DIAGNOSIS - Graphic T-Shirt",
-    "price": 21400000,
+    "price": 259000,
     "stock": 1556,
     "colors": [
       "original"
@@ -2404,7 +2404,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Flypocalypse",
     "en": "Flypocalypse - Heavy Graphic T-Shirt",
-    "price": 16700000,
+    "price": 289000,
     "stock": 1342,
     "colors": [
       "original"
@@ -2455,7 +2455,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Human Error",
     "en": "Human Error - Heavy Graphic T-Shirt",
-    "price": 14900000,
+    "price": 319000,
     "stock": 1556,
     "colors": [
       "original"
@@ -2507,7 +2507,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Jump The Dark Grey Logo",
     "en": "Jump The Dark Grey Logo - Heavy Graphic T-Shirt",
-    "price": 19700000,
+    "price": 349000,
     "stock": 1342,
     "colors": [
       "original"
@@ -2558,7 +2558,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình London Underground",
     "en": "London Underground - Heavy Graphic T-Shirt",
-    "price": 19900000,
+    "price": 199000,
     "stock": 1556,
     "colors": [
       "original"
@@ -2609,7 +2609,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Lost in Transit  Back Print",
     "en": "Lost in Transit  Back Print - Heavy Graphic T-shirt",
-    "price": 15800000,
+    "price": 229000,
     "stock": 1342,
     "colors": [
       "original"
@@ -2660,7 +2660,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Lost in Transit Front Print",
     "en": "Lost in Transit Front Print - Heavy Graphic T-shirt",
-    "price": 12400000,
+    "price": 259000,
     "stock": 1556,
     "colors": [
       "original"
@@ -2711,7 +2711,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình MID-POINT",
     "en": "MID-POINT - Premium Heavy Graphic T-Shirt",
-    "price": 11800000,
+    "price": 289000,
     "stock": 1342,
     "colors": [
       "original"
@@ -2764,7 +2764,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Midnight Jester",
     "en": "Midnight Jester - Heavy Graphic T-Shirt",
-    "price": 9100000,
+    "price": 319000,
     "stock": 1556,
     "colors": [
       "grey",
@@ -2838,7 +2838,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Natural Born Enemies",
     "en": "Natural Born Enemies - Heavy Graphic T-Shirt",
-    "price": 13800000,
+    "price": 349000,
     "stock": 1342,
     "colors": [
       "original",
@@ -2911,7 +2911,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Poised 2.0",
     "en": "Poised 2.0 - Heavy Graphic T-Shirt",
-    "price": 21400000,
+    "price": 199000,
     "stock": 1556,
     "colors": [
       "sand",
@@ -2984,7 +2984,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình POISED",
     "en": "POISED - Graphic T-Shirt",
-    "price": 16700000,
+    "price": 229000,
     "stock": 1342,
     "colors": [
       "original"
@@ -3036,7 +3036,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Raise Hell",
     "en": "Raise Hell - Heavy Graphic T-shirt",
-    "price": 14900000,
+    "price": 259000,
     "stock": 1556,
     "colors": [
       "brown",
@@ -3110,7 +3110,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình SHADOWS RISE",
     "en": "SHADOWS RISE - Graphic T-Shirt",
-    "price": 19700000,
+    "price": 289000,
     "stock": 1342,
     "colors": [
       "original"
@@ -3162,7 +3162,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình SHADOWZ",
     "en": "SHADOWZ - Graphic T-Shirt",
-    "price": 19900000,
+    "price": 319000,
     "stock": 1556,
     "colors": [
       "original"
@@ -3213,7 +3213,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Step Through",
     "en": "Step Through - Heavy Graphic T-Shirt",
-    "price": 15800000,
+    "price": 349000,
     "stock": 1342,
     "colors": [
       "original",
@@ -3286,7 +3286,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Sunny Parade",
     "en": "Sunny Parade - Heavy Graphic T-shirt",
-    "price": 12400000,
+    "price": 199000,
     "stock": 1556,
     "colors": [
       "original"
@@ -3337,7 +3337,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình The Blackletter",
     "en": "The Blackletter Heavy Graphic T Shirt",
-    "price": 11800000,
+    "price": 229000,
     "stock": 1342,
     "colors": [
       "black",
@@ -3411,7 +3411,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình The Last Witness",
     "en": "The Last Witness - Heavy Graphic T-Shirt",
-    "price": 9100000,
+    "price": 259000,
     "stock": 1556,
     "colors": [
       "original"
@@ -3462,7 +3462,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình THE VANDAL – Organic Graphic T-Shirt",
     "en": "THE VANDAL – Organic Graphic T-Shirt",
-    "price": 13800000,
+    "price": 289000,
     "stock": 1342,
     "colors": [
       "original"
@@ -3515,7 +3515,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Tidebreaker Back Print",
     "en": "Tidebreaker Back Print - Heavy Graphic T-shirt",
-    "price": 21400000,
+    "price": 319000,
     "stock": 1556,
     "colors": [
       "original"
@@ -3566,7 +3566,7 @@ export const products = [
     "category": "m-tshirts",
     "vi": "Áo thun in hình Tidebreaker Front Print",
     "en": "Tidebreaker Front Print - Heavy Graphic T-shirt",
-    "price": 16700000,
+    "price": 349000,
     "stock": 1342,
     "colors": [
       "original"

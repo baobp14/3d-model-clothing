@@ -124,23 +124,34 @@ def read_dataset(archive):
         return dict(sorted(grouped.items()))
 
 
+# Retail price bands (VND) for the dataset garments: base + step * (n % count).
+# Keep in sync with migrations/002_realistic_clothing_prices.sql.
+PRICE_BANDS = {
+    'm-tshirts': (199_000, 30_000, 6),
+    'm-shirts': (349_000, 30_000, 6),
+    'm-trousers': (249_000, 50_000, 5),
+    'w-skirts': (299_000, 30_000, 6),
+}
+
+
+def retail_price(category, n):
+    base, step, count = PRICE_BANDS[category]
+    return base + step * (n % count)
+
+
 def build_products(groups, existing):
-    prices = defaultdict(list)
-    for product in sorted(existing, key=lambda p: p.id):
-        if product.category in REPLACED and not product.name_vi.startswith('[TEST]'):
-            prices[product.category].append(product.price)
     rows = []
     for index, (key, choices) in enumerate(groups.items()):
         category = choices[0]['category']
-        if not prices[category]:
-            raise ValueError(f'No reference price for {category}')
+        if category not in PRICE_BANDS:
+            raise ValueError(f'No price band for {category}')
         stock = 1556 if index % 2 == 0 else 1342
         options = [(choice['color'], size) for choice in choices for size in SIZES]
         base, remainder = divmod(stock, len(options))
         variants = [{'color': color, 'size': size, 'stock': base + (i < remainder)} for i, (color, size) in enumerate(options)]
         rows.append({'key': key, 'category': category, 'department': 'women' if category.startswith('w-') else 'men',
                      'name_vi': choices[0]['vi'], 'name_en': choices[0]['en'],
-                     'price': prices[category][index % len(prices[category])], 'stock': stock,
+                     'price': retail_price(category, index), 'stock': stock,
                      'colors': [r['color'] for r in choices], 'sizes': SIZES[:],
                      'images': [r['images'][0] for r in choices],
                      'color_images': {r['color']: r['images'] for r in choices}, 'variants': variants,
