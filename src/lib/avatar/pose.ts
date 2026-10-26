@@ -39,8 +39,11 @@ export const POSES: Record<PoseKey, { label: string; turns: BoneTurn }> = {
   relaxed: {
     label: 'Tay xuôi',
     turns: [
-      ['upperarm01.L', 'z', -40], ['upperarm01.R', 'z', 40],
-      ['lowerarm01.L', 'x', -12], ['lowerarm01.R', 'x', -12],
+      // Arms a hand's width off the body with soft elbows: fully vertical arms
+      // with straight elbows read as stiff.
+      ['upperarm01.L', 'z', -35], ['upperarm01.R', 'z', 35],
+      ['lowerarm01.L', 'x', -14], ['lowerarm01.R', 'x', -14],
+      ['lowerarm01.L', 'y', 35], ['lowerarm01.R', 'y', -35],
     ],
   },
   hips: {
