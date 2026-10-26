@@ -8,6 +8,7 @@ export function authError(t, error) {
   if (keys[error]) return t(keys[error])
   if (/invalid login credentials/i.test(error || '')) return t('auth.invalidCredentials')
   if (/email not confirmed/i.test(error || '')) return t('auth.emailUnconfirmed')
+  if (/banned/i.test(error || '')) return t('auth.locked')
   if (/rate|too many|security purposes/i.test(error || '')) return t('auth.rateLimited')
   if (/already registered/i.test(error || '')) return t('auth.alreadyRegistered')
   return t('auth.requestFailed')

@@ -212,3 +212,7 @@ class ReturnDecision(Input):
     expected_status: Literal['pending', 'approved']
     restock: StrictBool = False
     note: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=500)] = ''
+
+
+class UserLock(Input):
+    locked: StrictBool

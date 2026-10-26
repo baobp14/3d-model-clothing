@@ -30,7 +30,8 @@ from .tconnect import TConnect, decrypt
 from .reports import list_orders, report, real_orders
 from .product_pages import product_page
 from .admin_tools import mark_demo, stock_history, stock_alerts, notifications, read_notifications, export_data
-from .schemas import DemoMark, ReadNotifications
+from .schemas import DemoMark, ReadNotifications, UserLock
+from .users import list_users, set_locked
 from datetime import date, timezone
 from typing import Literal
 from uuid import UUID
@@ -455,6 +456,15 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
     def decide(return_id: UUID, values: ReturnDecision, user: User = Depends(require_admin), db: Session = Depends(get_db)):
         with db.begin():
             return decide_return(db, user, return_id, values)
+
+    @app.get('/api/admin/users')
+    def admin_users(q: str = Query('', max_length=120), page: int = Query(1, ge=1), limit: int = Query(20, ge=1, le=100),
+                    user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return list_users(db, app.state.settings, app.state.auth_http, q, page, limit)
+
+    @app.patch('/api/admin/users/{user_id}')
+    def admin_lock_user(user_id: UUID, values: UserLock, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return set_locked(db, app.state.settings, app.state.auth_http, app.state.user_cache, user, str(user_id), values.locked)
 
     return app
 

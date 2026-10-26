@@ -9,6 +9,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .errors import fail
+from .users import is_locked
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -43,6 +44,10 @@ class UserCache:
                 now = self.clock()
                 self.rows = {k: v for k, v in self.rows.items() if v[0] > now}
             self.rows[key] = (self.clock() + self.seconds, user)
+
+    def clear(self):
+        with self.lock:
+            self.rows = {}
 
 
 def require_user(request: Request, credentials: HTTPAuthorizationCredentials | None = Depends(bearer)):
@@ -80,6 +85,8 @@ def verify_user(request, config, credentials):
         user_id = str(UUID(data['id']))
         if data.get('is_anonymous') or not data.get('email_confirmed_at'):
             fail('NB_AUTH_REQUIRED', 401)
+        if is_locked(data):
+            fail('NB_ACCOUNT_LOCKED', 403)
         metadata = data.get('app_metadata') or {}
         if not isinstance(metadata, dict):
             fail('NB_AUTH_REQUIRED', 401)

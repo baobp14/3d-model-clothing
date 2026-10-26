@@ -3,6 +3,7 @@ const dict = {
   vi: {
     'nav.notFound': 'Không tìm thấy trang này.', 'nav.home': 'Về trang chủ',
     'auth.invalidCredentials': 'Email hoặc mật khẩu không đúng.',
+    'auth.locked': 'Tài khoản này đang bị khóa. Vui lòng liên hệ cửa hàng.',
     'auth.emailUnconfirmed': 'Vui lòng xác nhận email trước khi đăng nhập.',
     'auth.rateLimited': 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng chờ rồi thử lại.',
     'auth.alreadyRegistered': 'Email này đã được đăng ký. Vui lòng đăng nhập.',
@@ -63,7 +64,7 @@ const dict = {
     'admin.panel': 'Bảng điều khiển quản trị', 'admin.navigation': 'Điều hướng quản trị',
     'admin.revenue': 'Tổng quan doanh thu', 'admin.inventory': 'Kho', 'admin.products': 'Sản phẩm', 'admin.stockAlerts': 'Cảnh báo tồn kho',
     'admin.pricing': 'Giá cả', 'admin.productPrices': 'Giá sản phẩm', 'admin.promotions': 'Khuyến mãi',
-    'admin.orders': 'Quản lý đơn hàng', 'admin.returns': 'Đổi trả', 'admin.storefront': 'Về cửa hàng',
+    'admin.orders': 'Quản lý đơn hàng', 'admin.returns': 'Đổi trả', 'admin.users': 'Người dùng', 'admin.storefront': 'Về cửa hàng',
     'admin.placeholder': 'Chức năng này đang được phát triển.',
     'admin.revenueDesc': 'Theo dõi doanh thu, số đơn hàng và hiệu quả kinh doanh.',
     'admin.productsDesc': 'Quản lý danh mục, tồn kho và thông tin sản phẩm.',
@@ -135,6 +136,7 @@ const dict = {
   en: {
     'nav.notFound': 'Page not found.', 'nav.home': 'Back home',
     'auth.invalidCredentials': 'The email or password is incorrect.',
+    'auth.locked': 'This account is locked. Please contact the shop.',
     'auth.emailUnconfirmed': 'Please confirm your email before signing in.',
     'auth.rateLimited': 'Too many requests. Please wait and try again.',
     'auth.alreadyRegistered': 'This email is already registered. Please sign in.',
@@ -192,7 +194,7 @@ const dict = {
     'admin.panel': 'Administration dashboard', 'admin.navigation': 'Admin navigation',
     'admin.revenue': 'Revenue overview', 'admin.inventory': 'Inventory', 'admin.products': 'Products', 'admin.stockAlerts': 'Stock alerts',
     'admin.pricing': 'Pricing', 'admin.productPrices': 'Product prices', 'admin.promotions': 'Promotions',
-    'admin.orders': 'Order management', 'admin.returns': 'Returns', 'admin.storefront': 'Back to store',
+    'admin.orders': 'Order management', 'admin.returns': 'Returns', 'admin.users': 'Users', 'admin.storefront': 'Back to store',
     'admin.placeholder': 'This feature is under development.',
     'admin.revenueDesc': 'Track revenue, order volume and business performance.',
     'admin.productsDesc': 'Manage the catalog, inventory and product information.',
