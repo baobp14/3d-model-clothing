@@ -72,7 +72,7 @@ export default function SizeChartEditor({ product }) {
     finally { setBusy(false) }
   }
 
-  const current = saved ? (saved.source === 'brand' ? `${picked?.brand || ''} · ${picked?.style || saved.brand_chart}` : (vi ? 'Shop đo thực tế' : 'Measured by the shop'))
+  const current = saved ? (saved.source === 'brand' ? `${picked?.brand || ''} · ${picked?.style || saved.brand_chart}` : (vi ? 'Số đo nhập tay' : 'Entered manually'))
     : auto ? `${vi ? 'Tự nhận diện' : 'Auto-detected'}: ${auto.brand} · ${auto.style}` : (vi ? 'Bảng size chung N&B' : 'N&B generic chart')
   const radio = (value, label) => <label className="flex items-center gap-2 text-sm"><input type="radio" name="size-source" checked={source === value} onChange={() => setSource(value)} />{label}</label>
 
@@ -81,7 +81,7 @@ export default function SizeChartEditor({ product }) {
     <p className="mt-1 text-sm text-slate">{vi ? 'Đang dùng' : 'In use'}: <b>{saved === undefined ? '…' : current}</b>{saved && <span className="ml-2 badge badge--success">{vi ? 'Đã lưu' : 'Saved'}</span>}</p>
     <div className="mt-4 flex flex-wrap gap-6">
       {radio('brand', vi ? 'Dùng bảng có sẵn của hãng' : 'Use a brand chart')}
-      {radio('measured', vi ? 'Shop đo thực tế' : 'Measured by the shop')}
+      {radio('measured', vi ? 'Lựa chọn khác' : 'Other')}
       <label className="text-sm">{vi ? 'Loại đồ' : 'Garment'} <select value={kind} onChange={e => { setKind(e.target.value); setBrandChart('') }} className="shop-input ml-2">{Object.entries(KINDS).map(([key, label]) => <option key={key} value={key}>{label[vi ? 0 : 1]}</option>)}</select></label>
     </div>
 
@@ -91,7 +91,7 @@ export default function SizeChartEditor({ product }) {
           <option value="">{vi ? '— Chọn bảng size —' : '— Choose a chart —'}</option>
           {brandOptions.map(chart => <option key={chart.id} value={chart.id}>{chart.brand} · {chart.style}</option>)}
         </select></label>
-      {!brandOptions.length && <p className="mt-2 text-sm text-warning">{vi ? 'Chưa có bảng hãng nào cho loại đồ này. Chọn "Shop đo thực tế".' : 'No brand chart for this garment yet. Choose "Measured by the shop".'}</p>}
+      {!brandOptions.length && <p className="mt-2 text-sm text-warning">{vi ? 'Chưa có bảng hãng nào cho loại đồ này. Chọn "Lựa chọn khác".' : 'No brand chart for this garment yet. Choose "Measured by the shop".'}</p>}
       {picked?.estimate && <p className="mt-2 text-sm text-warning">{picked.estimate}</p>}
     </div>}
 
