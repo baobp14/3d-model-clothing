@@ -65,7 +65,7 @@ it('pagination and filters request bounded server pages and display translated p
   expect(path).not.toContain('page=2')
 })
 
-it('recording actual receipt updates payment status and removes cancellation', async () => {
+it('recording actual receipt updates payment status and keeps an admin cancel that warns about the refund', async () => {
   localStorage.setItem('lang', 'en')
   vi.stubGlobal('confirm', vi.fn(() => true))
   let current = { ...order, payment_status: 'unpaid' }
@@ -77,5 +77,7 @@ it('recording actual receipt updates payment status and removes cancellation', a
   fireEvent.click(await screen.findByRole('button', { name: 'Record payment received' }))
   await screen.findByText(/Payment received ·/, { selector: 'p' })
   expect(request.mock.calls.find(([path]) => path.endsWith('/payment'))).toEqual(['/admin/orders/order-id/payment', { method: 'PATCH', auth: true, body: { received: true } }])
-  expect(screen.queryByRole('button', { name: 'Cancel order' })).toBe(null)
+  // Admins may still cancel a paid order; the confirmation says a refund will be opened.
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel order' }))
+  expect(window.confirm).toHaveBeenLastCalledWith(expect.stringContaining('opens a refund'))
 })

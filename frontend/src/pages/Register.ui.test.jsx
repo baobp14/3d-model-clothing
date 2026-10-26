@@ -62,7 +62,7 @@ it('normalizes pasted input and renders red required markers', () => {
     fireEvent.change(input, { target: { value } })
     expect(input.value).toBe(expected)
   }
-  for (const label of document.querySelectorAll('label[for]')) expect(label.querySelector('span.text-red-700')?.textContent.trim()).toBe('*')
+  for (const label of document.querySelectorAll('label[for]')) expect(label.querySelector('span.text-danger')?.textContent.trim()).toBe('*')
 })
 
 for (const mode of ['page', 'drawer']) {

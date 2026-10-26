@@ -7,100 +7,22 @@ export const categories = [
     "en": "Shirts"
   },
   {
-    "id": "m-tshirts",
-    "department": "men",
-    "vi": "Áo thun",
-    "en": "T-shirts"
-  },
-  {
-    "id": "m-knit",
-    "department": "men",
-    "vi": "Áo len",
-    "en": "Knitwear"
-  },
-  {
-    "id": "m-jackets",
-    "department": "men",
-    "vi": "Áo khoác & vest",
-    "en": "Jackets & blazers"
-  },
-  {
     "id": "m-trousers",
     "department": "men",
     "vi": "Quần",
     "en": "Trousers"
   },
   {
-    "id": "w-dresses",
-    "department": "women",
-    "vi": "Đầm",
-    "en": "Dresses"
-  },
-  {
-    "id": "w-tops",
-    "department": "women",
-    "vi": "Áo kiểu",
-    "en": "Blouses & tops"
-  },
-  {
-    "id": "w-knit",
-    "department": "women",
-    "vi": "Áo len",
-    "en": "Knitwear"
-  },
-  {
-    "id": "w-jackets",
-    "department": "women",
-    "vi": "Áo khoác",
-    "en": "Coats & jackets"
+    "id": "m-tshirts",
+    "department": "men",
+    "vi": "Áo thun",
+    "en": "T-shirts"
   },
   {
     "id": "w-skirts",
     "department": "women",
     "vi": "Chân váy",
     "en": "Skirts"
-  },
-  {
-    "id": "w-trousers",
-    "department": "women",
-    "vi": "Quần",
-    "en": "Trousers"
-  },
-  {
-    "id": "wa-men",
-    "department": "watches",
-    "vi": "Đồng hồ nam",
-    "en": "Men's watches"
-  },
-  {
-    "id": "wa-women",
-    "department": "watches",
-    "vi": "Đồng hồ nữ",
-    "en": "Women's watches"
-  },
-  {
-    "id": "b-bags",
-    "department": "bags",
-    "vi": "Túi xách",
-    "en": "Bags"
-  },
-  {
-    "id": "b-wallet",
-    "department": "bags",
-    "vi": "Ví & đồ da nhỏ",
-    "en": "Wallets & small leather goods"
-  },
-  {
-    "id": "b-belt",
-    "department": "bags",
-    "vi": "Thắt lưng",
-    "en": "Belts"
-  },
-  {
-    "id": "b-scarf",
-    "department": "bags",
-    "vi": "Khăn & kính",
-    "en": "Scarves & sunglasses"
   }
 ]
 
@@ -116,12 +38,6 @@ export const colors = [
     "vi": "Xanh Atlantic",
     "en": "Atlantic",
     "hex": "#48707a"
-  },
-  {
-    "id": "beige",
-    "vi": "Be",
-    "en": "Beige",
-    "hex": "#d8c7ad"
   },
   {
     "id": "black",
@@ -146,12 +62,6 @@ export const colors = [
     "vi": "Nâu",
     "en": "Brown",
     "hex": "#6b4b32"
-  },
-  {
-    "id": "burgundy",
-    "vi": "Đỏ mận",
-    "en": "Burgundy",
-    "hex": "#6b2737"
   },
   {
     "id": "butter",
@@ -212,12 +122,6 @@ export const colors = [
     "vi": "Màu mộc",
     "en": "Ecru",
     "hex": "#e4dbc6"
-  },
-  {
-    "id": "gold",
-    "vi": "Vàng gold",
-    "en": "Gold",
-    "hex": "#b08d4f"
   },
   {
     "id": "granite",
@@ -304,12 +208,6 @@ export const colors = [
     "hex": "#b5d4c7"
   },
   {
-    "id": "silver",
-    "vi": "Bạc",
-    "en": "Silver",
-    "hex": "#c5c8cc"
-  },
-  {
     "id": "soft_brown",
     "vi": "Nâu nhạt",
     "en": "Soft Brown",
@@ -349,3127 +247,6 @@ export const colors = [
 
 export const products = [
   {
-    "id": 122,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ dáng cổ điển màu trắng",
-    "en": "Classic White Watch",
-    "price": 386500000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/32288.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 123,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ phom ôm màu đen",
-    "en": "Tailored Black Watch",
-    "price": 331300000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/45258.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 124,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ dáng cổ điển màu xanh navy",
-    "en": "Classic Navy Watch",
-    "price": 184400000,
-    "stock": 500,
-    "colors": [
-      "navy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/39021.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 125,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ phom ôm màu vàng gold",
-    "en": "Tailored Gold Watch",
-    "price": 154100000,
-    "stock": 500,
-    "colors": [
-      "gold"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/46508.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 126,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ dáng suông màu xám",
-    "en": "Relaxed Grey Watch",
-    "price": 333600000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/43174.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 127,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ cắt may tối giản màu bạc",
-    "en": "Minimal Silver Watch",
-    "price": 401300000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/56668.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 128,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ bản mềm màu be",
-    "en": "Soft Beige Watch",
-    "price": 146300000,
-    "stock": 500,
-    "colors": [
-      "beige"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/21710.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 129,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ dáng suông màu nâu",
-    "en": "Relaxed Brown Watch",
-    "price": 202600000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/23264.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 130,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ bản mềm màu trắng",
-    "en": "Soft White Watch",
-    "price": 240800000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/36769.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 131,
-    "department": "watches",
-    "category": "wa-men",
-    "vi": "Đồng hồ bản mềm màu đen",
-    "en": "Soft Black Watch",
-    "price": 324500000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/36801.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 132,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ phom ôm màu đen",
-    "en": "Tailored Black Watch",
-    "price": 319600000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/17419.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 133,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ dáng cổ điển màu bạc",
-    "en": "Classic Silver Watch",
-    "price": 325000000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/37488.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 134,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ cắt may tối giản màu trắng",
-    "en": "Minimal White Watch",
-    "price": 319200000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/10385.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 135,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ phom ôm màu xám",
-    "en": "Tailored Grey Watch",
-    "price": 302600000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/45044.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 136,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ cắt may tối giản màu be",
-    "en": "Minimal Beige Watch",
-    "price": 215900000,
-    "stock": 500,
-    "colors": [
-      "beige"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/19756.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 137,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ dáng cổ điển màu vàng gold",
-    "en": "Classic Gold Watch",
-    "price": 165000000,
-    "stock": 500,
-    "colors": [
-      "gold"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/19281.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 138,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ cắt may tối giản màu đen",
-    "en": "Minimal Black Watch",
-    "price": 341100000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/56329.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 139,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ cắt may tối giản màu bạc",
-    "en": "Minimal Silver Watch",
-    "price": 223800000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/50395.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 140,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ bản mềm màu trắng",
-    "en": "Soft White Watch",
-    "price": 231000000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/39017.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 141,
-    "department": "watches",
-    "category": "wa-women",
-    "vi": "Đồng hồ dáng cổ điển màu xám",
-    "en": "Classic Grey Watch",
-    "price": 344300000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/43197.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1020,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len dáng cổ điển",
-    "en": "Classic Sweater",
-    "price": 47400000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0609146001.webp",
-      "/img/products/hm-0609146011.webp",
-      "/img/products/hm-0609146014.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1021,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len cắt may tối giản",
-    "en": "Minimal Sweater",
-    "price": 31200000,
-    "stock": 500,
-    "colors": [
-      "burgundy",
-      "black",
-      "beige"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0787123005.webp",
-      "/img/products/hm-0787123007.webp",
-      "/img/products/hm-0787123008.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1022,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len bản mềm",
-    "en": "Soft Sweater",
-    "price": 25600000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "grey",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0755574001.webp",
-      "/img/products/hm-0755574002.webp",
-      "/img/products/hm-0755574003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1023,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo hoodie cắt may tối giản",
-    "en": "Minimal Hoodie",
-    "price": 30400000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0557248001.webp",
-      "/img/products/hm-0557248002.webp",
-      "/img/products/hm-0557248003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1024,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len bản mềm",
-    "en": "Soft Sweater",
-    "price": 44400000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0669562001.webp",
-      "/img/products/hm-0669562002.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1025,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len dáng suông",
-    "en": "Relaxed Sweater",
-    "price": 38600000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0552743001.webp",
-      "/img/products/hm-0552743009.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1026,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len dáng cổ điển",
-    "en": "Classic Sweater",
-    "price": 30000000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0685813001.webp",
-      "/img/products/hm-0685813002.webp",
-      "/img/products/hm-0685813003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1027,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo hoodie dáng suông",
-    "en": "Relaxed Hoodie",
-    "price": 44300000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0685814001.webp",
-      "/img/products/hm-0685814002.webp",
-      "/img/products/hm-0685814003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1028,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len phom ôm",
-    "en": "Tailored Sweater",
-    "price": 30300000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0564358003.webp",
-      "/img/products/hm-0564358004.webp",
-      "/img/products/hm-0564358012.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1029,
-    "department": "men",
-    "category": "m-knit",
-    "vi": "Áo len dáng suông",
-    "en": "Relaxed Sweater",
-    "price": 37800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "beige",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0715828001.webp",
-      "/img/products/hm-0715828002.webp",
-      "/img/products/hm-0715828005.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1030,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo vest cắt may tối giản",
-    "en": "Minimal Blazer",
-    "price": 117300000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "navy",
-      "burgundy"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0783354001.webp",
-      "/img/products/hm-0783354002.webp",
-      "/img/products/hm-0783354003.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1031,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo khoác phom rộng",
-    "en": "Oversized Jacket",
-    "price": 122700000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0602673007.webp",
-      "/img/products/hm-0602673010.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1032,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo vest bản mềm",
-    "en": "Soft Blazer",
-    "price": 67200000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "black",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0713995001.webp",
-      "/img/products/hm-0713995003.webp",
-      "/img/products/hm-0713995004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1033,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo măng tô bản mềm",
-    "en": "Soft Coat",
-    "price": 84800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0765907001.webp",
-      "/img/products/hm-0765907002.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1034,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo vest bản mềm",
-    "en": "Soft Blazer",
-    "price": 81300000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "navy",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0628631001.webp",
-      "/img/products/hm-0628631002.webp",
-      "/img/products/hm-0628631004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1035,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo măng tô phom rộng",
-    "en": "Oversized Coat",
-    "price": 61900000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0880485002.webp",
-      "/img/products/hm-0880485003.webp",
-      "/img/products/hm-0880485004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1036,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo khoác phom ôm",
-    "en": "Tailored Jacket",
-    "price": 123800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0807005003.webp",
-      "/img/products/hm-0807005009.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1037,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo măng tô cắt may tối giản",
-    "en": "Minimal Coat",
-    "price": 110200000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0631777005.webp",
-      "/img/products/hm-0631777006.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1038,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo vest dáng cổ điển",
-    "en": "Classic Blazer",
-    "price": 85900000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "beige"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0553092001.webp",
-      "/img/products/hm-0553092007.webp",
-      "/img/products/hm-0553092017.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1039,
-    "department": "men",
-    "category": "m-jackets",
-    "vi": "Áo khoác cắt may tối giản",
-    "en": "Minimal Jacket",
-    "price": 111600000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0819500001.webp",
-      "/img/products/hm-0819500004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1050,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm dáng suông",
-    "en": "Relaxed Dress",
-    "price": 99600000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0220094001.webp",
-      "/img/products/hm-0220094011.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1051,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm bản mềm",
-    "en": "Soft Dress",
-    "price": 60200000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0618287001.webp",
-      "/img/products/hm-0618287002.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1052,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm dáng cổ điển",
-    "en": "Classic Dress",
-    "price": 93500000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0646490003.webp",
-      "/img/products/hm-0646490013.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1053,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm cắt may tối giản",
-    "en": "Minimal Dress",
-    "price": 104400000,
-    "stock": 500,
-    "colors": [
-      "beige",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0625358003.webp",
-      "/img/products/hm-0625358005.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1054,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm phom ôm",
-    "en": "Tailored Dress",
-    "price": 90200000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "white",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0615524001.webp",
-      "/img/products/hm-0615524002.webp",
-      "/img/products/hm-0615524003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1055,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm dáng cổ điển",
-    "en": "Classic Dress",
-    "price": 102200000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey",
-      "navy"
-    ],
-    "sizes": [
-      "S",
-      "M"
-    ],
-    "images": [
-      "/img/products/hm-0859077005.webp",
-      "/img/products/hm-0859077008.webp",
-      "/img/products/hm-0859077013.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1056,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm phom ôm",
-    "en": "Tailored Dress",
-    "price": 60400000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0877014001.webp",
-      "/img/products/hm-0877014007.webp",
-      "/img/products/hm-0877014008.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1057,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm phom ôm",
-    "en": "Tailored Dress",
-    "price": 68700000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0745475001.webp",
-      "/img/products/hm-0745475003.webp",
-      "/img/products/hm-0745475004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1058,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm bản mềm",
-    "en": "Soft Dress",
-    "price": 73500000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "grey"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0767799002.webp",
-      "/img/products/hm-0767799003.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1059,
-    "department": "women",
-    "category": "w-dresses",
-    "vi": "Đầm phom rộng",
-    "en": "Oversized Dress",
-    "price": 117700000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M"
-    ],
-    "images": [
-      "/img/products/hm-0649397003.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1060,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo blouse cắt may tối giản",
-    "en": "Minimal Blouse",
-    "price": 13300000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "white"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0695632001.webp",
-      "/img/products/hm-0695632002.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1061,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo hai dây cắt may tối giản",
-    "en": "Minimal Vest Top",
-    "price": 23500000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0534164001.webp",
-      "/img/products/hm-0534164002.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1062,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo kiểu dáng suông",
-    "en": "Relaxed Top",
-    "price": 18700000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "burgundy",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0664074001.webp",
-      "/img/products/hm-0664074003.webp",
-      "/img/products/hm-0664074005.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1063,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo hai dây cắt may tối giản",
-    "en": "Minimal Vest Top",
-    "price": 21500000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "beige",
-      "black"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0716672001.webp",
-      "/img/products/hm-0716672002.webp",
-      "/img/products/hm-0716672003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1064,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo blouse dáng cổ điển",
-    "en": "Classic Blouse",
-    "price": 22100000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0616849006.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1065,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo kiểu dáng cổ điển",
-    "en": "Classic Top",
-    "price": 21800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "white",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0770315005.webp",
-      "/img/products/hm-0770315006.webp",
-      "/img/products/hm-0770315009.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1066,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo hai dây phom ôm",
-    "en": "Tailored Vest Top",
-    "price": 15800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "white",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0565379001.webp",
-      "/img/products/hm-0565379002.webp",
-      "/img/products/hm-0565379003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1067,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo kiểu phom ôm",
-    "en": "Tailored Top",
-    "price": 18300000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "black"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0458924001.webp",
-      "/img/products/hm-0458924002.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1068,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo hai dây cắt may tối giản",
-    "en": "Minimal Vest Top",
-    "price": 12400000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0513373002.webp",
-      "/img/products/hm-0513373007.webp",
-      "/img/products/hm-0513373008.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1069,
-    "department": "women",
-    "category": "w-tops",
-    "vi": "Áo hai dây phom rộng",
-    "en": "Oversized Vest Top",
-    "price": 30000000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "white",
-      "beige"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0749699001.webp",
-      "/img/products/hm-0749699002.webp",
-      "/img/products/hm-0749699007.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1070,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo cardigan phom ôm",
-    "en": "Tailored Cardigan",
-    "price": 30800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "white"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0579541001.webp",
-      "/img/products/hm-0579541004.webp",
-      "/img/products/hm-0579541007.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1071,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len dáng cổ điển",
-    "en": "Classic Sweater",
-    "price": 32500000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0673677001.webp",
-      "/img/products/hm-0673677002.webp",
-      "/img/products/hm-0673677003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1072,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len bản mềm",
-    "en": "Soft Sweater",
-    "price": 42200000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0519749004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1073,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len bản mềm",
-    "en": "Soft Sweater",
-    "price": 40700000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0504154001.webp",
-      "/img/products/hm-0504154010.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1074,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len dáng suông",
-    "en": "Relaxed Sweater",
-    "price": 43800000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0591334002.webp",
-      "/img/products/hm-0591334003.webp",
-      "/img/products/hm-0591334010.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1075,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len dáng cổ điển",
-    "en": "Classic Sweater",
-    "price": 24800000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0637515002.webp",
-      "/img/products/hm-0637515003.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1076,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len phom ôm",
-    "en": "Tailored Sweater",
-    "price": 38300000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "beige",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0678942003.webp",
-      "/img/products/hm-0678942022.webp",
-      "/img/products/hm-0678942023.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1077,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len bản mềm",
-    "en": "Soft Sweater",
-    "price": 38700000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0693242003.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1078,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len phom rộng",
-    "en": "Oversized Sweater",
-    "price": 26400000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0628979001.webp",
-      "/img/products/hm-0628979002.webp",
-      "/img/products/hm-0628979003.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1079,
-    "department": "women",
-    "category": "w-knit",
-    "vi": "Áo len phom ôm",
-    "en": "Tailored Sweater",
-    "price": 44900000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "grey",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0496111004.webp",
-      "/img/products/hm-0496111007.webp",
-      "/img/products/hm-0496111017.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1080,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo măng tô dáng cổ điển",
-    "en": "Classic Coat",
-    "price": 68100000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0534181002.webp",
-      "/img/products/hm-0534181006.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1081,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest phom ôm",
-    "en": "Tailored Blazer",
-    "price": 66500000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0568601006.webp",
-      "/img/products/hm-0568601007.webp",
-      "/img/products/hm-0568601008.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1082,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest bản mềm",
-    "en": "Soft Blazer",
-    "price": 80000000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "beige",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0708138002.webp",
-      "/img/products/hm-0708138004.webp",
-      "/img/products/hm-0708138012.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1083,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest bản mềm",
-    "en": "Soft Blazer",
-    "price": 52200000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "white"
-    ],
-    "sizes": [
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0636455003.webp",
-      "/img/products/hm-0636455004.webp",
-      "/img/products/hm-0636455007.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1084,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest phom ôm",
-    "en": "Tailored Blazer",
-    "price": 112200000,
-    "stock": 500,
-    "colors": [
-      "white",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0728156001.webp",
-      "/img/products/hm-0728156006.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1085,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest phom ôm",
-    "en": "Tailored Blazer",
-    "price": 120300000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "beige",
-      "burgundy"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0578487002.webp",
-      "/img/products/hm-0578487004.webp",
-      "/img/products/hm-0578487011.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1086,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo khoác phom rộng",
-    "en": "Oversized Jacket",
-    "price": 103700000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0884465001.webp",
-      "/img/products/hm-0884465002.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1087,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest dáng cổ điển",
-    "en": "Classic Blazer",
-    "price": 109000000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "beige",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0675319001.webp",
-      "/img/products/hm-0675319002.webp",
-      "/img/products/hm-0675319004.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1088,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo khoác bản mềm",
-    "en": "Soft Jacket",
-    "price": 62200000,
-    "stock": 500,
-    "colors": [
-      "grey",
-      "white",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0784276002.webp",
-      "/img/products/hm-0784276003.webp",
-      "/img/products/hm-0784276004.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1089,
-    "department": "women",
-    "category": "w-jackets",
-    "vi": "Áo vest dáng suông",
-    "en": "Relaxed Blazer",
-    "price": 138700000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0705258001.webp",
-      "/img/products/hm-0705258002.webp",
-      "/img/products/hm-0705258008.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1100,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần âu cắt may tối giản",
-    "en": "Minimal Trousers",
-    "price": 29500000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "navy",
-      "beige"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/hm-0568597006.webp",
-      "/img/products/hm-0568597007.webp",
-      "/img/products/hm-0568597008.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1101,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần âu phom ôm",
-    "en": "Tailored Trousers",
-    "price": 42700000,
-    "stock": 500,
-    "colors": [
-      "black",
-      "burgundy",
-      "silver"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0779781001.webp",
-      "/img/products/hm-0779781002.webp",
-      "/img/products/hm-0779781005.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1102,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần âu dáng cổ điển",
-    "en": "Classic Trousers",
-    "price": 39800000,
-    "stock": 500,
-    "colors": [
-      "navy",
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M"
-    ],
-    "images": [
-      "/img/products/hm-0660712002.webp",
-      "/img/products/hm-0660712003.webp"
-    ],
-    "isNew": true,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1103,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần âu bản mềm",
-    "en": "Soft Trousers",
-    "price": 33100000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/hm-0655784001.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1104,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần lửng dáng suông",
-    "en": "Relaxed Cropped Trousers",
-    "price": 38100000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/my-31464.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1105,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần lửng phom rộng",
-    "en": "Oversized Cropped Trousers",
-    "price": 33400000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [
-      "S",
-      "M",
-      "L"
-    ],
-    "images": [
-      "/img/products/my-15338.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1106,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần lửng dáng cổ điển",
-    "en": "Classic Cropped Trousers",
-    "price": 30000000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/my-27230.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1107,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần lửng phom ôm",
-    "en": "Tailored Cropped Trousers",
-    "price": 42200000,
-    "stock": 500,
-    "colors": [
-      "navy"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "XL"
-    ],
-    "images": [
-      "/img/products/my-5014.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1108,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần lửng dáng suông",
-    "en": "Relaxed Cropped Trousers",
-    "price": 32400000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/my-28521.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1109,
-    "department": "women",
-    "category": "w-trousers",
-    "vi": "Quần lửng cắt may tối giản",
-    "en": "Minimal Cropped Trousers",
-    "price": 36700000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [
-      "XS",
-      "M",
-      "L",
-      "XL"
-    ],
-    "images": [
-      "/img/products/my-17926.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1110,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay phom ôm",
-    "en": "Tailored Handbag",
-    "price": 44300000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-35913.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1111,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay cắt may tối giản",
-    "en": "Minimal Handbag",
-    "price": 49600000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-10209.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1112,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay phom ôm",
-    "en": "Tailored Handbag",
-    "price": 89700000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-17132.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1113,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay phom ôm",
-    "en": "Tailored Handbag",
-    "price": 78200000,
-    "stock": 500,
-    "colors": [
-      "beige"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-54000.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1114,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay bản mềm",
-    "en": "Soft Handbag",
-    "price": 71700000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-9004.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1115,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay cắt may tối giản",
-    "en": "Minimal Handbag",
-    "price": 59000000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-27668.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1116,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay dáng cổ điển",
-    "en": "Classic Handbag",
-    "price": 77500000,
-    "stock": 500,
-    "colors": [
-      "navy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-58274.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1117,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay dáng suông",
-    "en": "Relaxed Handbag",
-    "price": 34000000,
-    "stock": 500,
-    "colors": [
-      "burgundy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-18163.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1118,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay phom ôm",
-    "en": "Tailored Handbag",
-    "price": 38200000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-49567.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1119,
-    "department": "bags",
-    "category": "b-bags",
-    "vi": "Túi xách tay bản mềm",
-    "en": "Soft Handbag",
-    "price": 51400000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-58189.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1120,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví cầm tay phom rộng",
-    "en": "Oversized Clutch",
-    "price": 13800000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-52565.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1121,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví da phom rộng",
-    "en": "Oversized Wallet",
-    "price": 21500000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-41277.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1122,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví da cắt may tối giản",
-    "en": "Minimal Wallet",
-    "price": 26400000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-36537.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1123,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví da dáng cổ điển",
-    "en": "Classic Wallet",
-    "price": 25200000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-20625.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1124,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví cầm tay phom ôm",
-    "en": "Tailored Clutch",
-    "price": 18600000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-25113.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1125,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví da dáng cổ điển",
-    "en": "Classic Wallet",
-    "price": 31200000,
-    "stock": 500,
-    "colors": [
-      "navy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-58237.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1126,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví cầm tay bản mềm",
-    "en": "Soft Clutch",
-    "price": 12800000,
-    "stock": 500,
-    "colors": [
-      "beige"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-16750.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1127,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví cầm tay bản mềm",
-    "en": "Soft Clutch",
-    "price": 19900000,
-    "stock": 500,
-    "colors": [
-      "gold"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-58270.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1128,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví cầm tay phom rộng",
-    "en": "Oversized Clutch",
-    "price": 26300000,
-    "stock": 500,
-    "colors": [
-      "burgundy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-16744.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1129,
-    "department": "bags",
-    "category": "b-wallet",
-    "vi": "Ví da cắt may tối giản",
-    "en": "Minimal Wallet",
-    "price": 14100000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-43391.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1130,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng cắt may tối giản",
-    "en": "Minimal Belt",
-    "price": 10300000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-58466.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1131,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng dáng cổ điển",
-    "en": "Classic Belt",
-    "price": 16200000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-17071.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1132,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng phom ôm",
-    "en": "Tailored Belt",
-    "price": 23100000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-20070.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1133,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng dáng suông",
-    "en": "Relaxed Belt",
-    "price": 10700000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-41530.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1134,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng cắt may tối giản",
-    "en": "Minimal Belt",
-    "price": 23600000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-16993.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1135,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng dáng cổ điển",
-    "en": "Classic Belt",
-    "price": 14400000,
-    "stock": 500,
-    "colors": [
-      "navy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-34545.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1136,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng dáng suông",
-    "en": "Relaxed Belt",
-    "price": 11000000,
-    "stock": 500,
-    "colors": [
-      "beige"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-51254.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1137,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng phom ôm",
-    "en": "Tailored Belt",
-    "price": 24800000,
-    "stock": 500,
-    "colors": [
-      "gold"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-42916.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1138,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng phom rộng",
-    "en": "Oversized Belt",
-    "price": 15000000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-42942.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1139,
-    "department": "bags",
-    "category": "b-belt",
-    "vi": "Thắt lưng bản mềm",
-    "en": "Soft Belt",
-    "price": 26700000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-19210.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1140,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Kính mát phom rộng",
-    "en": "Oversized Sunglasses",
-    "price": 10100000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-38177.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1141,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Khăn choàng dáng cổ điển",
-    "en": "Classic Scarf",
-    "price": 20100000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-38306.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1142,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Khăn choàng dáng cổ điển",
-    "en": "Classic Scarf",
-    "price": 23700000,
-    "stock": 500,
-    "colors": [
-      "grey"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-23469.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1143,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Kính mát dáng cổ điển",
-    "en": "Classic Sunglasses",
-    "price": 21800000,
-    "stock": 500,
-    "colors": [
-      "white"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-48225.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1144,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Kính mát dáng cổ điển",
-    "en": "Classic Sunglasses",
-    "price": 11000000,
-    "stock": 500,
-    "colors": [
-      "silver"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-21350.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1145,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Kính mát cắt may tối giản",
-    "en": "Minimal Sunglasses",
-    "price": 10700000,
-    "stock": 500,
-    "colors": [
-      "gold"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-38214.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1146,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Khăn choàng phom rộng",
-    "en": "Oversized Scarf",
-    "price": 15000000,
-    "stock": 500,
-    "colors": [
-      "navy"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-12746.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1147,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Khăn choàng bản mềm",
-    "en": "Soft Scarf",
-    "price": 24400000,
-    "stock": 500,
-    "colors": [
-      "beige"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-23467.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1148,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Kính mát cắt may tối giản",
-    "en": "Minimal Sunglasses",
-    "price": 24700000,
-    "stock": 500,
-    "colors": [
-      "black"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-30285.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
-    "id": 1149,
-    "department": "bags",
-    "category": "b-scarf",
-    "vi": "Kính mát phom rộng",
-    "en": "Oversized Sunglasses",
-    "price": 19100000,
-    "stock": 500,
-    "colors": [
-      "brown"
-    ],
-    "sizes": [],
-    "images": [
-      "/img/products/my-17335.webp"
-    ],
-    "isNew": false,
-    "description": "",
-    "descriptionEn": "",
-    "createdAt": "2026-09-27T15:55:21.553521+00:00"
-  },
-  {
     "id": 3000,
     "department": "men",
     "category": "m-tshirts",
@@ -3491,7 +268,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Dfys. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Dfys Graphic T Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:36.449696+00:00",
+    "createdAt": "2026-10-19T13:36:58.803337",
     "variants": [
       {
         "size": "S",
@@ -3553,7 +330,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun túi ngực Classic AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Classic Pocket T-shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:37.309071+00:00",
+    "createdAt": "2026-10-19T13:36:58.808364",
     "variants": [
       {
         "size": "S",
@@ -3649,6 +426,10 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "ascolour_5027",
     "colorImages": {
+      "black": [
+        "/img/clothing/ascolour_5027_classic_pocket_tee_black/front.jpg",
+        "/img/clothing/ascolour_5027_classic_pocket_tee_black/back.jpg"
+      ],
       "bone": [
         "/img/clothing/ascolour_5027_classic_pocket_tee_bone/front.jpg",
         "/img/clothing/ascolour_5027_classic_pocket_tee_bone/back.jpg"
@@ -3661,17 +442,13 @@ export const products = [
         "/img/clothing/ascolour_5027_classic_pocket_tee_navy/front.jpg",
         "/img/clothing/ascolour_5027_classic_pocket_tee_navy/back.jpg"
       ],
-      "black": [
-        "/img/clothing/ascolour_5027_classic_pocket_tee_black/front.jpg",
-        "/img/clothing/ascolour_5027_classic_pocket_tee_black/back.jpg"
+      "petrol_blue": [
+        "/img/clothing/ascolour_5027_classic_pocket_tee_petrol_blue/front.jpg",
+        "/img/clothing/ascolour_5027_classic_pocket_tee_petrol_blue/back.jpg"
       ],
       "white": [
         "/img/clothing/ascolour_5027_classic_pocket_tee_white/front.jpg",
         "/img/clothing/ascolour_5027_classic_pocket_tee_white/back.jpg"
-      ],
-      "petrol_blue": [
-        "/img/clothing/ascolour_5027_classic_pocket_tee_petrol_blue/front.jpg",
-        "/img/clothing/ascolour_5027_classic_pocket_tee_petrol_blue/back.jpg"
       ]
     }
   },
@@ -3701,7 +478,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun sọc Staple AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Staple Stripe T-shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:38.241021+00:00",
+    "createdAt": "2026-10-19T13:36:58.808364",
     "variants": [
       {
         "size": "S",
@@ -3752,10 +529,6 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "ascolour_5028",
     "colorImages": {
-      "white_red": [
-        "/img/clothing/ascolour_5028_staple_stripe_tee_white_red/front.jpg",
-        "/img/clothing/ascolour_5028_staple_stripe_tee_white_red/back.jpg"
-      ],
       "black_white": [
         "/img/clothing/ascolour_5028_staple_stripe_tee_black_white/front.jpg",
         "/img/clothing/ascolour_5028_staple_stripe_tee_black_white/back.jpg"
@@ -3763,6 +536,10 @@ export const products = [
       "natural_mid_blue": [
         "/img/clothing/ascolour_5028_staple_stripe_tee_natural_mid_blue/front.jpg",
         "/img/clothing/ascolour_5028_staple_stripe_tee_natural_mid_blue/back.jpg"
+      ],
+      "white_red": [
+        "/img/clothing/ascolour_5028_staple_stripe_tee_white_red/front.jpg",
+        "/img/clothing/ascolour_5028_staple_stripe_tee_white_red/back.jpg"
       ]
     }
   },
@@ -3806,7 +583,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun Basic AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Basic T-shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:39.751941+00:00",
+    "createdAt": "2026-10-19T13:36:58.808364",
     "variants": [
       {
         "size": "S",
@@ -3970,37 +747,37 @@ export const products = [
         "/img/clothing/ascolour_5051_basic_tee_butter/front.jpg",
         "/img/clothing/ascolour_5051_basic_tee_butter/back.jpg"
       ],
-      "orchid": [
-        "/img/clothing/ascolour_5051_basic_tee_orchid/front.jpg",
-        "/img/clothing/ascolour_5051_basic_tee_orchid/back.jpg"
-      ],
       "granite": [
         "/img/clothing/ascolour_5051_basic_tee_granite/front.jpg",
         "/img/clothing/ascolour_5051_basic_tee_granite/back.jpg"
-      ],
-      "mineral": [
-        "/img/clothing/ascolour_5051_basic_tee_mineral/front.jpg",
-        "/img/clothing/ascolour_5051_basic_tee_mineral/back.jpg"
-      ],
-      "seafoam": [
-        "/img/clothing/ascolour_5051_basic_tee_seafoam/front.jpg",
-        "/img/clothing/ascolour_5051_basic_tee_seafoam/back.jpg"
-      ],
-      "lemonade": [
-        "/img/clothing/ascolour_5051_basic_tee_lemonade/front.jpg",
-        "/img/clothing/ascolour_5051_basic_tee_lemonade/back.jpg"
       ],
       "grey_marle": [
         "/img/clothing/ascolour_5051_basic_tee_grey_marle/front.jpg",
         "/img/clothing/ascolour_5051_basic_tee_grey_marle/back.jpg"
       ],
-      "watermelon": [
-        "/img/clothing/ascolour_5051_basic_tee_watermelon/front.jpg",
-        "/img/clothing/ascolour_5051_basic_tee_watermelon/back.jpg"
+      "lemonade": [
+        "/img/clothing/ascolour_5051_basic_tee_lemonade/front.jpg",
+        "/img/clothing/ascolour_5051_basic_tee_lemonade/back.jpg"
+      ],
+      "mineral": [
+        "/img/clothing/ascolour_5051_basic_tee_mineral/front.jpg",
+        "/img/clothing/ascolour_5051_basic_tee_mineral/back.jpg"
+      ],
+      "orchid": [
+        "/img/clothing/ascolour_5051_basic_tee_orchid/front.jpg",
+        "/img/clothing/ascolour_5051_basic_tee_orchid/back.jpg"
       ],
       "petrol_blue": [
         "/img/clothing/ascolour_5051_basic_tee_petrol_blue/front.jpg",
         "/img/clothing/ascolour_5051_basic_tee_petrol_blue/back.jpg"
+      ],
+      "seafoam": [
+        "/img/clothing/ascolour_5051_basic_tee_seafoam/front.jpg",
+        "/img/clothing/ascolour_5051_basic_tee_seafoam/back.jpg"
+      ],
+      "watermelon": [
+        "/img/clothing/ascolour_5051_basic_tee_watermelon/front.jpg",
+        "/img/clothing/ascolour_5051_basic_tee_watermelon/back.jpg"
       ]
     }
   },
@@ -4032,7 +809,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun phom rộng Block AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Block Oversized T-shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:40.539441+00:00",
+    "createdAt": "2026-10-19T13:36:58.813432",
     "variants": [
       {
         "size": "S",
@@ -4098,6 +875,10 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "ascolour_5052",
     "colorImages": {
+      "black": [
+        "/img/clothing/ascolour_5052_block_oversized_tee_black/front.jpg",
+        "/img/clothing/ascolour_5052_block_oversized_tee_black/back.jpg"
+      ],
       "ecru": [
         "/img/clothing/ascolour_5052_block_oversized_tee_ecru/front.jpg",
         "/img/clothing/ascolour_5052_block_oversized_tee_ecru/back.jpg"
@@ -4105,10 +886,6 @@ export const products = [
       "navy": [
         "/img/clothing/ascolour_5052_block_oversized_tee_navy/front.jpg",
         "/img/clothing/ascolour_5052_block_oversized_tee_navy/back.jpg"
-      ],
-      "black": [
-        "/img/clothing/ascolour_5052_block_oversized_tee_black/front.jpg",
-        "/img/clothing/ascolour_5052_block_oversized_tee_black/back.jpg"
       ],
       "white": [
         "/img/clothing/ascolour_5052_block_oversized_tee_white/front.jpg",
@@ -4142,7 +919,7 @@ export const products = [
     "isNew": true,
     "description": "Áo sơ mi Oxford AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Oxford Shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:41.185756+00:00",
+    "createdAt": "2026-10-19T13:36:58.813432",
     "variants": [
       {
         "size": "S",
@@ -4197,13 +974,13 @@ export const products = [
         "/img/clothing/ascolour_5401_oxford_shirt_black/front.jpg",
         "/img/clothing/ascolour_5401_oxford_shirt_black/back.jpg"
       ],
-      "white": [
-        "/img/clothing/ascolour_5401_oxford_shirt_white/front.jpg",
-        "/img/clothing/ascolour_5401_oxford_shirt_white/back.jpg"
-      ],
       "light_blue": [
         "/img/clothing/ascolour_5401_oxford_shirt_light_blue/front.jpg",
         "/img/clothing/ascolour_5401_oxford_shirt_light_blue/back.jpg"
+      ],
+      "white": [
+        "/img/clothing/ascolour_5401_oxford_shirt_white/front.jpg",
+        "/img/clothing/ascolour_5401_oxford_shirt_white/back.jpg"
       ]
     }
   },
@@ -4231,7 +1008,7 @@ export const products = [
     "isNew": true,
     "description": "Áo sơ mi kẻ Check AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Check Shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:42.316224+00:00",
+    "createdAt": "2026-10-19T13:36:58.818523",
     "variants": [
       {
         "size": "S",
@@ -4299,7 +1076,7 @@ export const products = [
     "isNew": true,
     "description": "Áo sơ mi nhung Cord AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Cord Shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:42.866087+00:00",
+    "createdAt": "2026-10-19T13:36:58.821117",
     "variants": [
       {
         "size": "S",
@@ -4348,7 +1125,7 @@ export const products = [
     "isNew": true,
     "description": "Áo sơ mi ngắn tay Work AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Work Short-sleeve Shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:43.326806+00:00",
+    "createdAt": "2026-10-19T13:36:58.822517",
     "variants": [
       {
         "size": "S",
@@ -4399,7 +1176,7 @@ export const products = [
     "isNew": true,
     "description": "Áo sơ mi Work AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Work Shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:43.990484+00:00",
+    "createdAt": "2026-10-19T13:36:58.825537",
     "variants": [
       {
         "size": "S",
@@ -4435,13 +1212,13 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "ascolour_5422",
     "colorImages": {
-      "navy": [
-        "/img/clothing/ascolour_5422_work_shirt_navy/front.jpg",
-        "/img/clothing/ascolour_5422_work_shirt_navy/back.jpg"
-      ],
       "black": [
         "/img/clothing/ascolour_5422_work_shirt_black/front.jpg",
         "/img/clothing/ascolour_5422_work_shirt_black/back.jpg"
+      ],
+      "navy": [
+        "/img/clothing/ascolour_5422_work_shirt_navy/front.jpg",
+        "/img/clothing/ascolour_5422_work_shirt_navy/back.jpg"
       ]
     }
   },
@@ -4473,7 +1250,7 @@ export const products = [
     "isNew": true,
     "description": "Quần short Beach AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Beach Shorts AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:44.915242+00:00",
+    "createdAt": "2026-10-19T13:36:58.827544",
     "variants": [
       {
         "size": "S",
@@ -4539,21 +1316,21 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "ascolour_5903",
     "colorImages": {
-      "clay": [
-        "/img/clothing/ascolour_5903_beach_shorts_clay/front.webp",
-        "/img/clothing/ascolour_5903_beach_shorts_clay/back.webp"
-      ],
       "atlantic": [
         "/img/clothing/ascolour_5903_beach_shorts_atlantic/front.webp",
         "/img/clothing/ascolour_5903_beach_shorts_atlantic/back.webp"
       ],
-      "petrol_blue": [
-        "/img/clothing/ascolour_5903_beach_shorts_petrol_blue/front.webp",
-        "/img/clothing/ascolour_5903_beach_shorts_petrol_blue/back.webp"
-      ],
       "carolina_blue": [
         "/img/clothing/ascolour_5903_beach_shorts_carolina_blue/front.webp",
         "/img/clothing/ascolour_5903_beach_shorts_carolina_blue/back.webp"
+      ],
+      "clay": [
+        "/img/clothing/ascolour_5903_beach_shorts_clay/front.webp",
+        "/img/clothing/ascolour_5903_beach_shorts_clay/back.webp"
+      ],
+      "petrol_blue": [
+        "/img/clothing/ascolour_5903_beach_shorts_petrol_blue/front.webp",
+        "/img/clothing/ascolour_5903_beach_shorts_petrol_blue/back.webp"
       ]
     }
   },
@@ -4587,7 +1364,7 @@ export const products = [
     "isNew": true,
     "description": "Quần dài Relax AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Relax Track Pants AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:45.907705+00:00",
+    "createdAt": "2026-10-19T13:36:58.829077",
     "variants": [
       {
         "size": "S",
@@ -4668,17 +1445,13 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "ascolour_5932",
     "colorImages": {
-      "bone": [
-        "/img/clothing/ascolour_5932_relax_track_pants_bone/front.webp",
-        "/img/clothing/ascolour_5932_relax_track_pants_bone/back.webp"
-      ],
       "black": [
         "/img/clothing/ascolour_5932_relax_track_pants_black/front.webp",
         "/img/clothing/ascolour_5932_relax_track_pants_black/back.webp"
       ],
-      "storm": [
-        "/img/clothing/ascolour_5932_relax_track_pants_storm/front.webp",
-        "/img/clothing/ascolour_5932_relax_track_pants_storm/back.webp"
+      "bone": [
+        "/img/clothing/ascolour_5932_relax_track_pants_bone/front.webp",
+        "/img/clothing/ascolour_5932_relax_track_pants_bone/back.webp"
       ],
       "cypress": [
         "/img/clothing/ascolour_5932_relax_track_pants_cypress/front.webp",
@@ -4687,6 +1460,10 @@ export const products = [
       "ink_blue": [
         "/img/clothing/ascolour_5932_relax_track_pants_ink_blue/front.webp",
         "/img/clothing/ascolour_5932_relax_track_pants_ink_blue/back.webp"
+      ],
+      "storm": [
+        "/img/clothing/ascolour_5932_relax_track_pants_storm/front.webp",
+        "/img/clothing/ascolour_5932_relax_track_pants_storm/back.webp"
       ]
     }
   },
@@ -4714,7 +1491,7 @@ export const products = [
     "isNew": true,
     "description": "Chân váy ngắn Cargo Everlane. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Cargo Mini Skirt Everlane. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:46.403223+00:00",
+    "createdAt": "2026-10-19T13:36:58.831092",
     "variants": [
       {
         "size": "S",
@@ -4794,7 +1571,7 @@ export const products = [
     "isNew": true,
     "description": "Chân váy ngắn Circle Everlane. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Circle Mini Skirt Everlane. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:46.865781+00:00",
+    "createdAt": "2026-10-19T13:36:58.833091",
     "variants": [
       {
         "size": "S",
@@ -4874,7 +1651,7 @@ export const products = [
     "isNew": true,
     "description": "Chân váy ngắn denim Everlane. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Denim Mini Skirt Everlane. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:47.494932+00:00",
+    "createdAt": "2026-10-19T13:36:58.835095",
     "variants": [
       {
         "size": "S",
@@ -4952,7 +1729,7 @@ export const products = [
     "isNew": true,
     "description": "Chân váy dệt ren Everlane. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Lace Knit Skirt Everlane. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:48.025416+00:00",
+    "createdAt": "2026-10-19T13:36:58.837096",
     "variants": [
       {
         "size": "S",
@@ -5006,7 +1783,7 @@ export const products = [
     "isNew": true,
     "description": "Chân váy ngắn linen Everlane. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Stretch Linen Mini Skirt Everlane. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:48.423857+00:00",
+    "createdAt": "2026-10-19T13:36:58.838602",
     "variants": [
       {
         "size": "S",
@@ -5060,7 +1837,7 @@ export const products = [
     "isNew": true,
     "description": "Chân váy dài cotton lụa Everlane. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Cotton Silk Maxi Skirt Everlane. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:48.905676+00:00",
+    "createdAt": "2026-10-19T13:36:58.839613",
     "variants": [
       {
         "size": "S",
@@ -5110,7 +1887,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Afterform. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Afterform - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:49.361161+00:00",
+    "createdAt": "2026-10-19T13:36:58.839613",
     "variants": [
       {
         "size": "S",
@@ -5161,7 +1938,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình BADGE HOLDS WEIGHT. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "BADGE HOLDS WEIGHT - Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:49.737858+00:00",
+    "createdAt": "2026-10-19T13:36:58.839613",
     "variants": [
       {
         "size": "S",
@@ -5214,7 +1991,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Blind Surveillance. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Blind Surveillance - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:50.314593+00:00",
+    "createdAt": "2026-10-19T13:36:58.848393",
     "variants": [
       {
         "size": "S",
@@ -5250,17 +2027,17 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "jtd_blind-surveillance-heavy-graphic-t-shirt",
     "colorImages": {
-      "grey": [
-        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/front.jpg",
-        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/back.jpg",
-        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/extra_01.jpg",
-        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/extra_02.jpg"
-      ],
       "black": [
         "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_black/front.jpg",
         "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_black/back.jpg",
         "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_black/extra_01.jpg",
         "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_black/extra_02.jpg"
+      ],
+      "grey": [
+        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/front.jpg",
+        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/back.jpg",
+        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/extra_01.jpg",
+        "/img/clothing/jtd_blind_surveillance_heavy_graphic_t_shirt_grey/extra_02.jpg"
       ]
     }
   },
@@ -5286,7 +2063,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Bone Riot. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Bone Riot - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:50.797767+00:00",
+    "createdAt": "2026-10-19T13:36:58.848393",
     "variants": [
       {
         "size": "S",
@@ -5340,7 +2117,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Broken Saint. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Broken Saint - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:51.201205+00:00",
+    "createdAt": "2026-10-19T13:36:58.853483",
     "variants": [
       {
         "size": "S",
@@ -5414,7 +2191,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Chaos And Order. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Chaos And Order - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:51.584723+00:00",
+    "createdAt": "2026-10-19T13:36:58.856111",
     "variants": [
       {
         "size": "S",
@@ -5486,7 +2263,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Consumed. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Consumed - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:51.931774+00:00",
+    "createdAt": "2026-10-19T13:36:58.858286",
     "variants": [
       {
         "size": "S",
@@ -5537,7 +2314,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình DECAY. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "DECAY - Premium Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:52.387442+00:00",
+    "createdAt": "2026-10-19T13:36:58.861833",
     "variants": [
       {
         "size": "S",
@@ -5591,7 +2368,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình DOOMSDAY DIAGNOSIS. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "DOOMSDAY DIAGNOSIS - Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:52.866831+00:00",
+    "createdAt": "2026-10-19T13:36:58.865833",
     "variants": [
       {
         "size": "S",
@@ -5643,7 +2420,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Flypocalypse. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Flypocalypse - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:53.384392+00:00",
+    "createdAt": "2026-10-19T13:36:58.869387",
     "variants": [
       {
         "size": "S",
@@ -5694,7 +2471,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Human Error. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Human Error - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:53.963420+00:00",
+    "createdAt": "2026-10-19T13:36:58.873100",
     "variants": [
       {
         "size": "S",
@@ -5746,7 +2523,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Jump The Dark Grey Logo. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Jump The Dark Grey Logo - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:54.297901+00:00",
+    "createdAt": "2026-10-19T13:36:58.876114",
     "variants": [
       {
         "size": "S",
@@ -5797,7 +2574,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình London Underground. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "London Underground - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:54.653997+00:00",
+    "createdAt": "2026-10-19T13:36:58.878134",
     "variants": [
       {
         "size": "S",
@@ -5848,7 +2625,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Lost in Transit  Back Print. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Lost in Transit  Back Print - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:55.104170+00:00",
+    "createdAt": "2026-10-19T13:36:58.880663",
     "variants": [
       {
         "size": "S",
@@ -5899,7 +2676,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Lost in Transit Front Print. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Lost in Transit Front Print - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:55.541208+00:00",
+    "createdAt": "2026-10-19T13:36:58.882668",
     "variants": [
       {
         "size": "S",
@@ -5950,7 +2727,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình MID-POINT. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "MID-POINT - Premium Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:56.008473+00:00",
+    "createdAt": "2026-10-19T13:36:58.884671",
     "variants": [
       {
         "size": "S",
@@ -6005,7 +2782,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Midnight Jester. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Midnight Jester - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:56.424976+00:00",
+    "createdAt": "2026-10-19T13:36:58.886680",
     "variants": [
       {
         "size": "S",
@@ -6079,7 +2856,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Natural Born Enemies. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Natural Born Enemies - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:56.992123+00:00",
+    "createdAt": "2026-10-19T13:36:58.888209",
     "variants": [
       {
         "size": "S",
@@ -6115,16 +2892,16 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "jtd_natural-born-enemies-heavy-graphic-t-shirt",
     "colorImages": {
-      "sand": [
-        "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt_sand/front.jpg",
-        "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt_sand/back.jpg",
-        "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt_sand/extra_01.jpg"
-      ],
       "original": [
         "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt/front.jpg",
         "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt/back.jpg",
         "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt/extra_01.jpg",
         "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt/extra_02.jpg"
+      ],
+      "sand": [
+        "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt_sand/front.jpg",
+        "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt_sand/back.jpg",
+        "/img/clothing/jtd_natural_born_enemies_heavy_graphic_t_shirt_sand/extra_01.jpg"
       ]
     }
   },
@@ -6152,7 +2929,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Poised 2.0. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Poised 2.0 - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:57.409425+00:00",
+    "createdAt": "2026-10-19T13:36:58.890228",
     "variants": [
       {
         "size": "S",
@@ -6223,7 +3000,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình POISED. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "POISED - Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:57.750106+00:00",
+    "createdAt": "2026-10-19T13:36:58.890228",
     "variants": [
       {
         "size": "S",
@@ -6277,7 +3054,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Raise Hell. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Raise Hell - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:58.142417+00:00",
+    "createdAt": "2026-10-19T13:36:58.890228",
     "variants": [
       {
         "size": "S",
@@ -6313,17 +3090,17 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "jtd_raise-hell-heavy-graphic-t-shirt",
     "colorImages": {
-      "sand": [
-        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/front.jpg",
-        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/back.jpg",
-        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/extra_01.jpg",
-        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/extra_02.jpg"
-      ],
       "brown": [
         "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_brown/front.jpg",
         "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_brown/back.jpg",
         "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_brown/extra_01.jpg",
         "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_brown/extra_02.jpg"
+      ],
+      "sand": [
+        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/front.jpg",
+        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/back.jpg",
+        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/extra_01.jpg",
+        "/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_sand/extra_02.jpg"
       ]
     }
   },
@@ -6349,7 +3126,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình SHADOWS RISE. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "SHADOWS RISE - Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:58.483974+00:00",
+    "createdAt": "2026-10-19T13:36:58.890228",
     "variants": [
       {
         "size": "S",
@@ -6401,7 +3178,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình SHADOWZ. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "SHADOWZ - Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:58.836547+00:00",
+    "createdAt": "2026-10-19T13:36:58.898466",
     "variants": [
       {
         "size": "S",
@@ -6454,7 +3231,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Step Through. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Step Through - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:59.248499+00:00",
+    "createdAt": "2026-10-19T13:36:58.898466",
     "variants": [
       {
         "size": "S",
@@ -6490,16 +3267,16 @@ export const products = [
     "stockRevision": 0,
     "datasetKey": "jtd_step-through-heavy-graphic-t-shirt",
     "colorImages": {
+      "original": [
+        "/img/clothing/jtd_step_through_heavy_graphic_t_shirt/front.jpg",
+        "/img/clothing/jtd_step_through_heavy_graphic_t_shirt/back.jpg",
+        "/img/clothing/jtd_step_through_heavy_graphic_t_shirt/extra_01.jpg"
+      ],
       "grey": [
         "/img/clothing/jtd_step_through_heavy_graphic_t_shirt_grey/front.jpg",
         "/img/clothing/jtd_step_through_heavy_graphic_t_shirt_grey/back.jpg",
         "/img/clothing/jtd_step_through_heavy_graphic_t_shirt_grey/extra_01.jpg",
         "/img/clothing/jtd_step_through_heavy_graphic_t_shirt_grey/extra_02.jpg"
-      ],
-      "original": [
-        "/img/clothing/jtd_step_through_heavy_graphic_t_shirt/front.jpg",
-        "/img/clothing/jtd_step_through_heavy_graphic_t_shirt/back.jpg",
-        "/img/clothing/jtd_step_through_heavy_graphic_t_shirt/extra_01.jpg"
       ]
     }
   },
@@ -6525,7 +3302,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Sunny Parade. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Sunny Parade - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:59.581018+00:00",
+    "createdAt": "2026-10-19T13:36:58.903523",
     "variants": [
       {
         "size": "S",
@@ -6578,7 +3355,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình The Blackletter. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "The Blackletter Heavy Graphic T Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:11:59.984089+00:00",
+    "createdAt": "2026-10-19T13:36:58.903523",
     "variants": [
       {
         "size": "S",
@@ -6650,7 +3427,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình The Last Witness. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "The Last Witness - Heavy Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:12:00.361482+00:00",
+    "createdAt": "2026-10-19T13:36:58.906269",
     "variants": [
       {
         "size": "S",
@@ -6701,7 +3478,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình THE VANDAL – Organic Graphic T-Shirt. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "THE VANDAL – Organic Graphic T-Shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:12:00.729281+00:00",
+    "createdAt": "2026-10-19T13:36:58.908297",
     "variants": [
       {
         "size": "S",
@@ -6754,7 +3531,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Tidebreaker Back Print. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Tidebreaker Back Print - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:12:01.084250+00:00",
+    "createdAt": "2026-10-19T13:36:58.913408",
     "variants": [
       {
         "size": "S",
@@ -6805,7 +3582,7 @@ export const products = [
     "isNew": true,
     "description": "Áo thun in hình Tidebreaker Front Print. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
     "descriptionEn": "Tidebreaker Front Print - Heavy Graphic T-shirt. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
-    "createdAt": "2026-10-05T10:12:01.431339+00:00",
+    "createdAt": "2026-10-19T13:36:58.913408",
     "variants": [
       {
         "size": "S",

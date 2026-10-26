@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
+import EmptyState from './components/ui/EmptyState'
+import { PageSkeleton } from './components/ui/Skeleton'
 import { CartProvider } from './hooks/useCart'
 import { WishlistProvider } from './hooks/useWishlist'
 import RequireCustomer from './components/RequireCustomer'
@@ -25,6 +27,8 @@ const Overview = lazy(() => import('./pages/Overview'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Promotions = lazy(() => import('./pages/Promotions'))
 const StockAlerts = lazy(() => import('./pages/StockAlerts'))
+const Terms = lazy(() => import('./pages/Legal').then(module => ({ default: module.Terms })))
+const Privacy = lazy(() => import('./pages/Legal').then(module => ({ default: module.Privacy })))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -32,20 +36,31 @@ function ScrollToTop() {
   return null
 }
 
+function NotFound() {
+  const { t } = useLang()
+  return <main className="shop-shell">
+    <title>{`404 – N&B`}</title>
+    <EmptyState as="h1" title={t('nav.notFound')}>
+      <Link to="/" className="button button--primary">{t('nav.home')}</Link>
+      <Link to="/products" className="button">{t('nav.all')}</Link>
+    </EmptyState>
+  </main>
+}
+
 function AppContent() {
   const { pathname } = useLocation()
   const { t } = useLang()
   const admin = pathname.startsWith('/admin')
-  return <div className={`min-h-screen bg-background text-foreground ${pathname === "/" ? "home-page" : ""}`}>
+  return <div className="flex min-h-screen flex-col bg-paper text-ink">
+    {!admin && <a href="#main" className="skip-link">{t('ui.skip')}</a>}
     {!admin && <Header />}
-    <Suspense fallback={<main className="shop-shell" role="status">{t('auth.processing')}</main>}><Routes>
+    <div id="main" tabIndex={-1} className="flex flex-1 flex-col outline-none">
+    <Suspense fallback={<PageSkeleton label={t('ui.loading')} />}><Routes>
       <Route path="/" element={<Home />} />
       <Route path="/search" element={<Search />} />
       <Route path="/products" element={<ProductList />} />
       <Route path="/men/ready-to-wear" element={<ProductList department="men" />} />
       <Route path="/women/ready-to-wear" element={<ProductList department="women" />} />
-      <Route path="/bags" element={<ProductList department="bags" />} />
-      <Route path="/watches" element={<ProductList department="watches" />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/cart" element={<RequireCustomer><Cart /></RequireCustomer>} />
       <Route path="/checkout" element={<RequireCustomer><Checkout /></RequireCustomer>} />
@@ -65,8 +80,11 @@ function AppContent() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="*" element={<main className="shop-shell"><h1 className="display-title text-3xl">404</h1><p className="mt-5">{t('nav.notFound')}</p><a className="button mt-6" href="/">{t('nav.home')}</a></main>} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="*" element={<NotFound />} />
     </Routes></Suspense>
+    </div>
     {!admin && <Footer />}
   </div>
 }

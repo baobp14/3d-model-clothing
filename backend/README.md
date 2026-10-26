@@ -142,6 +142,36 @@ chúng không cập nhật bảng kho biến thể. Frontend hiện tại đã d
 client cũ cần chuyển sang API trước khi dùng phiên bản này. RPC địa chỉ vẫn được giữ.
 Nếu chạy lại các SQL legacy, chạy `app.migrate_shop` sau cùng để giữ giới hạn này.
 
+## Thanh toán QR (TConnect)
+
+QR chỉ hiện ở trang thanh toán khi đủ các biến `TCONNECT_*` trong `.env` (xem `.env.example`);
+thiếu biến thì chỉ có COD và API từ chối đơn QR. Luồng:
+
+1. Khách đặt đơn QR → đơn `pending`, tồn kho được giữ.
+2. `POST /api/orders/{id}/qr` tạo QR động đúng số tiền (gọi lại trả mã cũ, không tạo mã mới).
+3. Trang thanh toán gọi `POST /api/orders/{id}/payment-check` mỗi 4 giây; API hỏi TConnect
+   và tự ghi nhận thanh toán khi tổng giao dịch `SUCCESS` ≥ tổng đơn.
+4. Admin chỉ xác nhận/giao được đơn QR sau khi đã nhận tiền.
+5. Hủy đơn QR: API hỏi TConnect trước, nếu tiền đã về thì ghi nhận thanh toán và chặn khách tự hủy.
+
+IPN (`POST /api/payments/tconnect/ipn`) là tùy chọn: phải đăng ký URL public HTTPS với TConnect.
+API không tin nội dung IPN mà dùng nó để hỏi lại trạng thái thật. Sandbox dùng bộ thông tin test
+công khai trong tài liệu TConnect; production cần thông tin riêng do TConnect cấp.
+
+Admin hủy được đơn đã thanh toán: tồn kho được hoàn, đơn hiện "Cần hoàn tiền"; sau khi chuyển trả
+tiền cho khách, bấm "Xác nhận đã hoàn tiền". Mọi thay đổi trạng thái/thanh toán/hoàn tiền được ghi vào
+lịch sử đơn (`GET /api/admin/orders/{id}/events`).
+
+## Bảo vệ API
+
+- Rate limit theo IP/tài khoản cho tra mã giảm giá, đặt đơn, QR, địa chỉ, wishlist, IPN (trả `429`).
+  Bộ đếm nằm trong bộ nhớ một tiến trình; chạy nhiều instance thì đặt rate limit ở reverse proxy.
+- Mỗi khách giữ tối đa `MAX_OPEN_ORDERS` đơn chờ xác nhận (mặc định 5).
+- Kết quả xác thực Supabase được cache `AUTH_CACHE_SECONDS` giây (mặc định 60).
+- `/docs` và `/openapi.json` chỉ bật khi `ENABLE_API_DOCS=true`. Đừng bật trên production.
+- Sau khi cập nhật code, chạy `python -m app.migrate_shop` trên PostgreSQL để tạo bảng mới
+  (lịch sử đơn, hoàn tiền, QR, điều kiện mã giảm giá) và thu hồi RPC địa chỉ cũ.
+
 ## Kiểm thử
 
 ```powershell
@@ -217,3 +247,19 @@ The ZIP's 90 color samples form 48 products. Only `m-tshirts`, `m-shirts`, `m-tr
 New styles reuse reference prices from existing products of the same category. Sizes are S/M/XL. Demo product stock alternates 1556/1342, allocated exactly across colors and sizes. Per-color original front/back/detail photos are served locally under `public/img/clothing`; AI images are excluded. Original source metadata stays in the ZIP. Shared style photos can depict a different color and are not mixed into selected-color galleries.
 
 Before import, catalog/stock records and the static fallback file are backed up to ignored `backend/.dataset-backups/<timestamp>`. Orders and delivery details are not included. The import is atomic and repeatable: subsequent runs preserve sold quantities, admin edits and product IDs. The static frontend fallback is synchronized from the active database. A fresh SQLite initialization loads the same dataset quantities, variants and image mappings. Stock history uses the zero UUID to identify this initial dataset import.
+
+### Chỉ dùng dataset_quanao.zip
+
+Catalog hiện chỉ gồm 48 sản phẩm của `dataset_quanao.zip`; dữ liệu H&M/Myntra cũ đã bỏ (backup ở
+`dataset_hm_myntra_backup.zip` tại thư mục gốc, đã được gitignore). Trên một DB còn sản phẩm cũ
+(ví dụ Supabase), chạy sau `app.import_clothing --apply`:
+
+```powershell
+.\.venv\Scripts\python.exe -m app.prune_catalog          # xem kế hoạch
+.\.venv\Scripts\python.exe -m app.prune_catalog --apply  # áp dụng
+```
+
+Sản phẩm ngoài dataset bị xóa nếu chưa nằm trong đơn nào; nếu đã có trong đơn thì chuyển sang ngừng bán
+để lịch sử đơn vẫn đúng. Danh mục/màu không còn sản phẩm bị xóa, và `frontend/src/data/products.js`
+được sinh lại. Menu Túi xách và Đồng hồ đang ẩn vì dataset không có hai loại này.
+

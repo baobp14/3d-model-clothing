@@ -16,5 +16,5 @@ export default function WishlistButton({ productId, className = '' }) {
       if (!wishlist?.owner) { navigate(loginPath(`/product/${productId}`)); return }
       if (wishlist.error) { navigate('/account/wishlist'); return }
       if (!await wishlist.toggle(productId)) navigate('/account/wishlist')
-    }}><Icon name="heart" size={18} className={saved ? 'fill-current text-red-700' : ''} /></button>
+    }}><Icon name="heart" size={20} className={saved ? 'fill-current' : ''} /></button>
 }

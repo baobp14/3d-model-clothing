@@ -1,3 +1,6 @@
+import hashlib
+import threading
+import time
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -16,12 +19,49 @@ class User:
     role: str = 'customer'
 
 
+class UserCache:
+    """Successful Auth lookups keyed by token hash, so each request need not call Supabase."""
+    def __init__(self, seconds, clock=time.monotonic):
+        self.seconds = seconds
+        self.clock = clock
+        self.rows = {}
+        self.lock = threading.Lock()
+
+    def get(self, key):
+        with self.lock:
+            row = self.rows.get(key)
+            if row and row[0] > self.clock():
+                return row[1]
+            self.rows.pop(key, None)
+            return None
+
+    def put(self, key, user):
+        if self.seconds <= 0:
+            return
+        with self.lock:
+            if len(self.rows) > 10000:
+                now = self.clock()
+                self.rows = {k: v for k, v in self.rows.items() if v[0] > now}
+            self.rows[key] = (self.clock() + self.seconds, user)
+
+
 def require_user(request: Request, credentials: HTTPAuthorizationCredentials | None = Depends(bearer)):
     if credentials is None:
         fail('NB_AUTH_REQUIRED', 401)
     config = request.app.state.settings
     if not config.supabase_url or not config.supabase_anon_key:
         fail('NB_AUTH_NOT_CONFIGURED', 503)
+    cache = request.app.state.user_cache
+    key = hashlib.sha256(credentials.credentials.encode()).hexdigest()
+    cached = cache.get(key)
+    if cached:
+        return cached
+    user = verify_user(request, config, credentials)
+    cache.put(key, user)
+    return user
+
+
+def verify_user(request, config, credentials):
     # The Auth server validates the token and returns authoritative app_metadata.
     # Never trust a decoded JWT payload or user_metadata.role from the browser.
     try:

@@ -1,8 +1,9 @@
 import re
+from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StringConstraints, field_validator, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, StringConstraints, field_validator, model_validator
 
 Name = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=160)]
 Price = Annotated[int, Field(strict=True, ge=0, le=9007199254740991)]
@@ -137,7 +138,23 @@ class PromotionInput(Input):
     code: Annotated[str, StringConstraints(strict=True, pattern=r'^[A-Z0-9_-]{1,30}$')]
     percent: Annotated[int, Field(strict=True, ge=1, le=80)]
     active: StrictBool
+    ends_at: AwareDatetime | None = None
+    max_uses: Annotated[int, Field(strict=True, ge=1, le=10000000)] | None = None
+    min_subtotal: Price = 0
     expected: dict | None = None
+
+    def expected_rules(self):
+        """The previously loaded row, normalized like promotion_dict; rule fields default to 'no limit'."""
+        if self.expected is None:
+            return None
+        row = {'ends_at': None, 'max_uses': None, 'min_subtotal': 0,
+               **{key: self.expected.get(key) for key in ('code', 'percent', 'active', 'ends_at', 'max_uses', 'min_subtotal') if key in self.expected}}
+        if isinstance(row['ends_at'], str):
+            try:
+                row['ends_at'] = datetime.fromisoformat(row['ends_at'].replace('Z', '+00:00'))
+            except ValueError:
+                pass
+        return row
 
 
 class WishlistInput(Input):
@@ -169,3 +186,12 @@ class ReadNotifications(Input):
 
 class PaymentReceive(Input):
     received: Literal[True]
+
+
+class RefundComplete(Input):
+    refunded: Literal[True]
+
+
+class ArchiveInput(Input):
+    archived: StrictBool
+    reason: Annotated[str, StringConstraints(strict=True, max_length=300)] = ''

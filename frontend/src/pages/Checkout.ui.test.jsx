@@ -15,6 +15,8 @@ vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ user, loading: false, rec
 vi.mock('../lib/api', () => ({ shopApi: { request } }))
 vi.mock('../lib/supabase', () => ({ supabase: { auth: { getUser: async () => ({ data: { user } }) } } }))
 vi.mock('../lib/addressBook', () => ({ loadAddressBook: async () => ({ addresses: [address] }) }))
+const { methods } = vi.hoisted(() => ({ methods: { current: ['cod'] } }))
+vi.mock('../lib/paymentMethods', () => ({ loadPaymentMethods: async () => methods.current }))
 vi.mock('../components/AddressBook', async () => {
   const { useEffect } = await import('react')
   return { default: ({ onSelect, onReady }) => {
@@ -204,4 +206,29 @@ it('two additions in one event cannot exceed stock before React renders the upda
   fireEvent.click(screen.getByRole('button', { name: 'Add twice' }))
   expect(results).toEqual([true, false])
   expect(screen.getByRole('status').textContent).toBe('1')
+})
+
+it('QR is offered only when the gateway is configured and its code appears after ordering', async () => {
+  const products = { products: [{ id: 1, name_vi: 'Áo', name_en: 'Shirt', price: 100, stock: 2, colors: ['black'], sizes: ['M'], images: ['/img/test.webp'] }] }
+  request.mockImplementation(async path => {
+    if (path === '/products/by-ids?ids=1') return products
+    if (path === '/orders') return { ...placed, payment: 'qr', status: 'pending', payment_status: 'unpaid' }
+    if (path === '/orders/order/qr') return { order: { ...placed, payment: 'qr', status: 'pending', payment_status: 'unpaid' }, qr: { reference: 'NBORDER', amount: 200, qr_content: 'x', image_png_base64: 'AAAA' } }
+    throw Error('unexpected endpoint ' + path)
+  })
+  mount()
+  fireEvent.click(await screen.findByRole('button', { name: 'Choose payment method' }))
+  expect(screen.queryByLabelText('Bank transfer by QR code')).toBe(null)
+  cleanup()
+  methods.current = ['cod', 'qr']
+  try {
+    mount()
+    expect(await screen.findByText(/Shirt · Black/)).toBeTruthy()
+    fireEvent.click(await screen.findByRole('button', { name: 'Choose payment method' }))
+    fireEvent.click(await screen.findByLabelText('Bank transfer by QR code'))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Place order' }))
+    expect((await screen.findByAltText('Payment QR code')).getAttribute('src')).toBe('data:image/png;base64,AAAA')
+    expect(request.mock.calls.find(([path]) => path === '/orders')[1].body.payment).toBe('qr')
+  } finally { methods.current = ['cod'] }
 })

@@ -1,0 +1,108 @@
+/*
+ * N&B design tokens — nguồn duy nhất cho màu, chữ, khoảng cách, chuyển động.
+ * Đặc tả: docs/design-system.md (mục 1). Độ tương phản ghi trong comment đã tính theo WCAG.
+ */
+@theme {
+  /* Nền */
+  --color-paper: #ffffff;
+  --color-cream: #f7f4ef;
+  --color-surface: #eceae6;      /* nền ảnh sản phẩm */
+  --color-ink: #111111;          /* 18.9:1 trên paper */
+
+  /* Chữ và viền */
+  --color-ink-muted: #6f665d;    /* 5.6:1 paper · 5.1:1 cream · 4.7:1 surface */
+  --color-on-ink: #ffffff;
+  --color-on-ink-muted: #a8a29e; /* 7.5:1 trên ink — không dùng trên nền sáng */
+  --color-line: #e5e2dc;         /* chỉ trang trí, không làm viền control */
+  --color-line-strong: #8a8178;  /* 3.8:1 paper — viền control (WCAG 1.4.11) */
+  --color-accent: #7d6424;       /* 5.6:1 paper — vòng focus, điểm nhấn nhỏ */
+
+  /* Ngữ nghĩa */
+  --color-danger: #b42318;
+  --color-danger-soft: #fbeeec;
+  --color-success: #2f6b3a;
+  --color-success-soft: #edf4ee;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #fbf3e2;
+
+  /* Font: một họ sans hình học kiểu Futura cho cả tiêu đề và nội dung (Jost giống hơn nhưng thiếu subset tiếng Việt) */
+  --font-display: "Afacad", "Futura", "Century Gothic", system-ui, sans-serif;
+  --font-sans: "Afacad", "Futura", "Century Gothic", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Thang chữ — sàn 12px; tiêu đề co giãn với giá trị nhỏ nhất bằng rem */
+  --text-micro: 0.75rem;     --text-micro--line-height: 1.5;
+  --text-caption: 0.8125rem; --text-caption--line-height: 1.5;
+  --text-body-sm: 0.875rem;  --text-body-sm--line-height: 1.55;
+  --text-body: 1rem;         --text-body--line-height: 1.6;
+  --text-lead: 1.125rem;     --text-lead--line-height: 1.6;
+  --text-title-sm: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); --text-title-sm--line-height: 1.25;
+  --text-title: clamp(1.75rem, 1.35rem + 1.4vw, 2.5rem);     --text-title--line-height: 1.15;
+  --text-display: clamp(2.25rem, 1.5rem + 3vw, 4rem);        --text-display--line-height: 1.05;
+
+  /* Độ rộng nội dung (sinh max-w-page, max-w-reading…) */
+  --container-page: 90rem;
+  --container-reading: 42rem;
+  --container-form: 30rem;
+  --container-checkout: 72rem;
+
+  /* Hình dạng, bóng, tỉ lệ ảnh, chuyển động */
+  --radius-control: 0px;
+  --radius-pill: 9999px;
+  --shadow-overlay: 0 0 40px rgb(17 17 17 / 0.12);
+  --aspect-product: 3 / 4;
+  --aspect-campaign: 16 / 9;
+  --aspect-portrait: 4 / 5;
+  --ease-soft: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Tên màu cũ trỏ sang token mới để code chưa chuyển vẫn chạy và đạt tương phản.
+   Xóa khi không còn chỗ dùng (docs/design-system.md, bước 8). */
+@theme inline {
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-obsidian: var(--color-ink);
+  --color-charcoal: var(--color-ink);
+  --color-alabaster: var(--color-cream);
+  --color-muted: var(--color-cream);
+  --color-feather: var(--color-line);
+  --color-slate: var(--color-ink-muted);
+  --color-champagne: var(--color-accent);
+  --color-stone: var(--color-ink-muted);
+  --color-taupe: var(--color-ink-muted);
+}
+
+:root {
+  --gutter: 1rem;
+  --section-y: 4rem;
+  --section-y-tight: 2.5rem;
+  --stack-heading: 2rem;
+  --grid-gap-x: 0.5rem;
+  --grid-gap-y: 2rem;
+  --header-h: 3.5rem;
+  --tap-min: 2.75rem;
+  --control-h: 3rem;
+  --control-h-sm: 2.5rem;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-overlay: 40;
+  --z-drawer: 50;
+  --z-toast: 60;
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 450ms;
+  /* Phần tử được focus không bị header sticky che (WCAG 2.4.11) */
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+  /* Chừa chỗ cho thanh mua cố định ở đáy PDP trên mobile */
+  scroll-padding-bottom: 6rem;
+}
+/* Trang có thanh lọc dính dưới header: chừa thêm chỗ để phần tử được focus không bị che */
+:root:has([data-sticky-bar]) { scroll-padding-top: calc(var(--header-h) + 3.5rem + 1rem); }
+@media (width >= 48rem) {
+  :root { --gutter: 1.5rem; --section-y: 5rem; --section-y-tight: 3rem; --stack-heading: 2.5rem; --grid-gap-x: 1rem; --grid-gap-y: 2.5rem; }
+}
+@media (width >= 64rem) {
+  :root { --gutter: 2rem; --section-y: 6rem; --stack-heading: 3rem; --grid-gap-x: 1.25rem; --grid-gap-y: 3rem; --header-h: 4.5rem; scroll-padding-bottom: 1rem; }
+}
+@media (width >= 80rem) {
+  :root { --gutter: 3rem; --section-y: 8rem; --section-y-tight: 4rem; --grid-gap-x: 1.5rem; }
+}

@@ -3,7 +3,8 @@ import { useListParams } from '../hooks/useListParams'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { Link, useLocation } from 'react-router-dom'
 import { useLang } from '../i18n'
-import { categories as defaults, formatPrice } from '../data/products'
+import { categories as defaults } from '../data/products'
+import { formatPrice } from '../lib/format'
 import { isSupabaseReady } from '../lib/supabase'
 import { shopApi } from '../lib/api'
 import { mapProduct } from '../hooks/useCatalog'
@@ -53,7 +54,9 @@ export default function Inventory({ pricing = false }) {
     if (query !== settledQuery) return
     try {
       const params = new URLSearchParams({ page, limit: 20, q: query, categories: category, sort })
-      if (stock) params.set('stock', stock)
+      // "archived" is a list view, not a stock level: it shows products no longer sold.
+      if (stock === 'archived') params.set('archived', 'only')
+      else if (stock) params.set('stock', stock)
       const catalog = await shopApi.request(`/product-page?${params}`)
       if (current !== generation.current) return
       if (page > catalog.pages) { setPage(catalog.pages); return }
@@ -134,7 +137,7 @@ export default function Inventory({ pricing = false }) {
     <section className="mt-6 rounded-2xl border border-[#dfe3eb] bg-white p-5"><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <label className="text-sm">{vi ? 'Tìm sản phẩm' : 'Search products'}<input className={`${field} mt-2`} value={query} onChange={e => { setQuery(e.target.value) } } placeholder={vi ? 'Tên hoặc mã sản phẩm' : 'Name or ID'} /></label>
       <label className="text-sm">{vi ? 'Loại sản phẩm' : 'Category'}<select className={`${field} mt-2`} value={category} onChange={e => { setCategory(e.target.value) } }><option value="">{vi ? 'Tất cả loại' : 'All categories'}</option>{categories.map(c => <option key={c.id} value={c.id}>{c[lang]}</option>)}</select></label>
-      <label className="text-sm">{vi ? 'Tồn kho' : 'Stock'}<select className={`${field} mt-2`} value={stock} onChange={e => { setStock(e.target.value) } }><option value="">{vi ? 'Tất cả' : 'All'}</option><option value="available">{vi ? 'Còn hàng (>20)' : 'In stock (>20)'}</option><option value="low">{vi ? 'Sắp hết (1–20)' : 'Low stock (1–20)'}</option><option value="low_or_out">{vi ? "Tồn kho ≤ 20 (gồm hết hàng)" : "Stock ≤ 20 (including sold out)"}</option><option value="out">{vi ? 'Hết hàng' : 'Out of stock'}</option></select></label>
+      <label className="text-sm">{vi ? 'Tồn kho' : 'Stock'}<select className={`${field} mt-2`} value={stock} onChange={e => { setStock(e.target.value) } }><option value="">{vi ? 'Tất cả' : 'All'}</option><option value="available">{vi ? 'Còn hàng (>20)' : 'In stock (>20)'}</option><option value="low">{vi ? 'Sắp hết (1–20)' : 'Low stock (1–20)'}</option><option value="low_or_out">{vi ? "Tồn kho ≤ 20 (gồm hết hàng)" : "Stock ≤ 20 (including sold out)"}</option><option value="out">{vi ? 'Hết hàng' : 'Out of stock'}</option><option value="archived">{vi ? 'Đã ngừng bán' : 'Discontinued'}</option></select></label>
       <label className="text-sm">{vi ? 'Sắp xếp' : 'Sort'}<select className={`${field} mt-2`} value={sort} onChange={e => { setSort(e.target.value) } }><option value="id">{vi ? 'Mã sản phẩm' : 'Product ID'}</option><option value="stock">{vi ? 'Tồn kho tăng dần' : 'Stock ascending'}</option><option value="price">{vi ? 'Giá tăng dần' : 'Price ascending'}</option></select></label>
     </div><div className="mt-4 flex items-center justify-between text-sm text-slate"><span>{paging.total} {vi ? 'kết quả' : 'results'}</span><button className="underline" onClick={() => { update({ q: '', category: '', stock: '', sort: '' }) }}>{vi ? 'Xóa bộ lọc' : 'Reset filters'}</button></div></section>
     <div className="mt-6 overflow-x-auto rounded-2xl border border-[#dfe3eb] bg-white"><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-[#eef0ff] text-[#303a9f]"><tr>{(vi ? ['Sản phẩm','Loại','Giá bán','Tồn kho','Trạng thái'] : ['Product','Category','Price','Stock','Status']).map(h => <th key={h} className="p-4">{h}</th>)}</tr></thead><tbody>{!loading && filtered.map(p => <tr key={p.id} className="border-t border-[#e2e5ec]"><td className="p-4"><Link to={`/admin/inventory/products/${p.id}`} state={{ returnTo }} className="flex items-center gap-3"><img src={p.images[0]} alt="" className="h-16 w-12 rounded bg-alabaster object-contain" /><span>{p[lang]}<small className="mt-1 block text-slate">#{p.id}</small></span></Link></td><td className="p-4">{categories.find(c => c.id === p.category)?.[lang] || p.category}</td><td className="p-4 whitespace-nowrap">{formatPrice(p.price)}</td><td className="p-4 font-semibold">{p.stock}</td><td className="p-4"><span className={`rounded-full px-3 py-1 text-xs ${p.stock === 0 ? 'bg-red-50 text-red-700' : p.stock <= 20 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>{p.stock === 0 ? (vi ? 'Hết hàng' : 'Out of stock') : p.stock <= 20 ? (vi ? 'Sắp hết' : 'Low stock') : (vi ? 'Còn hàng' : 'In stock')}</span></td></tr>)}{(loading || !filtered.length) && <tr><td colSpan={5} className="p-12 text-center text-slate">{loading ? (vi ? 'Đang tải kho…' : 'Loading inventory…') : (vi ? 'Không có sản phẩm phù hợp.' : 'No matching products.')}</td></tr>}</tbody></table></div>

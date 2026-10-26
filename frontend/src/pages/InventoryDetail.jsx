@@ -4,7 +4,8 @@ import { getProductDescription } from '../data/productDescriptions'
 ﻿import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useLang } from '../i18n'
-import { categories as localCategories, formatPrice } from '../data/products'
+import { categories as localCategories } from '../data/products'
+import { formatPrice } from '../lib/format'
 import { isSupabaseReady } from '../lib/supabase'
 import { shopApi } from '../lib/api'
 import { mapProduct } from '../hooks/useCatalog'
@@ -81,6 +82,20 @@ export default function InventoryDetail() {
         : (vi ? 'Không thể lưu thay đổi. Vui lòng kiểm tra kết nối rồi thử lại.' : 'Could not save changes. Please check your connection and retry.'))
     } finally { setBusy(false) }
   }
+  async function toggleArchived() {
+    if (busy) return
+    const archived = !product.archived
+    if (!window.confirm(archived
+      ? (vi ? 'Ngừng bán sản phẩm này? Sản phẩm sẽ ẩn khỏi cửa hàng và không đặt mới được; đơn đã đặt không bị ảnh hưởng.' : 'Discontinue this product? It is hidden from the shop and cannot be ordered; existing orders are unaffected.')
+      : (vi ? 'Mở bán lại sản phẩm này?' : 'Put this product back on sale?'))) return
+    setBusy(true); setError(''); setSuccess('')
+    try {
+      const data = await shopApi.request(`/admin/products/${product.id}/archive`, { method: 'POST', auth: true, body: { archived } })
+      setProduct(mapProduct(data))
+      setSuccess(archived ? (vi ? 'Đã ngừng bán sản phẩm.' : 'Product discontinued.') : (vi ? 'Đã mở bán lại sản phẩm.' : 'Product is on sale again.'))
+    } catch { setError(vi ? 'Chưa đổi được trạng thái bán. Vui lòng thử lại.' : 'Could not change sale status. Please retry.') }
+    finally { setBusy(false) }
+  }
   const field = 'shop-input mt-2 w-full rounded-lg border-[#dfe3eb]'
   const values = product ? [
     [vi ? 'Mã sản phẩm' : 'Product ID', `#${product.id}`],
@@ -97,7 +112,8 @@ export default function InventoryDetail() {
   ] : []
   return <main className="p-4 sm:p-7 lg:p-8"><div className="mx-auto max-w-[1400px]">
     <Link to={returnTo} className="text-sm text-[#303a9f] underline underline-offset-4">{vi ? '← Quay lại danh sách sản phẩm' : '← Back to product list'}</Link>
-    <div className="mt-6 flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-bold text-[#252d78] sm:text-3xl">{vi ? 'Chi tiết sản phẩm' : 'Product details'}</h1>{product && <p className="mt-2 text-sm text-slate">{product[lang]} · #{product.id}</p>}</div>{product && <button disabled={!isSupabaseReady || product.description === undefined || product.stock == null} onClick={() => { setFormError(''); setSuccess(''); setEditing(true) }} className="button rounded-lg bg-[#303a9f] text-white disabled:opacity-40">{vi ? 'Chỉnh sửa' : 'Edit'}</button>}</div>
+    <div className="mt-6 flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-2xl font-bold text-[#252d78] sm:text-3xl">{vi ? 'Chi tiết sản phẩm' : 'Product details'}</h1>{product && <p className="mt-2 text-sm text-slate">{product[lang]} · #{product.id}</p>}</div>{product && <button disabled={!isSupabaseReady || product.description === undefined || product.stock == null} onClick={() => { setFormError(''); setSuccess(''); setEditing(true) }} className="button rounded-lg bg-[#303a9f] text-white disabled:opacity-40">{vi ? 'Chỉnh sửa' : 'Edit'}</button>}{product && <button disabled={!isSupabaseReady || busy} onClick={toggleArchived} className="button rounded-lg disabled:opacity-40">{product.archived ? (vi ? 'Mở bán lại' : 'Put back on sale') : (vi ? 'Ngừng bán' : 'Discontinue')}</button>}</div>
+    {product?.archived && <p className="mt-4 text-sm font-semibold text-amber-700">{vi ? 'Sản phẩm đang ngừng bán: đã ẩn khỏi cửa hàng.' : 'Discontinued: hidden from the shop.'}</p>}
     <p role="alert" className="mt-4 text-sm text-red-700">{error}</p><p role="status" className="text-sm text-emerald-700">{success}</p>
     {loading ? <p className="py-12 text-slate">{vi ? 'Đang tải sản phẩm…' : 'Loading product…'}</p> : !product ? !error && <p className="py-12">{vi ? 'Không tìm thấy sản phẩm.' : 'Product not found.'}</p> : <>
       {!isSupabaseReady && <p className="mt-4 text-sm text-amber-700">{vi ? 'Chưa thể xác minh tài khoản quản trị. Vui lòng đăng nhập lại.' : 'Could not verify your admin account. Please sign in again.'}</p>}

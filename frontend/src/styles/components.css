@@ -1,0 +1,85 @@
+/*
+ * Class dùng chung. Tên cũ (.button, .shell, .shop-shell, .shop-input…) được giữ
+ * và định nghĩa lại theo token mới, để trang admin và trang chưa chuyển đổi cũng đồng bộ.
+ */
+@layer components {
+  /* ---- Bố cục ---- */
+  .shell { width: 100%; max-width: var(--container-page); margin-inline: auto; padding-inline: var(--gutter); }
+  .shop-shell {
+    width: 100%; max-width: var(--container-page); margin-inline: auto;
+    padding: var(--section-y-tight) var(--gutter) var(--section-y);
+  }
+
+  /* ---- Chữ ---- */
+  .eyebrow { font-size: var(--text-micro); line-height: 1.5; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+
+  /* ---- Nút (góc vuông, chữ in hoa giãn nhẹ) ---- */
+  .button {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    min-height: var(--control-h); padding: .75rem 2rem;
+    border: 1px solid var(--color-ink); border-radius: var(--radius-control);
+    background: transparent; color: var(--color-ink);
+    font-size: var(--text-caption); line-height: 1.2; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+    text-align: center; text-decoration: none;
+  }
+  .button--primary { background: var(--color-ink); color: var(--color-on-ink); }
+  .button--light { border-color: var(--color-paper); background: var(--color-paper); color: var(--color-ink); }
+  .button--ghost-light { border-color: var(--color-paper); color: var(--color-on-ink); }
+  .button--sm { min-height: var(--control-h-sm); padding: .5rem 1rem; }
+  .button:disabled, .button[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+  @media (hover: hover) {
+    .button:not(:disabled):not([aria-disabled="true"]):hover { background: var(--color-ink); color: var(--color-on-ink); }
+    .button--primary:not(:disabled):not([aria-disabled="true"]):hover { background: color-mix(in srgb, var(--color-ink) 82%, white); }
+    .button--light:not(:disabled):hover { background: transparent; color: var(--color-on-ink); border-color: var(--color-paper); }
+    .button--ghost-light:not(:disabled):hover { background: var(--color-paper); color: var(--color-ink); }
+  }
+  .button:not(:disabled):active { opacity: .85; }
+  .text-link { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  @media (hover: hover) { .text-link:hover { color: var(--color-accent); } }
+
+  /* ---- Ô nhập ---- */
+  .shop-input {
+    min-height: var(--tap-min); padding: .625rem .75rem;
+    border: 1px solid var(--color-line-strong); border-radius: var(--radius-control);
+    background: var(--color-paper); color: var(--color-ink); font-size: var(--text-body);
+  }
+  @media (width >= 64rem) { .shop-input { font-size: var(--text-body-sm); } }
+  /* Ô ngày của Chromium: focus nằm ở phần ngày/tháng trong shadow DOM nên ô chỉ khớp :focus-within */
+  .shop-input:focus, .shop-input:focus-within { border-color: var(--color-ink); outline: 2px solid var(--color-accent); outline-offset: 1px; }
+  .shop-input:disabled { background: var(--color-cream); color: var(--color-ink-muted); }
+  .shop-input[aria-invalid="true"] { border-color: var(--color-danger); }
+
+  /* ---- Ảnh sản phẩm ---- */
+  .product-image-surface { isolation: isolate; background: var(--color-surface); }
+  .product-image-blend { mix-blend-mode: multiply; }
+
+  /* ---- Bỏ qua tới nội dung (ẩn tới khi focus) ---- */
+  .skip-link {
+    position: absolute; left: var(--gutter); top: -100px; z-index: 100;
+    padding: .75rem 1rem; background: var(--color-ink); color: var(--color-on-ink); font-size: var(--text-body-sm);
+  }
+  .skip-link:focus { top: .5rem; }
+
+  /* ---- Cuộn ngang không thanh cuộn (hàng sản phẩm trên mobile) ---- */
+  .scroll-rail { scrollbar-width: none; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); overscroll-behavior-x: contain; }
+  .scroll-rail::-webkit-scrollbar { display: none; }
+  .scroll-rail > * { scroll-snap-align: start; }
+
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pulse-soft { 50% { opacity: .55; } }
+
+/* Trang có thanh mua cố định ở đáy (PDP dưới lg): chừa chỗ để không che phần cuối footer */
+@media (width < 64rem) { body:has([data-buy-bar]) footer { padding-bottom: 7.5rem; } }
+
+/* Form đăng ký: lưới 2 cột, dùng chung cho trang /register và drawer tài khoản */
+.registration-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }
+.registration-fields > div { min-width: 0; }
+@media (max-width: 639px) { .registration-fields { grid-template-columns: minmax(0, 1fr); } }
+.login-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.login-actions .button { width: 100%; margin-top: 0; padding-inline: .5rem; }
+.login-google .button { width: 100%; }

@@ -18,6 +18,12 @@ before(async () => {
     create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
     insert into auth.users values ('${user}');`)
   await db.exec(await readFile(new URL('./schema.sql', import.meta.url), 'utf8'))
+  // Own fixtures: these legacy RPC checks must not depend on which catalog the seed ships.
+  await db.exec(`insert into categories (id, department, name_vi, name_en, position) values ('fx-shirts', 'men', 'Fixture', 'Fixture', 99) on conflict (id) do nothing;
+    insert into products (id, department, name_vi, name_en, category, price, colors, sizes, images, is_new, description, description_en) values
+      (1000, 'men', 'Fixture tee', 'Fixture tee', 'fx-shirts', 14700000, ARRAY['white'], ARRAY['M'], ARRAY['/img/fixture.webp'], false, '', ''),
+      (1001, 'men', 'Fixture polo', 'Fixture polo', 'fx-shirts', 1, ARRAY['white'], ARRAY['M'], ARRAY['/img/fixture.webp'], false, '', '')
+    on conflict (id) do update set colors = excluded.colors, sizes = excluded.sizes, category = excluded.category, price = excluded.price;`)
   await db.exec(await readFile(new URL('./customer-addresses.sql', import.meta.url), 'utf8'))
   const migration = await readFile(new URL('./inventory.sql', import.meta.url), 'utf8')
   await db.exec(migration)

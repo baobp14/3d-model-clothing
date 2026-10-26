@@ -1,12 +1,49 @@
 from collections import Counter
+from datetime import timezone
 from uuid import uuid4
 
 from sqlalchemy import exists, func, literal, or_, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from .errors import fail
-from .models import StockMovement, ArchivedProduct, DatasetProduct
+from .models import StockMovement, ArchivedProduct, DatasetProduct, OrderEvent, OrderRefund, PromotionRule, QrPayment
 from .models import AddressBook, Category, Color, Order, Product, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, as_dict, now
+
+# Actor recorded when the payment gateway, not a person, confirms a payment.
+GATEWAY_ACTOR = '00000000-0000-0000-0000-000000000000'
+
+
+def aware(value):
+    # SQLite returns naive datetimes; every stored timestamp is UTC.
+    return value.replace(tzinfo=timezone.utc) if value is not None and value.tzinfo is None else value
+
+
+def log_event(db, order, kind, user=None, from_status='', to_status='', role=None):
+    db.add(OrderEvent(order_id=order.id, kind=kind, from_status=from_status, to_status=to_status,
+                      actor_id=user.id if user else None, actor_role=role or (user.role if user else 'system')))
+
+
+def promotion_dict(db, row):
+    rule = db.get(PromotionRule, row.code)
+    used = db.scalar(select(func.count()).select_from(OrderPricing).join(Order, Order.id == OrderPricing.order_id)
+                     .where(OrderPricing.promotion_code == row.code, Order.status != 'canceled'))
+    return {**as_dict(row), 'ends_at': aware(rule.ends_at) if rule else None, 'max_uses': rule.max_uses if rule else None,
+            'min_subtotal': rule.min_subtotal if rule else 0, 'used': used or 0}
+
+
+def check_promotion(db, promotion, subtotal):
+    """Raise unless the code can be applied to this subtotal right now."""
+    if not promotion or not promotion.active:
+        fail('NB_PROMOTION_INVALID', 409)
+    rule = db.get(PromotionRule, promotion.code)
+    if rule is None:
+        return
+    if rule.ends_at is not None and aware(rule.ends_at) <= now():
+        fail('NB_PROMOTION_EXPIRED', 409)
+    if subtotal < rule.min_subtotal:
+        fail('NB_PROMOTION_MIN_SUBTOTAL', 409)
+    if rule.max_uses is not None and promotion_dict(db, promotion)['used'] >= rule.max_uses:
+        fail('NB_PROMOTION_EXHAUSTED', 409)
 
 
 def lock_customer(db, user_id):
@@ -234,7 +271,7 @@ def line_counts(items):
     return counts
 
 
-def place_order(db, user, values):
+def place_order(db, user, values, max_open_orders=None):
     lock_customer(db, user.id)
     # Lock the customer's book even for retries, matching the address lifecycle.
     book = db.scalar(select(AddressBook).where(AddressBook.user_id == user.id).with_for_update())
@@ -248,6 +285,10 @@ def place_order(db, user, values):
                 or line_counts(existing.items) != line_counts(lines)):
             fail('NB_ORDER_CONFLICT', 409)
         return order_dict(db, existing)
+    # Pending orders reserve stock; cap them so one account cannot hold the whole catalog.
+    if max_open_orders is not None and db.scalar(select(func.count()).select_from(Order).where(
+            Order.user_id == user.id, Order.status == 'pending')) >= max_open_orders:
+        fail('NB_TOO_MANY_OPEN_ORDERS', 409)
     address = next((address for address in (book.addresses if book else []) if address['id'] == str(values.address_id)), None)
     if address is None:
         fail('NB_ADDRESS_NOT_FOUND', 404)
@@ -294,9 +335,9 @@ def place_order(db, user, values):
     discount = 0
     promotion = None
     if values.promotion_code:
+        # The row lock serializes uses of one code, so max_uses cannot be overshot.
         promotion = db.scalar(select(Promotion).where(Promotion.code == values.promotion_code).with_for_update())
-        if not promotion or not promotion.active:
-            fail('NB_PROMOTION_INVALID', 409)
+        check_promotion(db, promotion, total)
         discount = total * promotion.percent // 100
         if values.expected_discount is None or values.expected_discount != discount:
             fail('NB_PRICE_CHANGED', 409)
@@ -306,6 +347,7 @@ def place_order(db, user, values):
                   delivery=dict(address), payment=values.payment, total=total - discount)
     db.add(order)
     db.flush()
+    log_event(db, order, 'created', user, to_status='pending')
     for product_id, product in products.items():
         record_stock(db, product, before_stock[product_id], user, 'order', order_id=order.id)
     if promotion:
@@ -333,9 +375,12 @@ def order_dict(db, order, pricing=None, payment=None, lookup=True, products=None
         item.setdefault('color_vi', color.name_vi if color else item.get('color', ''))
         item.setdefault('color_en', color.name_en if color else item.get('color', ''))
         items.append(item)
+    refund = db.get(OrderRefund, order.id)
     return {**as_dict(order), 'items': items, 'payment_status': 'received' if payment else 'unpaid',
             'received_at': payment.received_at if payment else None, 'subtotal': pricing.subtotal if pricing else order.total,
-            'discount': pricing.discount if pricing else 0, 'promotion_code': pricing.promotion_code if pricing else ''}
+            'discount': pricing.discount if pricing else 0, 'promotion_code': pricing.promotion_code if pricing else '',
+            'refund_status': ('done' if refund.refunded_at else 'required') if refund else None,
+            'refund_amount': refund.amount if refund else 0, 'refunded_at': refund.refunded_at if refund else None}
 
 
 def change_order_status(db, order_id, values, user, admin=False):
@@ -349,8 +394,16 @@ def change_order_status(db, order_id, values, user, admin=False):
     transitions = {'pending': {'confirmed', 'canceled'}, 'confirmed': {'shipped', 'canceled'}, 'shipped': {'delivered'}}
     if values.status not in transitions.get(order.status, set()) or (not admin and (order.status != 'pending' or values.status != 'canceled')):
         fail('NB_ORDER_STATUS_INVALID', 409)
-    if values.status == 'canceled' and db.get(OrderPayment, order.id):
-        fail('NB_PAID_ORDER_CANCEL', 409)
+    paid = db.get(OrderPayment, order.id)
+    # QR orders are prepaid: do not prepare or ship goods before the money arrives.
+    if order.payment == 'qr' and not paid and values.status in ('confirmed', 'shipped', 'delivered'):
+        fail('NB_PAYMENT_REQUIRED', 409)
+    if values.status == 'canceled' and paid:
+        # Customers cannot cancel paid orders; an admin can, which opens a refund to settle.
+        if not admin:
+            fail('NB_PAID_ORDER_CANCEL', 409)
+        db.add(OrderRefund(order_id=order.id, amount=order.total, created_by=user.id))
+        log_event(db, order, 'refund_required', user)
     if values.status == 'canceled':
         quantities = Counter()
         for item in order.items:
@@ -372,20 +425,62 @@ def change_order_status(db, order_id, values, user, admin=False):
                 inventory.revision += 1
             product.stock += quantities[product_id]
             record_stock(db, product, before, user, 'cancel', order_id=order.id)
+    log_event(db, order, 'status', user, from_status=order.status, to_status=values.status)
     order.status = values.status
     db.flush()
     return order_dict(db, order)
 
 
-def receive_payment(db, order_id, user):
+def receive_payment(db, order_id, user=None, gateway_reference=None):
+    """Record payment once. `user` is the admin; without one the gateway confirmed it."""
     order = db.get(Order, str(order_id))
     if not order:
         fail('NB_ORDER_NOT_FOUND', 404)
     lock_customer(db, order.user_id)
     order = db.scalar(select(Order).where(Order.id == str(order_id)).with_for_update().execution_options(populate_existing=True))
-    if order.status == 'canceled':
-        fail('NB_ORDER_STATUS_INVALID', 409)
     if not db.get(OrderPayment, order.id):
-        db.add(OrderPayment(order_id=order.id, received_by=user.id))
+        if order.status == 'canceled':
+            if user is not None:
+                fail('NB_ORDER_STATUS_INVALID', 409)
+            # Money for a canceled QR order still arrived: record it and refund it.
+            db.add(OrderRefund(order_id=order.id, amount=order.total, created_by=GATEWAY_ACTOR))
+            log_event(db, order, 'refund_required', role='gateway')
+        db.add(OrderPayment(order_id=order.id, received_by=user.id if user else GATEWAY_ACTOR))
+        qr = db.get(QrPayment, order.id)
+        if qr and gateway_reference:
+            qr.paid_reference = gateway_reference
+        log_event(db, order, 'payment', user, role=None if user else 'gateway')
         db.flush()
     return order_dict(db, order)
+
+
+def complete_refund(db, order_id, user):
+    order = db.get(Order, str(order_id))
+    refund = db.get(OrderRefund, str(order_id))
+    if not order or not refund:
+        fail('NB_ORDER_NOT_FOUND', 404)
+    lock_customer(db, order.user_id)
+    refund = db.scalar(select(OrderRefund).where(OrderRefund.order_id == order.id).with_for_update().execution_options(populate_existing=True))
+    if refund.refunded_at is None:
+        refund.refunded_at, refund.refunded_by = now(), user.id
+        log_event(db, order, 'refunded', user)
+        db.flush()
+    return order_dict(db, order)
+
+
+def order_events(db, order_id):
+    rows = db.scalars(select(OrderEvent).where(OrderEvent.order_id == str(order_id)).order_by(OrderEvent.created_at, OrderEvent.id))
+    return {'events': [as_dict(row) for row in rows]}
+
+
+def set_archived(db, product_id, archived, reason, user):
+    product = db.scalar(select(Product).where(Product.id == product_id).with_for_update())
+    if product is None:
+        fail('NB_PRODUCT_NOT_FOUND', 404)
+    row = db.get(ArchivedProduct, product_id)
+    if archived and row is None:
+        db.add(ArchivedProduct(product_id=product_id, reason=reason.strip() or 'admin'))
+    elif not archived and row is not None:
+        db.delete(row)
+    db.flush()
+    return product_dict(db, product)

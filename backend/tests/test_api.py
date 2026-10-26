@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.db import make_engine
 from app.main import create_app
-from app.models import Base, Category, Color, Order, Product, OrderPayment, VariantInventory
+from app.models import Base, Category, Color, Order, Product, OrderPayment, OrderRefund, VariantInventory
 from datetime import datetime, timezone
 
 A, B, ADMIN = (str(uuid4()) for _ in range(3))
@@ -56,7 +56,7 @@ def shop(tmp_path):
                     price=250000, stock=2, colors=[], sizes=[], images=[]),
         ])
     auth_http = httpx.Client(transport=httpx.MockTransport(auth_response))
-    app = create_app(Settings(database_url='unused', supabase_url='https://auth.example', supabase_anon_key='public-test-key'),
+    app = create_app(Settings(database_url='unused', supabase_url='https://auth.example', supabase_anon_key='public-test-key', tconnect_base_url=''),
                      engine=engine, auth_http=auth_http)
     with TestClient(app) as client:
         yield client, engine
@@ -122,6 +122,9 @@ def test_product_pages_filter_before_sql_pagination_and_keep_global_totals(shop)
     filtered = client.get('/api/product-page', params={'categories': 'm-tshirts', 'colors': 'black', 'sizes': 'L', 'stock': 'low'}).json()
     assert filtered['total'] == 1 and filtered['stock_units'] == 5
     assert 'M' in filtered['sizes'] and 'L' in filtered['sizes']
+    # Storefront filter options: only colors used by active products in the department.
+    assert client.get('/api/product-page', params={'department': 'men'}).json()['color_options'] == ['black']
+    assert client.get('/api/product-page', params={'department': 'women'}).json()['color_options'] == []
     assert client.get('/api/product-page', params={'sizes': 'unknown'}).json()['total'] == 0
     assert client.get('/api/product-page', params={'q': '%'}).json()['total'] == 0
     assert client.get('/api/product-page', params={'sort': 'priceDesc', 'limit': 1}).json()['products'][0]['id'] == 2
@@ -674,8 +677,10 @@ def test_receipt_and_cancellation_race_cannot_receive_money_and_restore_stock(sh
                             json={'received': True} if receive else {'status': 'canceled', 'expected_status': 'pending'})
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(act, (True, False)))
-    assert sorted(result.status_code for result in results) == [200, 409]
+    # Either receipt wins (cancel then opens a refund) or cancel wins (receipt refused).
     with Session(engine) as db:
         receipt = db.get(OrderPayment, order['id'])
-        assert db.get(Product, 1).stock == (3 if receipt else 5)
-        assert db.get(Order, order['id']).status == ('pending' if receipt else 'canceled')
+        assert [result.status_code for result in results] == ([200, 200] if receipt else [409, 200])
+        assert db.get(Product, 1).stock == 5
+        assert db.get(Order, order['id']).status == 'canceled'
+        assert (db.get(OrderRefund, order['id']) is not None) == (receipt is not None)

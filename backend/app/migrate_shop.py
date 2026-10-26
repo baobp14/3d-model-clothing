@@ -3,12 +3,13 @@ from sqlalchemy import Index, text
 from .config import Settings
 from .db import make_engine
 from .models import WishlistItem, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, Order, DemoOrder
-from .models import StockMovement, NotificationRead, ArchivedProduct, DatasetProduct
+from .models import StockMovement, NotificationRead, ArchivedProduct, DatasetProduct, OrderEvent, OrderRefund, QrPayment, PromotionRule
 
 
 def migrate(engine):
     with engine.begin() as connection:
-        for model in (WishlistItem, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, DemoOrder, StockMovement, NotificationRead, ArchivedProduct, DatasetProduct):
+        for model in (WishlistItem, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, DemoOrder, StockMovement, NotificationRead, ArchivedProduct, DatasetProduct,
+                      OrderEvent, OrderRefund, QrPayment, PromotionRule):
             model.__table__.create(connection, checkfirst=True)
             if engine.dialect.name == 'postgresql':
                 # Access is through the authenticated Python API, never public SQL.
@@ -26,9 +27,11 @@ def migrate(engine):
         if engine.dialect.name == 'postgresql':
             # Legacy security-definer RPCs mutate aggregate stock without updating
             # variant inventory. Current clients use Python, so retire these writes.
+            # The address RPC also bypasses the Python validation and limits; no client uses it now.
             signatures = ['public.place_shop_order(jsonb,uuid,text,uuid)',
                           'public.update_inventory_product(bigint,text,bigint,integer,text,jsonb)',
-                          'public.add_inventory_product(text,text,bigint,integer,text)']
+                          'public.add_inventory_product(text,text,bigint,integer,text)',
+                          'public.manage_customer_address(text,jsonb,uuid,boolean,bigint)']
             roles = ['PUBLIC'] + [role for role in ('anon', 'authenticated')
                                   if connection.scalar(text('SELECT 1 FROM pg_roles WHERE rolname = :role'), {'role': role})]
             for signature in signatures:

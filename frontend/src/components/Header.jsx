@@ -1,16 +1,16 @@
-import DevelopmentButton from './DevelopmentButton'
 import { normalizeSpacingEvent } from '../lib/inputSpacing'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AccountDrawer from './AccountDrawer'
+import MenuDrawer from './MenuDrawer'
 import Icon from './Icon'
 import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../i18n'
 import { useCart } from '../hooks/useCart'
 import useSearchHistory from '../hooks/useSearchHistory'
 
-const menu = [['nav.women', '/women/ready-to-wear'], ['nav.men', '/men/ready-to-wear'], ['nav.bags', '/bags'], ['nav.watches', '/watches']]
-const keywords = ['search.k1', 'search.k2', 'search.k3', 'search.k4', 'search.k5']
+// Từ khóa phổ biến: chỉ những từ dẫn tới sản phẩm có thật trong catalog.
+const keywords = ['search.k1', 'search.k2', 'search.k3', 'search.k4']
 
 export default function Header() {
   const navigate = useNavigate()
@@ -22,15 +22,15 @@ export default function Header() {
   const [account, setAccount] = useState(false)
   const [query, setQuery] = useState('')
   const input = useRef(null)
+  const searchButton = useRef(null)
   const header = useRef(null)
   const history = useSearchHistory()
-  const { lang, setLang, t } = useLang()
+  const { t } = useLang()
   const { user, isAdmin } = useAuth()
-  const overlay = useLocation().pathname === '/'
-  const shell = !overlay
-    ? 'sticky top-0 border-b border-feather bg-white text-obsidian'
-    : `fixed inset-x-0 top-0 ${hover || search || scrolled ? 'border-b border-feather bg-white text-obsidian' : 'bg-transparent text-white'}`
-  const langBtn = code => `px-2 py-1 text-[11px] tracking-[.16em] uppercase transition-colors ${lang === code ? 'font-medium underline underline-offset-4' : 'opacity-50 hover:opacity-100'}`
+  const home = useLocation().pathname === '/'
+  // Trang chủ: header trong suốt trên ảnh hero, chuyển nền trắng khi cuộn/hover/mở tìm kiếm.
+  const solid = !home || hover || search || scrolled || open
+  const tone = solid ? 'border-line bg-paper text-ink' : 'border-transparent bg-transparent text-on-ink'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -40,18 +40,9 @@ export default function Header() {
   }, [])
 
   useEffect(() => {
-    if (!open) return
-    const onKey = e => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
-  }, [open])
-
-  useEffect(() => {
     if (!search) return
     input.current?.focus()
-    const onKey = e => { if (e.key === 'Escape') setSearch(false) }
+    const onKey = e => { if (e.key === 'Escape') { setSearch(false); searchButton.current?.focus() } }
     // Bấm ra ngoài header (vùng chứa ô tìm kiếm) thì đóng.
     const onDown = e => { if (!header.current?.contains(e.target)) setSearch(false) }
     document.addEventListener('keydown', onKey)
@@ -66,56 +57,67 @@ export default function Header() {
     navigate(`/search?${new URLSearchParams({ q: clean })}`)
   }
 
+  const textButton = 'inline-flex h-11 items-center gap-2 px-2 text-caption'
   return <>
-    <header ref={header} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} className={`z-50 transition-colors duration-500 ease-soft ${shell}`}>
-      <div className="header-bar flex w-full h-16 items-center justify-between px-4 sm:h-20 sm:px-5 md:px-8">
-        <div className="flex flex-1 items-center gap-4 sm:gap-5">
-          <button onClick={() => setOpen(true)} aria-label={t('a11y.menu')} aria-expanded={open}><Icon name="menu" /></button>
-          <button onClick={() => setSearch(!search)} aria-label={search ? t('search.close') : t('a11y.search')} aria-expanded={search}><Icon name={search ? 'close' : 'search'} size={18} /></button>
+    <header ref={header} data-overlay={!solid} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      className={`sticky top-0 z-(--z-header) h-(--header-h) border-b transition-colors duration-(--duration-base) ease-soft ${home ? '-mb-(--header-h)' : ''} ${tone}`}>
+      <div className="mx-auto grid h-full max-w-page grid-cols-[1fr_auto_1fr] items-center px-(--gutter) max-md:px-2">
+        <div className="flex items-center">
+          <button onClick={() => setOpen(true)} aria-label={t('a11y.menu')} aria-expanded={open} aria-controls="menu-drawer" className={textButton}>
+            <Icon name="menu" size={20} /><span className="hidden md:inline">{t('nav.menu')}</span>
+          </button>
+          <button ref={searchButton} onClick={() => setSearch(!search)} aria-label={search ? t('search.close') : t('a11y.search')} aria-expanded={search} aria-controls="site-search-panel" className={textButton}>
+            <Icon name={search ? 'close' : 'search'} size={20} /><span className="hidden md:inline">{t('a11y.search')}</span>
+          </button>
         </div>
-        <Link to="/" className="flex flex-col items-center" aria-label={t('a11y.home')}><span className="font-display text-xl tracking-[.28em] uppercase md:text-2xl">N&amp;B</span></Link>
-        <div className="flex flex-1 items-center justify-end gap-4 md:gap-6">
-          <button onClick={() => setAccount(true)} className="relative" aria-label={t('a11y.account')} aria-expanded={account}><Icon name="user" size={18} />{user && <span className={`absolute -right-1 -top-1 h-1.5 w-1.5 rounded-full ${isAdmin ? 'bg-red-600' : 'bg-champagne'}`} />}</button>
-          <Link to="/account/wishlist" aria-label={t('a11y.wishlist')}><Icon name="heart" size={18} /></Link>
-          <Link to="/cart" className="flex items-center gap-2" aria-label={t('a11y.cart').replace('{count}', count)}><Icon name="bag" size={18} /><span className="text-[10px]">({count})</span></Link>
+        <Link to="/" className="inline-flex min-h-11 items-center px-2 font-display text-[1.375rem] leading-none tracking-[.18em] md:text-[1.625rem]" aria-label={t('a11y.home')}>N&amp;B</Link>
+        <div className="flex items-center justify-end">
+          <button onClick={() => setAccount(true)} className="relative grid size-11 place-items-center" aria-label={t('a11y.account')} aria-expanded={account}>
+            <Icon name="user" size={20} />
+            {user && <span aria-hidden="true" className={`absolute right-2.5 top-2.5 size-1.5 rounded-full ${isAdmin ? 'bg-danger' : 'bg-accent'}`} />}
+          </button>
+          <Link to="/account/wishlist" className="grid size-11 place-items-center" aria-label={t('a11y.wishlist')}><Icon name="heart" size={20} /></Link>
+          <Link to="/cart" className="relative grid size-11 place-items-center" aria-label={count === 1 ? t('a11y.cart1') : t('a11y.cart').replace('{count}', count)}>
+            <Icon name="bag" size={20} />
+            {count > 0 && <span aria-hidden="true" className={`absolute right-0.5 top-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[0.625rem] font-medium leading-none tabular-nums ${solid ? 'bg-ink text-on-ink' : 'bg-paper text-ink'}`}>{count}</span>}
+          </Link>
         </div>
       </div>
-      <div className={`overflow-hidden border-feather bg-white text-obsidian transition-all duration-500 ease-soft ${search ? 'max-h-96 border-t opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-5 sm:py-7">
-          <form onSubmit={e => { e.preventDefault(); submit(query) }}>
+
+      <div id="site-search-panel" inert={!search} aria-hidden={!search}
+        className={`absolute inset-x-0 top-full overflow-hidden border-line bg-paper text-ink transition-[max-height,opacity] duration-(--duration-slow) ease-soft ${search ? 'max-h-[28rem] border-b opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="mx-auto max-w-2xl px-(--gutter) py-8">
+          <form role="search" onSubmit={e => { e.preventDefault(); submit(query) }}>
             <label htmlFor="site-search" className="sr-only">{t('a11y.search')}</label>
-            <input ref={input} id="site-search" type="search" maxLength={120} value={query} onChange={e => { normalizeSpacingEvent(e); setQuery(e.target.value) }} tabIndex={search ? 0 : -1} placeholder={t('search.placeholder')} className="w-full rounded-full border border-obsidian/25 px-6 py-3 text-sm placeholder:text-stone focus:border-champagne focus:outline-none" />
+            <div className="flex items-center gap-3 border-b border-ink pb-2">
+              <Icon name="search" size={20} />
+              <input ref={input} id="site-search" type="search" maxLength={120} value={query} onChange={e => { normalizeSpacingEvent(e); setQuery(e.target.value) }}
+                placeholder={t('search.placeholder')} enterKeyHint="search" className="min-h-11 w-full bg-transparent text-lead placeholder:text-ink-muted" />
+            </div>
           </form>
-          {history.items.length > 0 && <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            <span className="text-[10px] tracking-[.2em] text-taupe uppercase">{t('search.recent')}</span>
-            {history.items.map(({ q }) => <span key={q} className="flex items-center gap-1 rounded-full border border-feather py-1 pr-2 pl-3 text-xs text-charcoal">
-              <button onClick={() => submit(q)} tabIndex={search ? 0 : -1} className="hover:underline underline-offset-4">{q}</button>
-              <button onClick={() => history.remove(q)} tabIndex={search ? 0 : -1} aria-label={`${t('search.remove')} ${q}`} className="opacity-50 hover:opacity-100"><Icon name="close" size={10} /></button>
-            </span>)}
-            <button onClick={history.clear} tabIndex={search ? 0 : -1} className="text-[10px] tracking-[.16em] text-stone uppercase hover:text-obsidian">{t('search.clear')}</button>
+          {history.items.length > 0 && <div className="mt-6">
+            <div className="flex items-center justify-between">
+              <p className="eyebrow text-ink-muted">{t('search.recent')}</p>
+              <button onClick={history.clear} className="min-h-11 px-1 text-caption text-ink-muted text-link">{t('search.clear')}</button>
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {history.items.map(({ q }) => <li key={q} className="flex items-center border border-line-strong">
+                <button onClick={() => submit(q)} className="min-h-10 pl-3 pr-1 text-body-sm">{q}</button>
+                <button onClick={() => history.remove(q)} aria-label={`${t('search.remove')} ${q}`} className="grid size-10 place-items-center text-ink-muted hover:text-ink"><Icon name="close" size={14} /></button>
+              </li>)}
+            </ul>
           </div>}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <span className="text-[10px] tracking-[.2em] text-taupe uppercase">{t('search.popular')}</span>
-            {keywords.map(k => k === 'search.k5' ? <DevelopmentButton key={k} tabIndex={search ? 0 : -1} className="text-xs text-charcoal hover:underline underline-offset-4">{t(k)}</DevelopmentButton> : <button key={k} onClick={() => submit(t(k))} tabIndex={search ? 0 : -1} className="text-xs text-charcoal hover:underline underline-offset-4">{t(k)}</button>)}
+          <div className="mt-6">
+            <p className="eyebrow text-ink-muted">{t('search.popular')}</p>
+            <ul className="mt-2 flex flex-wrap gap-x-6">
+              {keywords.map(k => <li key={k}><button onClick={() => submit(t(k))} className="min-h-11 text-body-sm text-link">{t(k)}</button></li>)}
+            </ul>
           </div>
         </div>
       </div>
     </header>
 
-    <div onClick={() => setOpen(false)} className={`fixed inset-0 z-55 bg-obsidian/40 transition-opacity duration-500 ease-soft ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden="true" />
-    <aside className={`fixed inset-y-0 left-0 z-60 flex w-full flex-col bg-white text-obsidian shadow-2xl transition-transform duration-550 ease-soft will-change-transform sm:w-105 ${open ? 'translate-x-0' : '-translate-x-full'}`} aria-hidden={!open}>
-      <button onClick={() => setOpen(false)} className="flex items-center gap-3 px-6 pt-6 pb-8 text-sm sm:px-8 sm:pt-8 sm:pb-10" aria-label={t('nav.close')}><Icon name="close" size={20} />{t('nav.close')}</button>
-      <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 sm:gap-6 sm:px-8" aria-label={t('a11y.nav')}>
-        {menu.map(([key, href]) => <Link key={key} to={href} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1} className="text-lg hover:underline underline-offset-8">{t(key)}</Link>)}
-      </nav>
-      <div className="flex items-center gap-1 border-t border-feather px-6 py-5 sm:px-8 sm:py-6" role="group" aria-label={t('a11y.lang')}>
-        <span className="mr-3 text-[11px] tracking-[.16em] text-stone uppercase">{t('nav.language')}</span>
-        <button onClick={() => setLang('vi')} className={langBtn('vi')} tabIndex={open ? 0 : -1} aria-pressed={lang === 'vi'}>VN</button>
-        <span className="opacity-40">/</span>
-        <button onClick={() => setLang('en')} className={langBtn('en')} tabIndex={open ? 0 : -1} aria-pressed={lang === 'en'}>EN</button>
-      </div>
-    </aside>
-
+    <MenuDrawer open={open} onClose={() => setOpen(false)} />
     <AccountDrawer open={account} onClose={() => setAccount(false)} />
   </>
 }

@@ -40,9 +40,9 @@ export default function GoogleButton() {
 
   return <>
     <button type="button" onClick={signIn} disabled={busy}
-      className="button w-full gap-3 border-obsidian/25 bg-white text-obsidian hover:bg-obsidian hover:text-white disabled:opacity-60">
+      className="button w-full gap-3">
       <GoogleMark />{t('auth.google')}
     </button>
-    {error && <p role="alert" className="mt-3 text-[13px] text-red-700">{error}</p>}
+    {error && <p role="alert" className="mt-3 text-[13px] text-danger">{error}</p>}
   </>
 }

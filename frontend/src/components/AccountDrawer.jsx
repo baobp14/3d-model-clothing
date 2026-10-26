@@ -2,7 +2,7 @@ import useSubmission from '../hooks/useSubmission'
 import { TitleField } from './auth/fields'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Icon from './Icon'
+import Drawer, { DrawerHeader } from './ui/Drawer'
 import { EMAIL, Field, Submit, useForm, validateRegistration } from './auth/fields'
 import GoogleButton from './auth/GoogleButton'
 import PasswordResetRequest, { authError } from './auth/PasswordResetRequest'
@@ -22,15 +22,15 @@ import { useLang } from '../i18n'
  */
 
 const Heading = ({ children }) => <>
-  <h2 className="font-display text-[clamp(1.35rem,2.4vw,1.6rem)] leading-tight tracking-[.06em] text-obsidian uppercase">{children}</h2>
-  <div className="mt-4 h-px w-10 bg-champagne" />
+  <h3 className="font-display text-title-sm">{children}</h3>
+  <div className="mt-4 h-px w-10 bg-accent" />
 </>
 
 const Ghost = props =>
-  <button type="button" {...props} className="button w-full border-obsidian/30 text-obsidian hover:bg-obsidian hover:text-white" />
+  <button type="button" {...props} className="button w-full" />
 
 const Switch = ({ children }) =>
-  <p className="mt-10 border-t border-feather pt-6 text-center text-[13px] text-slate">{children}</p>
+  <p className="mt-10 border-t border-line pt-6 text-center text-body-sm text-ink-muted">{children}</p>
 
 function LoginView({ go, t, onDone }) {
   const { signIn } = useAuth()
@@ -59,8 +59,8 @@ function LoginView({ go, t, onDone }) {
         <Field disabled={submission.busy} id="dw-email" type="email" autoComplete="email" label={`${t('auth.email')} *`} {...form.bind('email')} />
         <Field disabled={submission.busy} id="dw-password" type="password" autoComplete="current-password" label={`${t('auth.password')} *`} {...form.bind('password')} />
         <button type="button" onClick={() => go('forgot')}
-          className="-mt-2 mb-8 block text-[13px] text-charcoal underline underline-offset-4 hover:text-champagne">{t('auth.forgotQ')}</button>
-        {status && <p role="alert" className="mb-4 text-[13px] text-red-700">{status}</p>}
+          className="-mt-2 mb-8 block min-h-11 text-body-sm text-link">{t('auth.forgotQ')}</button>
+        {status && <p role="alert" className="mb-4 text-body-sm text-danger">{status}</p>}
         <div className="login-actions">
           <Submit disabled={submission.busy}>{t(submission.busy ? 'auth.processing' : 'auth.login')}</Submit>
           <Ghost onClick={() => go('register')}>{t('auth.createAccount')}</Ghost>
@@ -70,9 +70,9 @@ function LoginView({ go, t, onDone }) {
 
     <section className="mt-7">
       <div className="mb-6 flex items-center gap-4">
-        <span className="h-px flex-1 bg-feather" />
-        <span className="text-[11px] tracking-[.16em] text-slate uppercase">{t('auth.or')}</span>
-        <span className="h-px flex-1 bg-feather" />
+        <span className="h-px flex-1 bg-line" />
+        <span className="eyebrow text-ink-muted">{t('auth.or')}</span>
+        <span className="h-px flex-1 bg-line" />
       </div>
       <div className="login-google"><GoogleButton /></div>
     </section>
@@ -102,23 +102,23 @@ function RegisterView({ go, t }) {
       <Field disabled={submission.busy} registration id="dw-rpassword" type="password" autoComplete="new-password" label={`${t('auth.password')} *`} placeholder={t('auth.registrationPasswordHint')} {...form.bind('password')} />
       <Field disabled={submission.busy} registration id="dw-confirm" type="password" autoComplete="new-password" label={`${t('auth.confirm')} *`} {...form.bind('confirm')} />
       </div>
-      <label className="mb-8 flex items-start gap-3 text-[13px] leading-6 text-charcoal">
-        <input type="checkbox" disabled={submission.busy} required checked={form.values.terms} onChange={e => form.setValues(v => ({ ...v, terms: e.target.checked }))} aria-invalid={!!form.errors.terms} className="mt-0.5 h-4 w-4 accent-obsidian" />
-        <span>{t('auth.terms')} <span aria-hidden="true" className="text-red-700">*</span>{form.errors.terms && <span className="mt-1 block text-red-700">{form.errors.terms}</span>}</span>
+      <label className="mb-8 flex min-h-11 items-start gap-3 text-body-sm text-ink">
+        <input type="checkbox" disabled={submission.busy} required checked={form.values.terms} onChange={e => form.setValues(v => ({ ...v, terms: e.target.checked }))} aria-invalid={!!form.errors.terms} className="mt-0.5 size-5 shrink-0 accent-ink" />
+        <span>{t('auth.terms')} <span aria-hidden="true" className="text-danger">*</span>{form.errors.terms && <span className="mt-1 block text-danger">{form.errors.terms}</span>}</span>
       </label>
-      {status && <p role="alert" className="mb-4 text-[13px] text-charcoal">{status}</p>}
+      {status && <p role="alert" className="mb-4 text-body-sm text-ink">{status}</p>}
       <Submit disabled={submission.busy}>{t(submission.busy ? 'auth.processing' : 'auth.createAccount')}</Submit>
     </form>
-    <Switch>{t('auth.hasAccount')} <button type="button" onClick={() => go('login')} className="text-obsidian underline underline-offset-4">{t('auth.login')}</button></Switch>
+    <Switch>{t('auth.hasAccount')} <button type="button" onClick={() => go('login')} className="min-h-11 text-ink text-link">{t('auth.login')}</button></Switch>
   </section>
 }
 
 function ForgotView({ go, t }) {
   return <section>
     <Heading>{t('auth.forgotTitle')}</Heading>
-    <p className="mt-5 mb-8 text-sm leading-7 text-slate">{t('auth.forgotDesc')}</p>
+    <p className="mt-5 mb-8 text-body text-ink-muted">{t('auth.forgotDesc')}</p>
     <PasswordResetRequest prefix="drawer-reset" />
-    <Switch><button type="button" onClick={() => go('login')} className="underline">{t('auth.backLogin')}</button></Switch>
+    <Switch><button type="button" onClick={() => go('login')} className="min-h-11 text-link">{t('auth.backLogin')}</button></Switch>
   </section>
 }
 
@@ -130,18 +130,17 @@ function AccountView({ t, onDone }) {
   const { lang } = useLang()
   return <section>
     <Heading>{t('auth.hello')}</Heading>
-    <p className="mt-5 text-[15px] leading-7 text-obsidian">{user?.user_metadata?.name || user?.email}</p>
-    <p className="mt-2 inline-block border px-3 py-1 text-[10px] tracking-[.18em] uppercase"
-      style={{ borderColor: isAdmin ? '#9a7b2e' : '#e5e5e5', color: isAdmin ? '#9a7b2e' : '#6f665d' }}>
+    <p className="mt-5 text-body text-ink">{user?.user_metadata?.name || user?.email}</p>
+    <p className={`mt-2 inline-block border px-3 py-1 text-micro tracking-[.14em] uppercase ${isAdmin ? 'border-accent text-accent' : 'border-line-strong text-ink-muted'}`}>
       {isAdmin ? t('auth.roleAdmin') : t('auth.roleCustomer')}
     </p>
     {isAdmin && <Link to="/admin" onClick={onDone}
-      className="button mt-10 w-full border-champagne text-champagne hover:bg-champagne hover:text-white">{t('admin.open')}</Link>}
+      className="button button--primary mt-10 w-full">{t('admin.open')}</Link>}
     {!isAdmin && <Link to="/account/wishlist" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Sản phẩm yêu thích' : 'Wishlist'}</Link>}
     {!isAdmin && <Link to="/account/orders" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Đơn hàng của tôi' : 'My orders'}</Link>}
     <Link to="/account/addresses" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Sổ địa chỉ của tôi' : 'My address book'}</Link>
-    <Link to="/forgot-password" onClick={onDone} className="mt-6 block text-sm underline underline-offset-4">{t('auth.resetTitle')}</Link>
-    {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
+    <Link to="/forgot-password" onClick={onDone} className="mt-6 inline-flex min-h-11 items-center text-body-sm text-link">{t('auth.resetTitle')}</Link>
+    {error && <p role="alert" className="mt-4 text-body-sm text-danger">{error}</p>}
     <div className="mt-4"><Ghost disabled={submission.busy} onClick={submission.wrap(async () => { setError(''); await signOut(); onDone() })}>{t('auth.signOut')}</Ghost></div>
   </section>
 }
@@ -151,35 +150,17 @@ const VIEWS = { login: LoginView, register: RegisterView, forgot: ForgotView }
 export default function AccountDrawer({ open, onClose }) {
   const { t } = useLang()
   const [view, setView] = useState('login')
-
-  useEffect(() => {
-    if (!open) return
-    setView('login')
-    const onKey = e => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
-  }, [open, onClose])
-
+  useEffect(() => { if (open) setView('login') }, [open])
   const { user } = useAuth()
   const View = user ? AccountView : VIEWS[view]
 
-  return <>
-    <div onClick={onClose} aria-hidden="true"
-      className={`fixed inset-0 z-55 bg-obsidian/40 transition-opacity duration-500 ease-soft ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-    <aside aria-hidden={!open} aria-label={t('auth.drawerTitle')}
-      className={`fixed inset-y-0 right-0 z-60 flex w-full flex-col bg-alabaster shadow-2xl transition-transform duration-550 ease-soft will-change-transform lg:w-1/2 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
-      <div className="flex items-center justify-between border-b border-feather px-6 py-5 sm:px-10">
-        <p className="eyebrow text-[10px] text-slate">{t('auth.drawerTitle')}</p>
-        <button onClick={onClose} tabIndex={open ? 0 : -1} aria-label={t('nav.close')} className="-mr-2 p-2 text-charcoal hover:text-champagne"><Icon name="close" size={20} /></button>
+  return <Drawer open={open} onClose={onClose} side="right" labelledBy="account-drawer-title" surface="bg-cream" width="sm:w-105 lg:w-1/2">
+    <DrawerHeader id="account-drawer-title" title={t('auth.drawerTitle')} onClose={onClose} closeLabel={t('nav.close')} />
+    {/* Nửa màn hình 2K vẫn ~1280px — giới hạn bề rộng form để ô nhập không dài lê thê */}
+    <div className="flex-1 overflow-y-auto px-(--gutter) py-10 sm:px-10">
+      <div key={user ? 'account' : view} className={`mx-auto w-full ${!user && view === 'register' ? 'max-w-[640px]' : 'max-w-md'} motion-safe:animate-[fade-up_.4s_var(--ease-soft)]`}>
+        <View go={setView} t={t} onDone={onClose} />
       </div>
-      {/* Nửa màn hình 2K vẫn ~1280px — để form trải hết thì các ô nhập dài lê thê */}
-      <div className="flex-1 overflow-y-auto px-6 py-12 sm:px-10">
-        <div key={user ? 'account' : view} className={`mx-auto w-full ${!user && view === 'register' ? 'max-w-[640px]' : 'max-w-md'} animate-[fade-up_.45s_var(--ease-soft)]`}>
-          <View go={setView} t={t} onDone={onClose} />
-        </div>
-      </div>
-    </aside>
-  </>
+    </div>
+  </Drawer>
 }

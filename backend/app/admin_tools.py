@@ -90,7 +90,8 @@ def csv_text(rows):
     for index, row in enumerate(rows):
         if index > 50000:
             fail('NB_EXPORT_TOO_LARGE', 422)
-        writer.writerow(["'" + value if isinstance(value, str) and value.lstrip().startswith(('=', '+', '-', '@')) else value for value in row])
+        # Neutralize spreadsheet formulas (OWASP CSV injection list, incl. tab and carriage return).
+        writer.writerow(["'" + value if isinstance(value, str) and (value.startswith(('\t', '\r')) or value.lstrip().startswith(('=', '+', '-', '@'))) else value for value in row])
     return '\ufeff' + output.getvalue()
 
 

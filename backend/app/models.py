@@ -168,5 +168,51 @@ class OrderPayment(Base):
     received_by: Mapped[str] = mapped_column(Uuid(as_uuid=False))
 
 
+class OrderEvent(Base):
+    """Who changed an order and when: creation, status, payment and refund steps."""
+    __tablename__ = 'shop_order_events'
+    id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
+    order_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey('shop_orders.id'), index=True)
+    kind: Mapped[str] = mapped_column(Text)
+    from_status: Mapped[str] = mapped_column(Text, default='')
+    to_status: Mapped[str] = mapped_column(Text, default='')
+    actor_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
+    actor_role: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class OrderRefund(Base):
+    """A paid order canceled by an admin; money must be returned outside the shop."""
+    __tablename__ = 'shop_order_refunds'
+    order_id: Mapped[str] = mapped_column(ForeignKey('shop_orders.id'), primary_key=True)
+    amount: Mapped[int] = mapped_column(BigInteger)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_by: Mapped[str] = mapped_column(Uuid(as_uuid=False))
+    refunded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    refunded_by: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
+
+
+class QrPayment(Base):
+    """TConnect dynamic QR for one order; `reference` is the order id sent to the bank."""
+    __tablename__ = 'shop_qr_payments'
+    order_id: Mapped[str] = mapped_column(ForeignKey('shop_orders.id'), primary_key=True)
+    reference: Mapped[str] = mapped_column(Text, unique=True)
+    amount: Mapped[int] = mapped_column(BigInteger)
+    qr_content: Mapped[str] = mapped_column(Text)
+    image_png_base64: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    paid_reference: Mapped[str] = mapped_column(Text, default='')
+
+
+class PromotionRule(Base):
+    """Optional limits for a promotion code; a code without a row has no limits."""
+    __tablename__ = 'shop_promotion_rules'
+    __table_args__ = (CheckConstraint('max_uses IS NULL OR max_uses >= 1'), CheckConstraint('min_subtotal >= 0'))
+    code: Mapped[str] = mapped_column(ForeignKey('shop_promotions.code'), primary_key=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    max_uses: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_subtotal: Mapped[int] = mapped_column(BigInteger, default=0)
+
+
 def as_dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}

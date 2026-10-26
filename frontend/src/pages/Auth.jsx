@@ -11,13 +11,14 @@ import PasswordResetRequest, { authError } from '../components/auth/PasswordRese
 function Shell({ title, desc, children, footer, registration = false }) {
   const { t } = useLang()
   useEffect(() => { window.scrollTo(0, 0) }, [])
-  return <main className="bg-alabaster px-5 py-16 md:py-24">
-    <div className={`mx-auto w-full max-w-md bg-white px-6 py-10 md:px-10 md:py-12 ${registration ? 'registration-panel registration-card' : ''}`}>
-      <nav className="eyebrow mb-8 text-[10px] text-stone" aria-label="Breadcrumb"><Link to="/" className="hover:text-obsidian">{t('plp.home')}</Link> / <span className="text-obsidian">{title}</span></nav>
-      <h1 className="font-display text-3xl tracking-[.06em] uppercase">{title}</h1>
-      {desc && <p className="mt-3 text-sm leading-6 text-taupe">{desc}</p>}
+  return <main className="bg-cream px-(--gutter) py-(--section-y-tight) md:py-(--section-y)">
+    <title>{title + ' – N&B'}</title>
+    <div className={`mx-auto w-full bg-paper px-6 py-10 md:px-12 md:py-12 ${registration ? 'max-w-[720px]' : 'max-w-form'}`}>
+      <nav className="mb-8 text-caption text-ink-muted" aria-label="Breadcrumb"><Link to="/" className="inline-flex min-h-6 items-center hover:text-ink">{t('plp.home')}</Link> / <span aria-current="page" className="text-ink">{title}</span></nav>
+      <h1 className="font-display text-title">{title}</h1>
+      {desc && <p className="mt-3 text-body text-ink-muted">{desc}</p>}
       <div className="mt-8">{children}</div>
-      {footer && <p className="mt-8 border-t border-feather pt-6 text-center text-xs text-charcoal">{footer}</p>}
+      {footer && <p className="mt-8 border-t border-line pt-6 text-center text-body-sm text-ink">{footer}</p>}
     </div>
   </main>
 }
@@ -50,15 +51,15 @@ export function Login() {
     <form onSubmit={onSubmit} noValidate>
       <Field disabled={submission.busy} id="email" type="email" autoComplete="email" label={t('auth.email')} {...form.bind('email')} />
       <Field disabled={submission.busy} id="password" type="password" autoComplete="current-password" label={t('auth.password')} {...form.bind('password')} />
-      <div className="-mt-2 mb-6 text-right"><Link to="/forgot-password" className="text-xs text-taupe underline underline-offset-4 hover:text-obsidian">{t('auth.forgot')}</Link></div>
-      {status && <p role="alert" className="mb-4 text-[13px] text-red-700">{status}</p>}
+      <div className="-mt-2 mb-6 text-right"><Link to="/forgot-password" className="inline-flex min-h-11 items-center text-body-sm text-link">{t('auth.forgot')}</Link></div>
+      {status && <p role="alert" className="mb-4 text-body-sm text-danger">{status}</p>}
       <Submit disabled={submission.busy}>{t(submission.busy ? 'auth.processing' : 'auth.login')}</Submit>
     </form>
   </Shell>
 }
 
 export function Register() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const { signUp } = useAuth()
   const location = useLocation()
   const [status, setStatus] = useState('')
@@ -81,11 +82,13 @@ export function Register() {
       <Field disabled={submission.busy} registration id="password" type="password" autoComplete="new-password" label={t('auth.password')} placeholder={t('auth.registrationPasswordHint')} {...form.bind('password')} />
       <Field disabled={submission.busy} registration id="confirm" type="password" autoComplete="new-password" label={t('auth.confirm')} {...form.bind('confirm')} />
       </div>
-      <label className="mb-6 flex items-start gap-3 text-xs leading-5 text-charcoal">
-        <input type="checkbox" disabled={submission.busy} required checked={form.values.terms} onChange={e => form.setValues(v => ({ ...v, terms: e.target.checked }))} aria-invalid={!!form.errors.terms} className="mt-0.5 h-4 w-4 accent-obsidian" />
-        <span>{t('auth.terms')} <span aria-hidden="true" className="text-red-700">*</span>{form.errors.terms && <span className="mt-1 block text-red-700">{form.errors.terms}</span>}</span>
+      <label className="mb-6 flex items-start gap-3 text-body-sm text-ink">
+        <input type="checkbox" disabled={submission.busy} required checked={form.values.terms} onChange={e => form.setValues(v => ({ ...v, terms: e.target.checked }))} aria-invalid={!!form.errors.terms} className="mt-0.5 size-5 shrink-0 accent-ink" />
+        <span>{lang === 'vi'
+          ? <>Tôi đồng ý với <Link to="/terms" target="_blank" className="underline">Điều khoản sử dụng</Link> và <Link to="/privacy" target="_blank" className="underline">Chính sách bảo mật</Link> của N&B.</>
+          : <>I agree to the N&B <Link to="/terms" target="_blank" className="underline">Terms of Use</Link> and <Link to="/privacy" target="_blank" className="underline">Privacy Policy</Link>.</>} <span aria-hidden="true" className="text-danger">*</span>{form.errors.terms && <span className="mt-1 block text-danger">{form.errors.terms}</span>}</span>
       </label>
-      {status && <p role="alert" className="mb-4 text-[13px] text-charcoal">{status}</p>}
+      {status && <p role="alert" className="mb-4 text-body-sm text-ink">{status}</p>}
       <Submit disabled={submission.busy}>{t(submission.busy ? 'auth.processing' : 'auth.createAccount')}</Submit>
     </form>
   </Shell>
@@ -93,7 +96,7 @@ export function Register() {
 
 export function ForgotPassword() {
   const { t } = useLang()
-  return <Shell title={t('auth.forgotTitle')} desc={t('auth.forgotDesc')} footer={<Link to="/login" className="underline">{t('auth.backLogin')}</Link>}>
+  return <Shell title={t('auth.forgotTitle')} desc={t('auth.forgotDesc')} footer={<Link to="/login" className="inline-flex min-h-6 items-center underline underline-offset-4">{t('auth.backLogin')}</Link>}>
     <PasswordResetRequest />
   </Shell>
 }
@@ -134,11 +137,11 @@ export function ResetPassword() {
     <p role="alert">{t('auth.invalidRecovery')}</p>
     <Link to="/forgot-password" className="button mt-6 w-full">{t('auth.sendLink')}</Link>
   </Shell>
-  return <Shell title={t('auth.resetTitle')} desc={t('auth.resetDesc')} footer={<Link to="/login" className="font-medium underline underline-offset-4">{t('auth.backLogin')}</Link>}>
+  return <Shell title={t('auth.resetTitle')} desc={t('auth.resetDesc')} footer={<Link to="/login" className="inline-flex min-h-6 items-center font-medium underline underline-offset-4">{t('auth.backLogin')}</Link>}>
     <form onSubmit={onSubmit} noValidate>
       <Field id="password" type="password" autoComplete="new-password" label={t('auth.newPassword')} placeholder={t('auth.passwordHint')} {...form.bind('password')} />
       <Field id="confirm" type="password" autoComplete="new-password" label={t('auth.confirm')} {...form.bind('confirm')} />
-      {status && <p role="alert" className="mb-4 text-sm text-red-700">{status}</p>}
+      {status && <p role="alert" className="mb-4 text-body-sm text-danger">{status}</p>}
       <Submit disabled={busy}>{t(busy ? 'auth.processing' : 'auth.savePassword')}</Submit>
     </form>
   </Shell>

@@ -1,33 +1,44 @@
 from contextlib import asynccontextmanager
+import json
 import logging
+import time
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy import case, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from .auth import User, require_admin, require_customer
+from .auth import User, UserCache, require_admin, require_customer
 from .config import Settings
 from .db import get_db, make_engine
 from .errors import fail
-from .models import Category, Color, Order, Product, Promotion, WishlistItem, VariantInventory, OrderPayment, as_dict, active_products, ArchivedProduct
-from .schemas import AddressMutation, OrderCreate, OrderStatus, ProductCreate, ProductUpdate, PromotionInput, WishlistInput, VariantConfigure, PaymentReceive
+from .models import Category, Color, Order, Product, Promotion, PromotionRule, QrPayment, WishlistItem, VariantInventory, OrderPayment, as_dict, active_products, ArchivedProduct
+from .schemas import AddressMutation, ArchiveInput, OrderCreate, OrderStatus, ProductCreate, ProductUpdate, PromotionInput, WishlistInput, VariantConfigure, PaymentReceive, RefundComplete
 from .search import search_products
 from .services import add_product, edit_product, load_book, mutate_book, place_order, change_order_status, order_dict, lock_customer, product_dict, configure_variants, receive_payment
+from .services import check_promotion, complete_refund, order_events, promotion_dict, set_archived
+from .payments import ensure_qr, order_for_reference, sync_payment
+from .ratelimit import RateLimiter, client_ip
+from .tconnect import TConnect, decrypt
 from .reports import list_orders, report, real_orders
 from .product_pages import product_page
 from .admin_tools import mark_demo, stock_history, stock_alerts, notifications, read_notifications, export_data
 from .schemas import DemoMark, ReadNotifications
-from datetime import date
+from datetime import date, timezone
 from typing import Literal
 from uuid import UUID
 
+log = logging.getLogger('nb.api')
+# No-op when the host already configured logging; otherwise request lines reach stderr.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
 
-def create_app(settings=None, engine=None, auth_http=None):
+
+def create_app(settings=None, engine=None, auth_http=None, gateway=None):
     settings = settings or Settings()
 
     @asynccontextmanager
@@ -35,13 +46,21 @@ def create_app(settings=None, engine=None, auth_http=None):
         yield
         if auth_http is None:
             app.state.auth_http.close()
+        if gateway is None and app.state.gateway is not None:
+            app.state.gateway.close()
         if engine is None:
             app.state.engine.dispose()
 
-    app = FastAPI(title='N&B Shop API', version='1.0.0', lifespan=lifespan)
+    docs = settings.enable_docs
+    app = FastAPI(title='N&B Shop API', version='1.0.0', lifespan=lifespan,
+                  docs_url='/docs' if docs else None, redoc_url=None, openapi_url='/openapi.json' if docs else None)
     app.state.settings = settings
     app.state.engine = engine or make_engine(settings.database_url)
     app.state.auth_http = auth_http or httpx.Client(timeout=10, follow_redirects=False)
+    app.state.user_cache = UserCache(settings.auth_cache_seconds)
+    app.state.limiter = RateLimiter(settings.rate_limit_enabled)
+    app.state.gateway = gateway or (TConnect(settings) if settings.tconnect_ready else None)
+    limiter = app.state.limiter
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.cors_origins),
                        allow_methods=['GET', 'POST', 'PATCH'], allow_headers=['Authorization', 'Content-Type'])
 
@@ -65,6 +84,7 @@ def create_app(settings=None, engine=None, auth_http=None):
 
     @app.middleware('http')
     async def limit_body(request: Request, call_next):
+        started = time.perf_counter()
         if request.method in ('POST', 'PATCH'):
             body = bytearray()
             async for chunk in request.stream():
@@ -73,8 +93,13 @@ def create_app(settings=None, engine=None, auth_http=None):
                     return JSONResponse({'code': 'NB_REQUEST_TOO_LARGE', 'message': 'NB_REQUEST_TOO_LARGE'}, status_code=413)
             request._body = bytes(body)
         response = await call_next(request)
-        if request.url.path.startswith(('/api/addresses', '/api/orders', '/api/admin', '/api/wishlist')):
+        if request.url.path.startswith(('/api/addresses', '/api/orders', '/api/admin', '/api/wishlist', '/api/payments')):
             response.headers['Cache-Control'] = 'no-store'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['Referrer-Policy'] = 'no-referrer'
+        # Path only: query strings can carry search terms with customer names or phones.
+        log.info('%s %s %s %.0fms', request.method, request.url.path, response.status_code, (time.perf_counter() - started) * 1000)
         return response
 
     @app.get('/api/health')
@@ -114,8 +139,9 @@ def create_app(settings=None, engine=None, auth_http=None):
                        q: str = Query('', max_length=120), department: Literal['men', 'women', 'bags', 'watches'] | None = None,
                        categories: str = Query('', max_length=1000), colors: str = Query('', max_length=1000), sizes: str = Query('', max_length=1000),
                        stock: Literal['out', 'low', 'low_or_out', 'available'] | None = None,
-                       sort: Literal['featured', 'id', 'new', 'priceAsc', 'priceDesc', 'stock', 'price'] = 'featured', db: Session = Depends(get_db)):
-        return product_page(db, page, limit, q, department, categories, colors, sizes, stock, sort)
+                       sort: Literal['featured', 'id', 'new', 'priceAsc', 'priceDesc', 'stock', 'price'] = 'featured',
+                       archived: Literal['exclude', 'only'] = 'exclude', db: Session = Depends(get_db)):
+        return product_page(db, page, limit, q, department, categories, colors, sizes, stock, sort, archived=archived)
 
     @app.get('/api/wishlist/products')
     def wishlist_products(page: int = Query(1, ge=1), limit: int = Query(12, ge=1, le=100),
@@ -152,6 +178,7 @@ def create_app(settings=None, engine=None, auth_http=None):
 
     @app.post('/api/addresses')
     def change_address(values: AddressMutation, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        limiter.hit('addresses:' + user.id, 60, 60)
         with db.begin():
             result = mutate_book(db, user, values)
         return result
@@ -170,9 +197,59 @@ def create_app(settings=None, engine=None, auth_http=None):
 
     @app.post('/api/orders')
     def create_order(values: OrderCreate, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        limiter.hit('orders:' + user.id, 10, 60)
+        if values.payment == 'qr' and app.state.gateway is None:
+            fail('NB_PAYMENT_METHOD_UNAVAILABLE', 409)
         with db.begin():
-            result = place_order(db, user, values)
+            result = place_order(db, user, values, max_open_orders=settings.max_open_orders)
         return result
+
+    @app.get('/api/payment-methods')
+    def payment_methods():
+        return {'methods': ['cod', 'qr'] if app.state.gateway else ['cod']}
+
+    @app.post('/api/orders/{order_id}/qr')
+    def order_qr(order_id: UUID, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        limiter.hit('qr:' + user.id, 30, 60)
+        return ensure_qr(db, app.state.gateway, order_id, user)
+
+    @app.post('/api/orders/{order_id}/payment-check')
+    def check_payment(order_id: UUID, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        # Checkout polls every few seconds while the QR is shown.
+        limiter.hit('payment-check:' + user.id, 40, 60)
+        return sync_payment(db, app.state.gateway, order_id, user)
+
+    @app.post('/api/admin/orders/{order_id}/payment-check')
+    def admin_check_payment(order_id: UUID, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return sync_payment(db, app.state.gateway, order_id)
+
+    @app.post('/api/payments/tconnect/ipn')
+    async def tconnect_ipn(request: Request):
+        limiter.hit('ipn:' + client_ip(request), 120, 60)
+        gateway = app.state.gateway
+        if gateway is None:
+            fail('NB_PAYMENT_GATEWAY_UNAVAILABLE', 503)
+        try:
+            payload = json.loads(decrypt((await request.json())['data'], gateway.key))
+            reference = str(payload['order_id'])
+        except (ValueError, KeyError, TypeError):
+            fail('NB_INVALID_INPUT', 400)
+        # The notification only says "check this order": the status API stays the source of truth.
+        with Session(app.state.engine) as db:
+            order_id = order_for_reference(db, reference)
+            if order_id:
+                await run_in_threadpool(sync_payment, db, gateway, order_id)
+        return {'code': '00', 'message': 'received'}
+
+    def settle_qr_before_cancel(db, order_id, values, user, admin):
+        """A QR may be paid at the bank just before cancel; record that first."""
+        if values.status != 'canceled':
+            return
+        with db.begin():
+            order = db.get(Order, str(order_id))
+            pending_qr = order is not None and (admin or order.user_id == user.id) and db.get(QrPayment, order.id) is not None and not db.get(OrderPayment, order.id)
+        if pending_qr:
+            sync_payment(db, app.state.gateway, order_id)
 
     @app.get('/api/orders')
     def my_orders(page: int = Query(1, ge=1), limit: int = Query(20, ge=1, le=100), q: str = Query('', max_length=120),
@@ -183,6 +260,7 @@ def create_app(settings=None, engine=None, auth_http=None):
 
     @app.patch('/api/orders/{order_id}')
     def cancel_order(order_id: UUID, values: OrderStatus, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        settle_qr_before_cancel(db, order_id, values, user, admin=False)
         with db.begin():
             return change_order_status(db, order_id, values, user)
 
@@ -247,8 +325,23 @@ def create_app(settings=None, engine=None, auth_http=None):
 
     @app.patch('/api/admin/orders/{order_id}')
     def process_order(order_id: UUID, values: OrderStatus, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        settle_qr_before_cancel(db, order_id, values, user, admin=True)
         with db.begin():
             return change_order_status(db, order_id, values, user, admin=True)
+
+    @app.patch('/api/admin/orders/{order_id}/refund')
+    def refund_done(order_id: UUID, values: RefundComplete, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        with db.begin():
+            return complete_refund(db, order_id, user)
+
+    @app.get('/api/admin/orders/{order_id}/events')
+    def events(order_id: UUID, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return order_events(db, order_id)
+
+    @app.post('/api/admin/products/{product_id}/archive')
+    def archive(product_id: int, values: ArchiveInput, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        with db.begin():
+            return set_archived(db, product_id, values.archived, values.reason, user)
 
     @app.get('/api/admin/overview')
     def overview(include_test: bool = False, user: User = Depends(require_admin), db: Session = Depends(get_db)):
@@ -259,9 +352,10 @@ def create_app(settings=None, engine=None, auth_http=None):
             func.sum(case((Order.status == 'delivered', Order.total), else_=0))).where(included)).one()
         received = db.scalar(select(func.sum(Order.total)).join(OrderPayment, OrderPayment.order_id == Order.id).where(included))
         products, stock_units = db.execute(select(func.count(Product.id), func.sum(Product.stock)).where(active_products())).one()
+        # Same count as the stock alerts page: per variant where variants exist.
         return {'orders': count, 'pending': pending or 0, 'delivered': delivered or 0, 'revenue': revenue or 0,
                 'received': received or 0, 'products': products, 'stock_units': stock_units or 0,
-                'low_stock': db.scalar(select(func.count(Product.id)).where(Product.stock <= 20, active_products()))}
+                'low_stock': stock_alerts(db, 1, 1)['total']}
 
     @app.get('/api/wishlist')
     def wishlist(user: User = Depends(require_customer), db: Session = Depends(get_db)):
@@ -269,6 +363,7 @@ def create_app(settings=None, engine=None, auth_http=None):
 
     @app.post('/api/wishlist')
     def save_wishlist(values: WishlistInput, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        limiter.hit('wishlist:' + user.id, 60, 60)
         with db.begin():
             lock_customer(db, user.id)
             if db.get(Product, values.product_id) is None or (values.saved and db.get(ArchivedProduct, values.product_id)):
@@ -283,16 +378,21 @@ def create_app(settings=None, engine=None, auth_http=None):
         return {'product_ids': result}
 
     @app.get('/api/promotions/{code}')
-    def promotion(code: str, db: Session = Depends(get_db)):
-        row = db.get(Promotion, code)
+    def promotion(request: Request, code: str, db: Session = Depends(get_db)):
+        # Unauthenticated lookup: throttle so codes cannot be guessed by brute force.
+        limiter.hit('promotion:' + client_ip(request), 10, 60)
+        row = db.get(Promotion, code) if len(code) <= 30 else None
         if not row or not row.active:
             fail('NB_PROMOTION_INVALID', 404)
-        return {'code': row.code, 'percent': row.percent}
+        # Minimum subtotal is checked at checkout, where the bag total is known.
+        check_promotion(db, row, float('inf'))
+        rules = promotion_dict(db, row)
+        return {'code': row.code, 'percent': row.percent, 'min_subtotal': rules['min_subtotal'], 'ends_at': rules['ends_at']}
 
     @app.get('/api/admin/promotions')
     def promotions(page: int = Query(1, ge=1), limit: int = Query(20, ge=1, le=100), user: User = Depends(require_admin), db: Session = Depends(get_db)):
         total = db.scalar(select(func.count(Promotion.code)))
-        return {'promotions': [as_dict(row) for row in db.scalars(select(Promotion).order_by(Promotion.code).offset((page - 1) * limit).limit(limit))],
+        return {'promotions': [promotion_dict(db, row) for row in db.scalars(select(Promotion).order_by(Promotion.code).offset((page - 1) * limit).limit(limit))],
                 'total': total, 'page': page, 'limit': limit, 'pages': max(1, (total + limit - 1) // limit)}
 
     @app.post('/api/admin/promotions')
@@ -302,14 +402,27 @@ def create_app(settings=None, engine=None, auth_http=None):
             if db.bind.dialect.name == 'postgresql':
                 db.execute(text('SELECT pg_advisory_xact_lock(hashtextextended(:code, 0))'), {'code': 'promotion:' + values.code})
             row = db.scalar(select(Promotion).where(Promotion.code == values.code).with_for_update())
-            if (as_dict(row) if row else None) != values.expected:
+            editable = ('code', 'percent', 'active', 'ends_at', 'max_uses', 'min_subtotal')
+            current = {key: value for key, value in promotion_dict(db, row).items() if key in editable} if row else None
+            if current != values.expected_rules():
                 fail('NB_PROMOTION_CONFLICT', 409)
             if row is None:
                 row = Promotion(code=values.code)
                 db.add(row)
             row.percent, row.active = values.percent, values.active
             db.flush()
-            result = as_dict(row)
+            rule = db.get(PromotionRule, values.code)
+            if values.ends_at is None and values.max_uses is None and not values.min_subtotal:
+                if rule:
+                    db.delete(rule)
+            else:
+                rule = rule or PromotionRule(code=values.code)
+                # SQLite drops the offset, so always store UTC.
+                ends_at = values.ends_at.astimezone(timezone.utc) if values.ends_at else None
+                rule.ends_at, rule.max_uses, rule.min_subtotal = ends_at, values.max_uses, values.min_subtotal
+                db.add(rule)
+            db.flush()
+            result = promotion_dict(db, row)
         return result
 
     return app

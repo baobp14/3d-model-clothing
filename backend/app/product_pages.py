@@ -3,7 +3,7 @@ import unicodedata
 
 from sqlalchemy import Text, case, exists, func, literal, or_, select
 
-from .models import Category, Color, Product, VariantInventory, WishlistItem, as_dict, active_products
+from .models import ArchivedProduct, Category, Color, Product, VariantInventory, WishlistItem, as_dict, active_products
 from .search import normalize
 
 TRANSLATE_CHARACTERS = ''.join(chr(i) for i in range(0x00c0, 0x2000)
@@ -26,10 +26,12 @@ def has_option(db, column, option):
 
 
 def product_page(db, page=1, limit=20, q='', department=None, categories='', colors='', sizes='',
-                 stock=None, sort='featured', owner=None):
+                 stock=None, sort='featured', owner=None, archived='exclude'):
     category_rows = list(db.scalars(select(Category).order_by(Category.position, Category.id)))
     color_rows = list(db.scalars(select(Color).order_by(Color.id)))
-    statement = select(Product).join(Category, Category.id == Product.category).where(active_products())
+    # Archived products are hidden from the shop; the admin can list them to restore one.
+    visible = Product.id.in_(select(ArchivedProduct.product_id)) if archived == 'only' else active_products()
+    statement = select(Product).join(Category, Category.id == Product.category).where(visible)
     if owner:
         statement = statement.join(WishlistItem, WishlistItem.product_id == Product.id).where(WishlistItem.user_id == owner)
     if department:
@@ -73,8 +75,18 @@ def product_page(db, page=1, limit=20, q='', department=None, categories='', col
         if department:
             size_query = size_query.where(Product.department == department)
         available_sizes = list(db.scalars(size_query))
+    # Storefront filters list only colors that active products in this department use;
+    # `colors` stays the full palette for existing consumers.
+    if db.bind.dialect.name == 'postgresql':
+        color_query = select(func.unnest(Product.colors).label('color')).where(active_products()).distinct()
+    else:
+        color_options = func.json_each(Product.colors).table_valued('key', 'value').alias()
+        color_query = select(color_options.c.value).select_from(Product).join(color_options, literal(True)).where(active_products()).distinct()
+    if department:
+        color_query = color_query.where(Product.department == department)
+    used_colors = set(db.scalars(color_query))
     return {'products': [{**as_dict(p), 'variants': inventory[p.id].variants if p.id in inventory else None,
                           'stock_revision': inventory[p.id].revision if p.id in inventory else None} for p in rows],
             'total': total, 'stock_units': stock_units, 'page': page, 'limit': limit, 'pages': max(1, (total + limit - 1) // limit),
             'categories': [as_dict(c) for c in category_rows if not department or c.department == department],
-            'colors': [as_dict(c) for c in color_rows], 'sizes': sorted(available_sizes)}
+            'colors': [as_dict(c) for c in color_rows], 'color_options': sorted(used_colors), 'sizes': sorted(available_sizes)}

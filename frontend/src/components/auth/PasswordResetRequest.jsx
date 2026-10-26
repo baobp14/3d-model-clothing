@@ -42,9 +42,9 @@ export default function PasswordResetRequest({ prefix = 'reset', onSent }) {
     } finally { inFlight.current = false; setBusy(false) }
   }
   return <form onSubmit={send} noValidate>
-    {sent ? <p role="status" className="mb-6 text-sm leading-7 text-slate">{t('auth.sentDesc').replace('{email}', form.values.email.trim())}</p>
+    {sent ? <p role="status" className="mb-6 text-sm leading-7 text-ink-muted">{t('auth.sentDesc').replace('{email}', form.values.email.trim())}</p>
       : <Field id={`${prefix}-email`} type="email" autoComplete="email" disabled={busy} label={t('auth.email')} {...form.bind('email')} />}
-    {status && <p role="alert" className="mb-4 text-sm text-red-700">{status}</p>}
+    {status && <p role="alert" className="mb-4 text-sm text-danger">{status}</p>}
     <Submit disabled={busy || wait > 0}>{busy ? t('auth.processing') : wait ? `${t('auth.resend')} (${wait}s)` : t(sent ? 'auth.resend' : 'auth.sendLink')}</Submit>
   </form>
 }
