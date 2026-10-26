@@ -43,6 +43,6 @@ export default function GoogleButton() {
       className="button w-full gap-3">
       <GoogleMark />{t('auth.google')}
     </button>
-    {error && <p role="alert" className="mt-3 text-[13px] text-danger">{error}</p>}
+    {error && <p role="alert" className="mt-3 text-[14px] text-danger">{error}</p>}
   </>
 }

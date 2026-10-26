@@ -16,7 +16,7 @@ const sections = [
   { to: '/admin/returns', icon: 'refresh', label: 'admin.returns' },
 ]
 
-const linkClass = ({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-colors ${isActive ? 'bg-[#eef0ff] text-[#303a9f]' : 'text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]'}`
+const linkClass = ({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium transition-colors ${isActive ? 'bg-[#eef0ff] text-[#303a9f]' : 'text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]'}`
 
 function AdminNavigation({ close }) {
   const { t } = useLang()
@@ -27,7 +27,7 @@ function AdminNavigation({ close }) {
   return <nav aria-label={t('admin.navigation')} className="space-y-1.5 px-4 py-5">
     {sections.map(section => section.children
       ? <details key={section.label} open={expanded[section.label]} onToggle={e => { const open = e.currentTarget.open; setExpanded(current => current[section.label] === open ? current : { ...current, [section.label]: open }) }} className="group">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-medium text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]">
             <Icon name={section.icon} size={20} /><span className="flex-1">{t(section.label)}</span>
             <Icon name="chevronDown" size={15} className="transition-transform group-open:rotate-180" />
           </summary>
@@ -62,14 +62,14 @@ export default function Admin() {
       <div className="flex h-[76px] items-center justify-between border-b border-[#e2e5ec] bg-white px-6">
         <Link to="/admin" onClick={() => setMenuOpen(false)}>
           <span className="block font-display text-[25px] leading-none tracking-[.18em]">N&amp;B</span>
-          <span className="mt-1 block text-[9px] font-medium tracking-[.12em] text-[#70798e] uppercase">{t('admin.panel')}</span>
+          <span className="mt-1 block text-[11px] font-medium tracking-[.12em] text-[#70798e] uppercase">{t('admin.panel')}</span>
         </Link>
         <button className="rounded-lg p-2 text-[#657089] hover:bg-[#f2f3f8] hover:text-[#252d78] lg:hidden" onClick={() => setMenuOpen(false)} aria-label={t('nav.close')}><Icon name="close" /></button>
       </div>
       <AdminNavigation close={() => setMenuOpen(false)} />
       <div className="mt-auto p-4">
-        <Link to="/" className="flex items-center justify-center gap-3 rounded-xl bg-[#303a9f] px-4 py-3.5 text-[14px] font-semibold text-white hover:bg-[#252d78]"><Icon name="home" size={19} />{t('admin.storefront')}</Link>
-        <button onClick={logout} className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-left text-[14px] font-medium text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]"><Icon name="logout" size={20} />{t('auth.signOut')}</button>
+        <Link to="/" className="flex items-center justify-center gap-3 rounded-xl bg-[#303a9f] px-4 py-3.5 text-[15px] font-semibold text-white hover:bg-[#252d78]"><Icon name="home" size={19} />{t('admin.storefront')}</Link>
+        <button onClick={logout} className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-left text-[15px] font-medium text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]"><Icon name="logout" size={20} />{t('auth.signOut')}</button>
       </div>
     </aside>
 
