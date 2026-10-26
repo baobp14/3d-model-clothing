@@ -101,6 +101,34 @@ export interface BodyCollider {
   axisZ: number;
   /** Body rotation about Y, radians, matching THREE's object.rotation.y. */
   yaw?: number;
+  /**
+   * The unmorphed reference body the garment meshes were cut from
+   * (public/models/body-reference.bin), in the same vertex order as
+   * `positions`. With it, a garment carrying _BIND starts out moved along
+   * with the body's own morph instead of just slid to the shoulder line.
+   */
+  refPositions?: Float32Array;
+  /**
+   * 1 = dinh canh tay (bap tay duoi, cang tay, co tay). Than ao va quan / vay
+   * KHONG va cham voi chung: canh tay nam trong ONG TAY ao, de len than ao --
+   * tay chong hong ma than ao cung va cham thi vai bi cang tay day bung ra,
+   * quan quanh tay, suon ao gian 2-4 lan. Xem armMask o pose.ts.
+   */
+  armMask?: Uint8Array;
+  /**
+   * 1 = dinh THAN (khong thuoc vai / canh tay). Tay ao bo qua chung: tay khep
+   * xuong thi tay ao bi kep giua canh tay va suon, keo gian 2-3 lan o nach.
+   * Xem limbMask o pose.ts.
+   */
+  trunkMask?: Uint8Array;
+  /** Co the da morph nhung CHUA tao dang (chu A). Co thi `positions` la luoi da tao dang. */
+  unposed?: Float32Array;
+  /**
+   * Skin cua co the + ma tran xuong cua dang hien tai. Ao duoc dat len co the
+   * chu A truoc, roi skin theo dung bo xuong -- chi dich theo dinh co the gan
+   * nhat (khong xoay) thi tay ao keo gian 3.4 lan khi gap khuyu.
+   */
+  pose?: { skinK: number; skinIndex: ArrayLike<number>; skinWeight: ArrayLike<number>; mats: Float64Array[] };
 }
 
 function hashKey(i: number, j: number, k: number): number {
@@ -147,14 +175,22 @@ export function buildBodyCollider(
   influences: Float32Array,
   indices: ArrayLike<number>,
   cell = 0.05,
+  /** Luoi da tao dang (src/lib/avatar/pose.ts); mac dinh = luoi chu A. */
+  posed?: Float32Array,
+  /** Dinh co the KHONG va cham voi vai (ban tay -- xem handMask). */
+  skip?: Uint8Array,
 ): BodyCollider {
-  const positions = deformPositions(rig, influences);
+  const positions = posed ?? deformPositions(rig, influences);
   const normals = bodyNormals(positions, indices);
 
   const n = positions.length / 3;
   const keys = new Int32Array(n);
   const counts = new Map<number, number>();
   for (let v = 0; v < n; v++) {
+    if (skip?.[v]) {
+      keys[v] = -1;
+      continue;
+    }
     const key = hashKey(
       Math.floor(positions[v * 3] / cell),
       Math.floor(positions[v * 3 + 1] / cell),
@@ -168,6 +204,7 @@ export function buildBodyCollider(
   const fill = new Map<number, number>();
   for (let v = 0; v < n; v++) {
     const key = keys[v];
+    if (skip?.[v]) continue;
     const at = fill.get(key) ?? 0;
     buckets.get(key)![at] = v;
     fill.set(key, at + 1);
@@ -223,8 +260,11 @@ function nearestBodyVertices(
   z: number,
   out: Int32Array,
   outOffset: number,
+  skipArms: boolean | 'trunk' = false,
 ): number {
   const { cell, buckets, positions } = collider;
+  const arm =
+    skipArms === 'trunk' ? collider.trunkMask : skipArms ? collider.armMask : undefined;
   const ci = Math.floor(x / cell);
   const cj = Math.floor(y / cell);
   const ck = Math.floor(z / cell);
@@ -239,6 +279,7 @@ function nearestBodyVertices(
         if (bucket === undefined) continue;
         for (let b = 0; b < bucket.length; b++) {
           const v = bucket[b];
+          if (arm && arm[v]) continue;
           const dx = x - positions[v * 3];
           const dy = y - positions[v * 3 + 1];
           const dz = z - positions[v * 3 + 2];
@@ -266,9 +307,11 @@ function nearestBodyVertices(
 }
 
 /** Nearest body vertex only -- used by the placement and reporting paths. */
-function nearestBodyVertex(collider: BodyCollider, x: number, y: number, z: number): number {
+function nearestBodyVertex(
+  collider: BodyCollider, x: number, y: number, z: number, skipArms: boolean | 'trunk' = false,
+): number {
   const tmp = new Int32Array(COLLIDER_CANDIDATES);
-  nearestBodyVertices(collider, x, y, z, tmp, 0);
+  nearestBodyVertices(collider, x, y, z, tmp, 0, skipArms);
   return tmp[0];
 }
 
@@ -320,6 +363,8 @@ export const GARMENT_REGION = {
   sleeveLeft: 7,
   cuffRight: 8,
   cuffLeft: 9,
+  /** Dress-shirt collar leaf: pinned with the collar, but not smoothed into it. */
+  collarLeaf: 10,
 } as const;
 
 export interface Fabric {
@@ -349,9 +394,17 @@ export interface Fabric {
 
 /** Knit stretches and drapes softly; woven holds its shape; denim barely moves. */
 export const FABRICS: Record<'knit' | 'woven' | 'denim', Fabric> = {
+  // stretchStiffness/bendStiffness lowered and damping raised from the first
+  // pass (0.7 / 0.05 / 0.97): the solver pulled edges back toward rest so
+  // hard and lost so much velocity each step that even the softest preset
+  // read as stiff -- barely any visible swing or fold under motion. Softer
+  // spring-back, looser bend and more retained velocity let momentum carry
+  // (a turn or a size change actually swings/settles instead of snapping
+  // still), without touching maxStretch/tetherSlack -- the hard limits the
+  // fit report's ease/contact/stretch-ratio checks rely on.
   knit: {
-    maxStretch: 1.2, tetherSlack: 1.03, stretchStiffness: 0.7,
-    compressStiffness: 0.02, bendStiffness: 0.05, damping: 0.97,
+    maxStretch: 1.2, tetherSlack: 1.03, stretchStiffness: 0.5,
+    compressStiffness: 0.02, bendStiffness: 0.025, damping: 0.985,
   },
   woven: {
     maxStretch: 1.03, tetherSlack: 1.01, stretchStiffness: 0.85,
@@ -381,6 +434,12 @@ export interface GarmentGeometry {
    * deforming normal would let it slide across the fabric as the cloth moves.
    */
   facing?: Float32Array;
+  /** `_BIND`: BIND_K body-vertex indices per garment vertex (as floats). */
+  bind?: Float32Array;
+  /** `_BINDW`: matching weights, summing to 1. */
+  bindW?: Float32Array;
+  /** Where the local origin sits on the reference body (metadata bodyReference). */
+  refOrigin?: [number, number, number];
 }
 
 export interface GarmentConstraints {
@@ -442,20 +501,29 @@ export function buildConstraints(
       positions[a * 3 + 2] - positions[b * 3 + 2],
     );
 
-  // Edges far shorter than the mesh resolution are dropped.
+  // Edges far shorter than the mesh resolution get their rest length floored,
+  // not dropped.
   //
   // Vertex clustering leaves a few 2 mm edges in a mesh whose typical edge is
-  // ~15 mm. They are discretisation debris, not fabric: constraining them adds
+  // ~15 mm. Constraining them at their true (near-zero) rest length adds
   // stiffness that represents nothing, and len/rest on them explodes. Measured
   // on the worst case, the four shortest edges alone accounted for a reported
   // maxStretch of 5.62 against 3.87 for every other edge in the garment.
+  //
+  // Dropping them outright (as before) is worse for short-leg garments
+  // (quan short): the hem ring is excluded from the geometry weld to keep it
+  // round, so it keeps a few sub-3mm edges to its nearest interior ring. With
+  // no distance constraint at all, those hem vertices are free to drift
+  // during simulation -- the leg opening flutters into a crumpled, half-shut
+  // look ("nhan nheo", "bit bit o duoi") instead of hanging open. Flooring the
+  // rest length to MIN_EDGE_LENGTH keeps them pinned near their neighbour
+  // (fixing the flutter) while avoiding the same near-zero-rest explosion.
   const keptEdges: number[] = [];
   const keptRest: number[] = [];
   for (let e = 0; e < edgeList.length / 2; e++) {
     const a = edgeList[e * 2];
     const b = edgeList[e * 2 + 1];
-    const d = dist(a, b);
-    if (d < MIN_EDGE_LENGTH) continue;
+    const d = Math.max(dist(a, b), MIN_EDGE_LENGTH);
     keptEdges.push(a, b);
     keptRest.push(d);
   }
@@ -476,6 +544,8 @@ export interface GarmentSimState {
   previous: Float32Array;
   pinned: Uint8Array;
   regions: Uint8Array;
+  /** Ao (treo tu co) hay quan / vay (treo tu cap) -- quyet dinh vung nao bo qua canh tay. */
+  isTop: boolean;
   /** Per-vertex worst edge stretch ratio from the last step -- tightness map. */
   stretch: Float32Array;
   /** Per-vertex outward push applied by collision, metres. */
@@ -626,6 +696,95 @@ function buildTethers(
  * kinematic while the rest of the cloth drapes -- same model, different
  * region id and different anchor height (see the metadata's pinRegion).
  */
+/**
+ * Where a garment starts out on this body, before any simulation: the rest
+ * mesh moved along with the body's morph (via _BIND), or -- for a mesh
+ * without binding data -- slid to the anchor line. Exported so the page can
+ * reason about where a garment will sit (e.g. the shirt hem line that hides
+ * the waistband under it) without running the solver.
+ */
+export function placeGarment(
+  geom: GarmentGeometry,
+  collider: BodyCollider,
+  constraints: GarmentConstraints,
+  anchorY: number = collider.shoulderY,
+): Float32Array {
+  const n = geom.positions.length / 3;
+  const positions = new Float32Array(geom.positions);
+
+  const ref = collider.refPositions;
+  if (
+    geom.bind && geom.bindW && geom.refOrigin && ref &&
+    ref.length === collider.positions.length
+  ) {
+    // Follow the body's morph. The mesh was cut from the reference body, and
+    // the avatar IS that body plus morphs, so each garment vertex moves by the
+    // weighted displacement of the body vertices it was nearest to. Sliding
+    // the whole garment to the shoulder line instead left long sleeves and
+    // trouser legs where the reference body's limbs were: off the arm of a
+    // taller avatar, a capri turned full-length on a short one. Only the start
+    // position changes -- rest lengths stay the garment's own, so a small size
+    // on a big body is still stretched, not quietly scaled up to fit.
+    const K = geom.bind.length / n;
+    const P = collider.unposed ?? collider.positions;
+    const [ox, oy, oz] = geom.refOrigin;
+    let disp = new Float32Array(n * 3);
+    for (let v = 0; v < n; v++) {
+      for (let k = 0; k < K; k++) {
+        const b = geom.bind[v * K + k] * 3;
+        const w = geom.bindW[v * K + k];
+        disp[v * 3] += w * (P[b] - ref[b]);
+        disp[v * 3 + 1] += w * (P[b + 1] - ref[b + 1]);
+        disp[v * 3 + 2] += w * (P[b + 2] - ref[b + 2]);
+      }
+    }
+    // Smooth the displacement along the cloth. Neighbouring garment vertices
+    // can sit nearest to body parts that morph differently (an ankle hem next
+    // to the foot, an armhole next to the chest), and moving each by its own
+    // nearest body patch saws the edge into teeth.
+    const E = constraints.edges;
+    for (let it = 0; it < 12; it++) {
+      const sum = new Float32Array(n * 3);
+      const cnt = new Float32Array(n);
+      for (let e = 0; e < E.length; e += 2) {
+        const a = E[e];
+        const b = E[e + 1];
+        for (let j = 0; j < 3; j++) {
+          sum[a * 3 + j] += disp[b * 3 + j];
+          sum[b * 3 + j] += disp[a * 3 + j];
+        }
+        cnt[a]++;
+        cnt[b]++;
+      }
+      const next = new Float32Array(n * 3);
+      for (let v = 0; v < n; v++) {
+        for (let j = 0; j < 3; j++) {
+          next[v * 3 + j] = cnt[v]
+            ? 0.5 * disp[v * 3 + j] + 0.5 * (sum[v * 3 + j] / cnt[v])
+            : disp[v * 3 + j];
+        }
+      }
+      disp = next;
+    }
+    for (let v = 0; v < n; v++) {
+      positions[v * 3] += ox + disp[v * 3];
+      positions[v * 3 + 1] += oy + disp[v * 3 + 1];
+      positions[v * 3 + 2] += oz + disp[v * 3 + 2];
+    }
+    if (collider.pose && collider.unposed) {
+      const isBottom = anchorY !== collider.shoulderY;
+      skinToPose(positions, geom, K, collider.pose, collider.armMask, isBottom, collider.trunkMask);
+    }
+  } else {
+    for (let v = 0; v < n; v++) {
+      positions[v * 3 + 1] += anchorY;
+      positions[v * 3 + 2] += collider.axisZ;
+    }
+  }
+
+  return positions;
+}
+
 export function createSimState(
   geom: GarmentGeometry,
   collider: BodyCollider,
@@ -635,12 +794,7 @@ export function createSimState(
   anchorY: number = collider.shoulderY,
 ): GarmentSimState {
   const n = geom.positions.length / 3;
-  const positions = new Float32Array(geom.positions);
-
-  for (let v = 0; v < n; v++) {
-    positions[v * 3 + 1] += anchorY;
-    positions[v * 3 + 2] += collider.axisZ;
-  }
+  const positions = placeGarment(geom, collider, constraints, anchorY);
 
   const pinned = new Uint8Array(n);
   for (let v = 0; v < n; v++) {
@@ -649,6 +803,11 @@ export function createSimState(
     // free endpoint, so the solver cannot correct it. The rest RESTS on the
     // body and is carried by contact plus friction.
     if (geom.regions[v] === pinRegion) pinned[v] = 1;
+    // A shirt collar is interfaced and stands on its own; it rides the neck
+    // ring rigidly rather than hanging.
+    if (pinRegion === GARMENT_REGION.collar && geom.regions[v] === GARMENT_REGION.collarLeaf) {
+      pinned[v] = 1;
+    }
   }
 
   // Pinned vertices skip collision for the whole run, so if the collar starts
@@ -676,7 +835,7 @@ export function createSimState(
   for (let e = 0; e < constraints.restLengths.length; e++) {
     const a = constraints.edges[e * 2];
     const b = constraints.edges[e * 2 + 1];
-    if (!pinned[a] || !pinned[b]) continue;
+    if (geom.regions[a] !== pinRegion || geom.regions[b] !== pinRegion) continue;
     collarNeighbours[a].push(b);
     collarNeighbours[b].push(a);
   }
@@ -706,7 +865,7 @@ export function createSimState(
   const smoothCollar = () => {
     const moved = new Float32Array(positions);
     for (let v = 0; v < n; v++) {
-      if (!pinned[v]) continue;
+      if (geom.regions[v] !== pinRegion) continue;
       const ring = collarNeighbours[v];
       if (ring.length < 2) continue;
       let cx = 0;
@@ -739,6 +898,7 @@ export function createSimState(
     previous: new Float32Array(positions),
     pinned,
     regions: geom.regions,
+    isTop: pinRegion === GARMENT_REGION.collar,
     stretch: new Float32Array(n),
     contact: new Float32Array(n),
     gap: new Float32Array(n).fill(1),
@@ -751,7 +911,83 @@ export function createSimState(
   };
 }
 
+/**
+ * Skin vai theo dang: trong so xuong cua moi dinh vai = tron trong so xuong cua
+ * cac dinh co the no gan (_BIND), roi M = sum w * M_xuong.
+ */
+function skinToPose(
+  positions: Float32Array,
+  geom: GarmentGeometry,
+  K: number,
+  pose: NonNullable<BodyCollider['pose']>,
+  armMask: Uint8Array | undefined,
+  isBottom: boolean,
+  trunkMask?: Uint8Array,
+): void {
+  const n = positions.length / 3;
+  const { skinK, skinIndex, skinWeight, mats } = pose;
+  const m = new Float64Array(12);
+  for (let v = 0; v < n; v++) {
+    m.fill(0);
+    // Than ao / quan khong di theo xuong tay: dinh suon ao o nach bam ca vao
+    // dinh bap tay, tay vung ra sau keo theo ca mang lung ao (gian 5 lan).
+    const r = geom.regions[v];
+    const noArm =
+      !!armMask && (isBottom || r === GARMENT_REGION.torsoFront || r === GARMENT_REGION.torsoBack ||
+        r === GARMENT_REGION.sideSeam || r === GARMENT_REGION.hem);
+    // Nguoc lai: tay ao chi di theo xuong tay -- mat trong tay ao bam vao suon
+    // thi tay khep xuong no dung yen, tay ao bi xe (gian 2.6 lan o nguoi nu).
+    const noTrunk =
+      !!trunkMask && !isBottom && r >= GARMENT_REGION.sleeveRight && r <= GARMENT_REGION.cuffLeft;
+    const skip = (b: number) => (noArm && armMask![b]) || (noTrunk && trunkMask![b]);
+    let total = 0;
+    for (let k = 0; k < K; k++) {
+      const b = geom.bind![v * K + k];
+      if (skip(b)) continue;
+      total += geom.bindW![v * K + k];
+    }
+    // Moi dinh bam deu la tay (hiem): giu nguyen, khong bo het.
+    const useAll = total < 1e-6;
+    if (useAll) total = 1;
+    for (let k = 0; k < K; k++) {
+      const b = geom.bind![v * K + k];
+      if (!useAll && skip(b)) continue;
+      const wb = geom.bindW![v * K + k] / total;
+      if (!wb) continue;
+      for (let j = 0; j < skinK; j++) {
+        const w = wb * skinWeight[b * skinK + j];
+        if (!w) continue;
+        const M = mats[skinIndex[b * skinK + j]];
+        m[0] += w * M[0]; m[1] += w * M[1]; m[2] += w * M[2];
+        m[3] += w * M[4]; m[4] += w * M[5]; m[5] += w * M[6];
+        m[6] += w * M[8]; m[7] += w * M[9]; m[8] += w * M[10];
+        m[9] += w * M[12]; m[10] += w * M[13]; m[11] += w * M[14];
+      }
+    }
+    const x = positions[v * 3], y = positions[v * 3 + 1], z = positions[v * 3 + 2];
+    positions[v * 3] = m[0] * x + m[3] * y + m[6] * z + m[9];
+    positions[v * 3 + 1] = m[1] * x + m[4] * y + m[7] * z + m[10];
+    positions[v * 3 + 2] = m[2] * x + m[5] * y + m[8] * z + m[11];
+  }
+}
+
 // --- Simulation --------------------------------------------------------------
+
+/**
+ * Than ao (truoc / sau / suon / gau) va moi dinh quan / vay bo qua canh tay;
+ * tay ao bo qua than ('trunk').
+ */
+function skipsArms(state: GarmentSimState, v: number): boolean | 'trunk' {
+  if (!state.isTop) return true;
+  const r = state.regions[v];
+  if (r >= GARMENT_REGION.sleeveRight && r <= GARMENT_REGION.cuffLeft) return 'trunk';
+  return (
+    r === GARMENT_REGION.torsoFront ||
+    r === GARMENT_REGION.torsoBack ||
+    r === GARMENT_REGION.sideSeam ||
+    r === GARMENT_REGION.hem
+  );
+}
 
 export interface SimStepOptions {
   fabric?: Fabric;
@@ -884,6 +1120,7 @@ export function stepGarmentSim(
       wx * sy + wz * cy,
       state.nearest,
       v * COLLIDER_CANDIDATES,
+      skipsArms(state, v),
     );
   }
 
@@ -1090,7 +1327,7 @@ export function stepGarmentSim(
     ) => {
       const lx = wx * cy - wz * sy;
       const lz = wx * sy + wz * cy;
-      const nb = nearestBodyVertex(collider, lx, wy, lz);
+      const nb = nearestBodyVertex(collider, lx, wy, lz, skipsArms(state, i0));
       if (nb < 0) return;
       const q = nb * 3;
       const nx = bn[q];

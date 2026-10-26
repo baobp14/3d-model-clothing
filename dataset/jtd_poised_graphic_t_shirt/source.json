@@ -3,5 +3,10 @@
   "title": "POISED - Graphic T-Shirt",
   "source": "https://jumpthedark.co.uk/products/poised-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/POISED_FRONT_FLAT.jpg?v=1772552263",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/POISED_BACK_FLAT.jpg?v=1772552263"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/POISED_BACK_FLAT.jpg?v=1772552263",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/POISED_BACK.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/POISED_FRONT.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/POISEDBACK1.jpg"
+  ]
 }

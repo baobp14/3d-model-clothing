@@ -169,20 +169,25 @@ export default function Tryon3DPreview({ cutout }: { cutout: Blob | null }) {
     return (
       <GarmentClothCanvas
         avatar={scene.avatar}
-        geom={scene.geom}
-        constraints={scene.constraints}
         colliders={scene.colliders}
-        fabric={FABRICS.knit}
         spinning={spinning}
         spinSpeed={1.4}
         turnNonce={turnNonce.current}
-        showStretch={false}
         wireframe={false}
-        frontPrint={tex}
-        backPrint={null}
-        baseColor={baseColor}
-        printScale={scene.printScale}
-        printOffset={scene.printOffset}
+        pieces={[
+          {
+            key: 'top',
+            geom: scene.geom,
+            constraints: scene.constraints,
+            fabric: FABRICS.knit,
+            showStretch: false,
+            frontPrint: tex,
+            backPrint: null,
+            baseColor: baseColor,
+            printScale: scene.printScale,
+            printOffset: scene.printOffset,
+          },
+        ]}
       />
     );
   }, [scene, tex, baseColor, spinning]);

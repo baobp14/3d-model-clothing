@@ -1,0 +1,38 @@
+{
+  "front": {
+    "score": 9,
+    "differences": [
+      "The color of the shirt in the generated image is slightly lighter brown than the reference images.",
+      "The print on the generated image appears slightly smaller in proportion to the shirt compared to the reference images."
+    ]
+  },
+  "back": {
+    "score": 10,
+    "differences": []
+  },
+  "left": {
+    "score": 8,
+    "differences": [
+      "The color of the shirt in the generated image appears to be a slightly lighter shade of brown compared to the reference images.",
+      "The print on the shirt in the generated image appears slightly faded or less vibrant than in the reference images."
+    ]
+  },
+  "right": {
+    "score": 9,
+    "differences": [
+      "The print on the model's shirt is slightly larger than on the reference garment."
+    ]
+  },
+  "threequarter": {
+    "score": 9,
+    "differences": [
+      "The color of the shirt in the generated image is slightly lighter than in the reference images."
+    ]
+  },
+  "walk": {
+    "score": 9,
+    "differences": [
+      "The color of the shirt in the generated image is slightly lighter brown than the reference images."
+    ]
+  }
+}

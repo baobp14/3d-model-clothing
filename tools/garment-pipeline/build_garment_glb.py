@@ -64,6 +64,91 @@ SIZE_CHART = {
 }
 SIZE_ORDER = ["S", "M", "L", "XL"]
 
+# --- Bang size ao ba lo unisex (cm) ------------------------------------------
+# Cung build_size. sleeveLength rat ngan (8cm, so voi 18-21cm cua ao thun) --
+# vong nach chon gan sat goc vai, dung y tank-top/cap-sleeve. THU sleeveLength
+# 0-6cm truoc: build khong loi (mesh van kin) nhung goc vai lo ra mot mui
+# nhon/canh chua duoc lam muot (ghenh sau khi lam muot 5.8-6.1mm o 0-2cm, van
+# con 4.5-5.0mm o 6cm -- cao han han ao thun thuong ~2.7-3.1mm, va nhin thay
+# ro tren man hinh la mot mieng "canh" nho o vai). Tai 8cm, dang bien cua tay
+# ao doi hinh dang (tu 38-40 dinh xuong con 20 dinh moi vong) -- da vuot qua
+# mot vung hinh hoc khong deu cua mesh than goc, ghenh giam han xuong
+# 2.83mm, ngang bang ao thun. 8cm van ngan hon nhieu lan 18-21cm cua ao thun
+# nen van la mot tank-top/cap-sleeve ro rang, khong phai ao thun tay cụt.
+TANK_SIZE_CHART = {
+    # sleeveOpening +8cm: 30-36 bo chat bap vai, vong tay gian 1.6-2.1 lan
+    # ngay tren nguoi mac vua size.
+    "S":  {"chest": 90.0,  "bodyLength": 64.0, "sleeveLength": 8.0, "sleeveOpening": 38.0},
+    "M":  {"chest": 96.0,  "bodyLength": 66.0, "sleeveLength": 8.0, "sleeveOpening": 40.0},
+    "L":  {"chest": 102.0, "bodyLength": 68.0, "sleeveLength": 8.0, "sleeveOpening": 42.0},
+    "XL": {"chest": 108.0, "bodyLength": 70.0, "sleeveLength": 8.0, "sleeveOpening": 44.0},
+}
+TANK_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
+
+# --- Bang size ao croptop unisex (cm) ----------------------------------------
+# Cung build_size, giu nguyen tay ao ngan nhu SIZE_CHART -- bodyLength ngan
+# han han (gau tren eo thay vi qua hong) de khac biet nam o DO DAI, cung
+# huong da chung minh an toan/de nhan ra voi quan short so voi quan dai.
+# chest keo xuong duoi SIZE_CHART ~5-6cm (thay vi bang nhau) de om sat nguoi
+# hon -- dung "form" cua croptop that (boi sat nguoi), khong chi la ao thun
+# bi cat ngan.
+CROPTOP_SIZE_CHART = {
+    "S":  {"chest": 86.0,  "bodyLength": 40.0, "sleeveLength": 18.0, "sleeveOpening": 34.0},
+    "M":  {"chest": 92.0,  "bodyLength": 42.0, "sleeveLength": 19.0, "sleeveOpening": 36.0},
+    "L":  {"chest": 98.0,  "bodyLength": 44.0, "sleeveLength": 20.0, "sleeveOpening": 38.0},
+    "XL": {"chest": 104.0, "bodyLength": 46.0, "sleeveLength": 21.0, "sleeveOpening": 40.0},
+}
+CROPTOP_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
+
+# --- Bang size ao so mi unisex (cm) ------------------------------------------
+# Cung build_size, tay ngan nhu SIZE_CHART (tay dai bi chan boi gioi han hinh
+# hoc canh tay/ban tay -- xem lich su commit). Khac ao thun o do RONG RAI hon:
+# chest +6cm (form so mi khong boi sat nguoi nhu ao thun), bodyLength +2cm
+# (gau dai hon, kieu ao so mi mac ngoai). Mac dinh vai "so mi" (woven, it co
+# gian) o client thay vi "thun".
+SHIRT_SIZE_CHART = {
+    "S":  {"chest": 98.0,  "bodyLength": 68.0, "sleeveLength": 18.0, "sleeveOpening": 41.0},
+    "M":  {"chest": 104.0, "bodyLength": 70.0, "sleeveLength": 19.0, "sleeveOpening": 43.0},
+    "L":  {"chest": 110.0, "bodyLength": 72.0, "sleeveLength": 20.0, "sleeveOpening": 45.0},
+    "XL": {"chest": 116.0, "bodyLength": 74.0, "sleeveLength": 21.0, "sleeveOpening": 47.0},
+}
+SHIRT_PRINT_CALIBRATION = {"scale": 0.83, "offsetX": 0.0, "offsetY": -0.03}
+
+# So mi DAI TAY: than + tay ngan nhu SHIRT_SIZE_CHART (dung tay ngan lam goc,
+# xem extend_sleeves), roi noi dai tay theo duong tam canh tay that.
+# armFit : dai tay NGUOI ma size nay vua (cm, cung quy uoc armLength cua
+#          avatar: vai -> co tay). Size cang to tay ao cang dai.
+# cuff   : chu vi mang sec cua tay (cm)
+LONGSHIRT_SIZE_CHART = {
+    "S":  {"chest": 98.0,  "bodyLength": 68.0, "armFit": 58.0, "cuff": 23.0},
+    "M":  {"chest": 104.0, "bodyLength": 70.0, "armFit": 60.0, "cuff": 24.0},
+    "L":  {"chest": 110.0, "bodyLength": 72.0, "armFit": 62.0, "cuff": 25.0},
+    "XL": {"chest": 116.0, "bodyLength": 74.0, "armFit": 64.0, "cuff": 26.0},
+}
+# AO LEN: dai tay nhu so mi dai tay nhung KHONG co co ao, rong hon (len mac
+# thoai mai), co tay om hon (bo gan len). Mac dinh vai "thun" o client.
+SWEATER_SIZE_CHART = {
+    "S":  {"chest": 100.0, "bodyLength": 60.0, "armFit": 58.0, "cuff": 21.0},
+    "M":  {"chest": 106.0, "bodyLength": 62.0, "armFit": 60.0, "cuff": 22.0},
+    "L":  {"chest": 112.0, "bodyLength": 64.0, "armFit": 62.0, "cuff": 23.0},
+    "XL": {"chest": 118.0, "bodyLength": 66.0, "armFit": 64.0, "cuff": 24.0},
+}
+# AO KHOAC: co co + nep, rong hon so mi ~10cm (mac ngoai ao khac), dai hon,
+# co tay rong. Nguc +4 (tu 108-126): M tren nguoi to C keo vai 1.6 lan.
+JACKET_SIZE_CHART = {
+    "S":  {"chest": 112.0, "bodyLength": 64.0, "armFit": 59.0, "cuff": 27.0},
+    "M":  {"chest": 118.0, "bodyLength": 66.0, "armFit": 61.0, "cuff": 28.0},
+    "L":  {"chest": 124.0, "bodyLength": 68.0, "armFit": 63.0, "cuff": 29.0},
+    "XL": {"chest": 130.0, "bodyLength": 70.0, "armFit": 65.0, "cuff": 30.0},
+}
+
+# Dai tay cua co the tham chieu (1.63 m; avatar dung 0.345 x chieu cao). Tay
+# ao dun theo canh tay toi co tay tham chieu, roi di tiep thang them
+# (armFit - REF_ARM_CM) -- mac len nguoi tay dai dung armFit thi vua cham co tay.
+REF_ARM_CM = 58.0
+LONG_SLEEVE_BASE = 20.0   # cm -- tay ngan lam goc, duoi nguong 21.5 cm bi rach
+LONG_SLEEVE_STEP = 0.015  # m -- khoang cach giua hai vong tay moi
+
 # Cach anh in san pham can vao _ARTUV.
 #
 # _ARTUV la chieu phang bong ao o tu the T; anh chup ao TRAI PHANG co tay xoe
@@ -79,6 +164,21 @@ CM = 0.01
 
 # Khe ho vai - da khi may (m). Ao khong nam sat da, va day cung la be day vai.
 FABRIC_GAP = 0.012
+
+# Quan/short: doan tu waist_cut (mep tren cung, o crotch_y + rise) tro xuong
+# truoc day scale PHANG tuyet doi theo scale_waist -- ra mot doan hinh tru
+# thang dung, khong co dang day thun keo sat nao ("nhin do/cung"). Them do
+# thot dan ve mep tren trong CINCH_BAND (m) ke duoi waist_cut, toi da giam
+# CINCH_ABOVE_WAIST ngay tai mep cat, de mo phong day thun keo eo ao sat vao
+# nguoi hon phan than ben duoi. Neo theo waist_cut (mep that cua mesh), KHONG
+# theo body.waist_y -- lan dau lam vay bi vo hieu vi body.waist_y (eo tu
+# nhien tren co the tham chieu) luon cao hon waist_cut o moi size, nen
+# khong dinh nao trong mesh dat toi do cao do (rebuild ra file y het cu).
+#
+# Gioi han tren: FABRIC_GAP them ~1.2cm ban kinh ngoai da body o waist_target,
+# nen cinch qua 100%*FABRIC_GAP/ban_kinh_eo (~8-9% o cac size hien tai) se an
+# vao nguoi ngay tai mep. Giu duoi nguong do.
+CINCH_ABOVE_WAIST = 0.075
 
 # Canh o gop dinh (m). Mesh co the qua min cho mo phong vai: giu nguyen thi ao
 # co 6.2k dinh, settle mat 10 giay va maxStretch len 2.2 vi canh qua ngan.
@@ -148,6 +248,10 @@ REGION = {
     "sleeveLeft": 7,
     "cuffRight": 8,
     "cuffLeft": 9,
+    # La co + chan co cua ao so mi (add_shirt_collar). Ghim cung nhu `collar`
+    # nhung sim KHONG lam muot no cung vong co -- lam muot la vuot phang ca
+    # mieng co vao duong vien co.
+    "collarLeaf": 10,
 }
 
 FRONT_HALF_ANGLE = math.radians(55)
@@ -155,14 +259,22 @@ FRONT_HALF_ANGLE = math.radians(55)
 # --- Bang size quan unisex (cm) --------------------------------------------
 # waist    : chu vi cap quan
 # hip      : chu vi mong cua quan
-# inseam   : dai ong trong, do tu day chau xuong gau
+# inseam   : dai ong trong, do tu day chau xuong gau -- TREN CO THE THAM CHIEU
+#            (chan 77 cm, day chau o y = 0.772 m). Mesh vai bam theo co the
+#            avatar (_BIND), nen ong quan dai ra / ngan lai theo chan that; so
+#            o day chi dat gau o mat ca (~6 cm tren san) cua chan tham chieu.
+#            Ghi 74-80 theo nguoi 1.75 m thi gau quan xuyen xuong san va dap vao
+#            ban chan thanh rang cua.
 # hem      : chu vi ong gau (mo ong)
 # rise     : dang cap -- cap cao hon day chau bao nhieu
+# Eo 70-94 cm de phu ca nguoi mau nu (F1-F3: eo 60-82) lan nam (A-C: 70-96).
+# Truoc day 80-98 (chi size nam): nguoi mau nu mac size nho nhat van du
+# 14-20 cm, ong quan phong nhu bong bong va gay khuc o dau goi.
 PANTS_SIZE_CHART = {
-    "S":  {"waist": 80.0,  "hip": 96.0,  "inseam": 74.0, "hem": 40.0, "rise": 16.0},
-    "M":  {"waist": 86.0,  "hip": 102.0, "inseam": 76.0, "hem": 42.0, "rise": 17.0},
-    "L":  {"waist": 92.0,  "hip": 108.0, "inseam": 78.0, "hem": 44.0, "rise": 18.0},
-    "XL": {"waist": 98.0,  "hip": 114.0, "inseam": 80.0, "hem": 46.0, "rise": 19.0},
+    "S":  {"waist": 70.0,  "hip": 90.0,  "inseam": 70.0, "hem": 38.0, "rise": 16.0},
+    "M":  {"waist": 78.0,  "hip": 98.0,  "inseam": 70.5, "hem": 40.0, "rise": 17.0},
+    "L":  {"waist": 86.0,  "hip": 106.0, "inseam": 71.0, "hem": 42.0, "rise": 18.0},
+    "XL": {"waist": 94.0,  "hip": 114.0, "inseam": 71.5, "hem": 44.0, "rise": 19.0},
 }
 
 PANTS_REGION = {
@@ -192,20 +304,57 @@ SHORTS_SIZE_CHART = {
     # song/gon rach khi mo phong (moi dinh trong vanh 18 dinh du long doc lap).
     # Ha xuong con ~+8-11cm tren chu vi dui da scale (dung quy uoc ease ao
     # thun EASE_MIN/MAX_CM) cho gau ban sat hon, het du vai de xoe.
-    "S":  {"waist": 80.0,  "hip": 96.0,  "inseam": 18.0, "hem": 44.0, "rise": 16.0},
-    "M":  {"waist": 86.0,  "hip": 102.0, "inseam": 19.0, "hem": 47.0, "rise": 17.0},
-    "L":  {"waist": 92.0,  "hip": 108.0, "inseam": 20.0, "hem": 50.0, "rise": 18.0},
-    "XL": {"waist": 98.0,  "hip": 114.0, "inseam": 21.0, "hem": 53.0, "rise": 19.0},
+    "S":  {"waist": 70.0,  "hip": 90.0,  "inseam": 18.0, "hem": 42.0, "rise": 16.0},
+    "M":  {"waist": 78.0,  "hip": 98.0,  "inseam": 19.0, "hem": 45.0, "rise": 17.0},
+    "L":  {"waist": 86.0,  "hip": 106.0, "inseam": 20.0, "hem": 48.0, "rise": 18.0},
+    "XL": {"waist": 94.0,  "hip": 114.0, "inseam": 21.0, "hem": 51.0, "rise": 19.0},
 }
 
 # Anh chup short trai phang cung bo cuc voi quan dai (cap tren, ong xoe duoi).
 SHORTS_PRINT_CALIBRATION = {"scale": 0.9, "offsetX": 0.0, "offsetY": 0.0}
+
+# --- Bang size quan lung (cm) ------------------------------------------------
+# Cat tu quan dai y het quan short (build_shorts_from_pants), chi khac cho cat:
+# duoi dau goi, ngang bap chan. Chi `inseam` duoc dung.
+CAPRI_SIZE_CHART = {
+    "S":  {"inseam": 52.0},
+    "M":  {"inseam": 54.0},
+    "L":  {"inseam": 56.0},
+    "XL": {"inseam": 58.0},
+}
+
+# --- Bang size chan vay chu A (cm) --------------------------------------------
+# Dung rieng (build_skirt_size), khong cat tu quan: mot ong vai duy nhat bao
+# quanh ca hai chan, cap nam o eo that (body.waist_y).
+# waist : chu vi cap      hip : chu vi ngang mong
+# length: dai tu cap xuong gau      hem : chu vi gau (xoe chu A)
+SKIRT_SIZE_CHART = {
+    "S":  {"waist": 64.0, "hip": 90.0,  "length": 55.0, "hem": 128.0},
+    "M":  {"waist": 70.0, "hip": 96.0,  "length": 56.0, "hem": 134.0},
+    "L":  {"waist": 76.0, "hip": 102.0, "length": 57.0, "hem": 140.0},
+    "XL": {"waist": 82.0, "hip": 108.0, "length": 58.0, "hem": 146.0},
+}
+# Phan vay cua DAM: than dam dung lai croptop (gau ngang eo), vay dai toi
+# goi va xoe hon chan vay thuong.
+# waist = vong CAP (cao 10cm tren eo, duoi nguc) nen rong hon eo ~8cm.
+DRESS_SKIRT_SIZE_CHART = {
+    "S":  {"waist": 74.0, "hip": 94.0,  "length": 57.0, "hem": 150.0},
+    "M":  {"waist": 80.0, "hip": 100.0, "length": 58.0, "hem": 156.0},
+    "L":  {"waist": 86.0, "hip": 106.0, "length": 59.0, "hem": 162.0},
+    "XL": {"waist": 92.0, "hip": 112.0, "length": 60.0, "hem": 168.0},
+}
+SKIRT_ANGLES = 48        # so dinh moi vong
+SKIRT_RING_STEP = 0.015  # khoang cach giua hai vong ngang (m), bang DECIMATE_CELL
 
 WELD_DIST = 0.012
 
 
 def sub3(a, b):
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+
+def cross3(a, b):
+    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
 
 
 def dot(a, b):
@@ -434,7 +583,7 @@ def weld_near_duplicates(positions, uvs, triangles, source, dist: float, weldabl
 
     for a, b, c in triangles:
         for x, y in ((a, b), (b, c), (c, a)):
-            if weldable is not None and not (weldable(x) and weldable(y)):
+            if weldable is not None and not weldable(x, y):
                 continue
             if math.dist(positions[x], positions[y]) < dist:
                 union(x, y)
@@ -748,8 +897,122 @@ def smooth_ring(positions, ring, passes: int = 6) -> None:
             positions[ring[k]] = moved[k]
 
 
-def build_size(body: BodyReference, size: str) -> dict:
-    spec = SIZE_CHART[size]
+def build_size(body: BodyReference, size: str, size_chart: dict = SIZE_CHART) -> dict:
+    return drape_torso(_build_size_raw(body, size, size_chart), body)
+
+
+DRAPE_START = -0.17   # m duoi vai: tu day xuong vai roi thang (duoi nguc)
+DRAPE_SLICE = 0.015   # m, be day moi lat cat ngang
+DRAPE_BINS = 64       # so goc quanh truc than
+
+
+def drape_torso(m: dict, body: BodyReference) -> dict:
+    """Bien than ao tu "ban sao co the phong to" thanh vai may.
+
+    Than ao cat tu chinh be mat co the roi scale theo size, nen moi cho lom /
+    loi cua co the (ranh giua nguc, eo, ranh lung, khe hang) bi phong to theo:
+    size cang lon cang ro hinh nguc, ao khoac M trong nhu co nguc nu, gau ao
+    chui vao hang keo quan khuyet theo. Vai that thi bac cau qua cho lom va
+    roi thang tu nguc xuong. Hai buoc tren phan than (khong dung tay, co):
+
+      1. Moi lat cat ngang: day dinh ra toi bao loi cua lat -> lap cho lom.
+      2. Duoi DRAPE_START: ban kinh theo moi goc khong nho hon ban kinh lon
+         nhat o phia tren (vai roi thang, khong thot vao bung / hang).
+
+    Roi lam muot lai (giu bien) de khong con gon doc giua cac lat.
+    """
+    sleeve_ids = {REGION[k] for k in ("sleeveLeft", "sleeveRight", "cuffLeft", "cuffRight",
+                                      "collar")}
+    if "collarLeaf" in REGION:
+        sleeve_ids.add(REGION["collarLeaf"])
+    pos = [list(p) for p in m["positions"]]
+    torso = [v for v, r in enumerate(m["regions"]) if r not in sleeve_ids and pos[v][1] < -0.03]
+    if not torso:
+        return m
+
+    def ang_bin(x, z):
+        return int(((math.atan2(x, z) + 2 * math.pi) % (2 * math.pi)) / (2 * math.pi) * DRAPE_BINS) % DRAPE_BINS
+
+    # 1. bao loi tung lat
+    slices: dict[int, list[int]] = {}
+    for v in torso:
+        slices.setdefault(int(math.floor(pos[v][1] / DRAPE_SLICE)), []).append(v)
+    for vs in slices.values():
+        if len(vs) < 3:
+            continue
+        pts = sorted({(pos[v][0], pos[v][2]) for v in vs})
+
+        def cross(o, a, b):
+            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+        lo: list = []
+        for q in pts:
+            while len(lo) >= 2 and cross(lo[-2], lo[-1], q) <= 0:
+                lo.pop()
+            lo.append(q)
+        up: list = []
+        for q in reversed(pts):
+            while len(up) >= 2 and cross(up[-2], up[-1], q) <= 0:
+                up.pop()
+            up.append(q)
+        hull = lo[:-1] + up[:-1]
+        if len(hull) < 3:
+            continue
+        for v in vs:
+            x, z = pos[v][0], pos[v][2]
+            r = math.hypot(x, z)
+            if r < 1e-6:
+                continue
+            ux, uz = x / r, z / r
+            # khoang cach tu truc toi bao loi theo huong (ux, uz)
+            best = r
+            for i in range(len(hull)):
+                a, b = hull[i], hull[(i + 1) % len(hull)]
+                ex, ez = b[0] - a[0], b[1] - a[1]
+                den = ux * ez - uz * ex
+                if abs(den) < 1e-9:
+                    continue
+                t = (a[0] * ez - a[1] * ex) / den
+                sgm = (a[0] * uz - a[1] * ux) / den
+                if t > 0 and -1e-6 <= sgm <= 1 + 1e-6:
+                    best = max(best, t)
+            pos[v][0], pos[v][2] = ux * best, uz * best
+
+    # 2. roi thang tu duoi nguc
+    runmax = [0.0] * DRAPE_BINS
+    for v in sorted(torso, key=lambda v: -pos[v][1]):
+        x, z = pos[v][0], pos[v][2]
+        r = math.hypot(x, z)
+        b = ang_bin(x, z)
+        if pos[v][1] < DRAPE_START and r > 1e-6:
+            # lan can 1 o de vai khong bi rang cua theo goc
+            want = max(runmax[b], 0.5 * (runmax[(b - 1) % DRAPE_BINS] + runmax[(b + 1) % DRAPE_BINS]))
+            if want > r:
+                pos[v][0], pos[v][2] = x / r * want, z / r * want
+                r = want
+        runmax[b] = max(runmax[b], r)
+
+    triangles = [tuple(m["indices"][i:i + 3]) for i in range(0, len(m["indices"]), 3)]
+    positions = [tuple(p) for p in pos]
+    frozen = {v for loop_v in boundary_vertex_set(triangles) for v in (loop_v,)}
+    frozen |= {v for v, r in enumerate(m["regions"]) if r in sleeve_ids}
+    smooth_surface(positions, triangles, frozen, passes=30)
+    m["positions"] = positions
+    m["normals"] = compute_smooth_normals(positions, triangles)
+    return m
+
+
+def boundary_vertex_set(triangles) -> set:
+    cnt: dict = {}
+    for a, b, c in triangles:
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (min(x, y), max(x, y))
+            cnt[k] = cnt.get(k, 0) + 1
+    return {v for (a, b), n in cnt.items() if n == 1 for v in (a, b)}
+
+
+def _build_size_raw(body: BodyReference, size: str, size_chart: dict = SIZE_CHART) -> dict:
+    spec = size_chart[size]
     target_chest = spec["chest"] * CM
     body_length = spec["bodyLength"] * CM
     sleeve_length = spec["sleeveLength"] * CM
@@ -1097,6 +1360,386 @@ def build_size(body: BodyReference, size: str) -> dict:
     }
 
 
+def extend_sleeves(m: dict, body: BodyReference, arm_fit_cm: float, cuff_cm: float) -> dict:
+    """Noi dai hai tay ao ngan thanh tay dai, men theo cang tay that.
+
+    Cat tay dai thang tu co the (nhu tay ngan) khong duoc: vung chon tay la mot
+    ONG THANG quanh truc tay, ma o tu the chu A cang tay gap ra truoc khoi truc
+    do tu khuyu tro xuong -- dinh cang tay lot ra ngoai ong, bi xep vao than
+    ao, mesh rach thanh 6 vong bien. O day lay tay ngan (hop le) lam goc roi
+    dun them tung vong: tam vong di theo trong tam lat cat canh tay tai do,
+    ban kinh thu dan tu cua tay ngan ve mang sec nhung khong bao gio nho hon
+    canh tay + FABRIC_GAP.
+    """
+    positions = [tuple(p) for p in m["positions"]]
+    idx = m["indices"]
+    triangles = [tuple(idx[i:i + 3]) for i in range(0, len(idx), 3)]
+    uvs, art_uvs = list(m["uvs"]), list(m["art_uvs"])
+    regions, facing = list(m["regions"]), list(m["facing"])
+
+    # uv / art_uv cua mesh ao la ham affine cua (x, y) -- khop lai de noi suy
+    # cho dinh moi.
+    def fit_affine(vals):
+        import numpy as np
+        A = np.array([[p[0], p[1], 1.0] for p in positions])
+        V = np.array(vals)
+        coef, *_ = np.linalg.lstsq(A, V, rcond=None)
+        return lambda x, y: tuple(float(c) for c in (np.array([x, y, 1.0]) @ coef))
+
+    uv_of = fit_affine(uvs)
+    art_of = fit_affine(art_uvs)
+
+    body_local = [(p[0], p[1] - body.shoulder_y, p[2] - body.axis_z) for p in body.positions]
+    # Tran tren: toi da di theo canh tay 45 cm (co tay tham chieu dung truoc).
+    extra_len = 0.45
+    overhang = max(0.0, arm_fit_cm - REF_ARM_CM) * CM
+    cuff_r = cuff_cm * CM / (2.0 * math.pi)
+
+    loops = boundary_rings(triangles)
+    reached = []
+    for side, sign in (("right", 1.0), ("left", -1.0)):
+        ring = max(loops, key=lambda r: sign * sum(positions[i][0] for i in r) / len(r))
+        c0 = tuple(sum(positions[i][k] for i in ring) / len(ring) for k in range(3))
+        d = norm((ARM_AXIS_RIGHT[0] * sign, ARM_AXIS_RIGHT[1], ARM_AXIS_RIGHT[2]))
+
+        # Thu tu vong: sap theo goc quanh truc de noi tam giac deu.
+        u_ax = norm(cross3(d, (0.0, 0.0, 1.0)))
+        v_ax = cross3(d, u_ax)
+        def ang(i):
+            q = sub3(positions[i], c0)
+            return math.atan2(dot(q, v_ax), dot(q, u_ax))
+        ring = sorted(ring, key=ang)
+        offs = [sub3(positions[i], c0) for i in ring]
+        offs = [(o[0] - d[0] * dot(o, d), o[1] - d[1] * dot(o, d), o[2] - d[2] * dot(o, d)) for o in offs]
+        r0 = sum(math.sqrt(dot(o, o)) for o in offs) / len(offs)
+
+        # Doi nhan: cua tay cu gio la than tay.
+        sleeve_region = REGION["sleeveRight" if side == "right" else "sleeveLeft"]
+        cuff_region = REGION["cuffRight" if side == "right" else "cuffLeft"]
+        for k, r in enumerate(regions):
+            if r == cuff_region:
+                regions[k] = sleeve_region
+
+        arm = [q for q in body_local if q[0] * sign > 0.10]
+        centre, prev_ids = c0, ring
+        d_prev = d
+        walked = 0.0
+        step = 0
+        min_r = 1.0
+        at_wrist = False
+        while walked < extra_len - 1e-6 and not at_wrist:
+            step += 1
+            guess = tuple(centre[k] + d_prev[k] * LONG_SLEEVE_STEP for k in range(3))
+            # Lat cat CHI lay dinh sat tam tay (<6.5 cm): rong hon la dinh ca
+            # suon/hong vao, ban kinh phinh ra gap doi.
+            sl = []
+            for q in arm:
+                rel = sub3(q, guess)
+                a = dot(rel, d_prev)
+                if abs(a) >= 0.012:
+                    continue
+                if dot(rel, rel) - a * a < 0.065 ** 2:
+                    sl.append(q)
+            if len(sl) >= 4:
+                cen = tuple(sum(q[k] for q in sl) / len(sl) for k in range(3))
+                lat = sub3(cen, guess)
+                lat = tuple(lat[k] - d_prev[k] * dot(lat, d_prev) for k in range(3))
+                # Nua buoc: lat cat cang tay thua (it dinh), tam nhay theo nhieu.
+                new_c = tuple(guess[k] + 0.5 * lat[k] for k in range(3))
+                rs = sorted(
+                    math.sqrt(max(0.0, dot(sub3(q, cen), sub3(q, cen)) - dot(sub3(q, cen), d_prev) ** 2))
+                    for q in sl)
+                arm_r = rs[int(0.85 * (len(rs) - 1))]
+            else:
+                new_c, arm_r = guess, 0.0
+            # Co tay = cho canh tay hep nhat; qua do lat cat phinh ra vi ban
+            # tay. Dung o day, va khong de ban kinh ban tay keo loe tay ao.
+            # Ban tay: ngon tay lam so dinh trong lat cat tang vot (tren 40,
+            # canh tay chi 10-25), va ban kinh bat dau tang lai.
+            if walked > 0.20 and arm_r > 0.0:
+                if min_r < 1.0 and (len(sl) >= 40 or arm_r > min_r + 0.008):
+                    at_wrist = True
+                    arm_r = min_r
+                min_r = min(min_r, arm_r)
+            walked += math.dist(new_c, centre)
+            nd = norm(sub3(new_c, centre))
+            d_new = norm(tuple(0.6 * d_prev[k] + 0.4 * nd[k] for k in range(3)))
+            t = 1.0 if at_wrist else min(1.0, walked / 0.30)
+            last = False
+            r = max(r0 + (cuff_r - r0) * t, arm_r + FABRIC_GAP + 0.004)
+            # Xoay vong goc theo huong moi (goc lech nho -- chieu len mat phang moi).
+            ids = []
+            # Xoay vong goc tu huong truc ban dau d sang huong moi (Rodrigues).
+            # Chieu thang len mat phang moi roi chia do dai chieu thi no tung
+            # khi mot dinh gan song song voi truc moi (mot dinh size M bay len
+            # 70 cm).
+            ax = cross3(d, d_new)
+            sin_a = math.sqrt(dot(ax, ax))
+            cos_a = dot(d, d_new)
+            ax = norm(ax) if sin_a > 1e-9 else (0.0, 0.0, 0.0)
+            for k, o in enumerate(offs):
+                kxo = cross3(ax, o)
+                kdo = dot(ax, o)
+                rot = tuple(o[j] * cos_a + kxo[j] * sin_a + ax[j] * kdo * (1.0 - cos_a) for j in range(3))
+                q = tuple(new_c[j] + rot[j] * (r / r0) for j in range(3))
+                ids.append(len(positions))
+                positions.append(q)
+                uvs.append(uv_of(q[0], q[1]))
+                art_uvs.append(art_of(q[0], q[1]))
+                facing.append(facing[ring[k]])
+                regions.append(cuff_region if last else sleeve_region)
+            # Noi hai vong; chieu tam giac theo huong ra ngoai.
+            new_tris = []
+            n = len(ids)
+            for k in range(n):
+                a, b = prev_ids[k], prev_ids[(k + 1) % n]
+                c, e = ids[k], ids[(k + 1) % n]
+                new_tris += [(a, b, c), (c, b, e)]
+            pa, pb, pc = (positions[v] for v in new_tris[0])
+            nrm = cross3(sub3(pb, pa), sub3(pc, pa))
+            mid = tuple((pa[j] + pb[j] + pc[j]) / 3.0 for j in range(3))
+            flipped = dot(nrm, sub3(mid, new_c)) < 0.0
+            if flipped:
+                new_tris = [(a, c, b) for a, b, c in new_tris]
+            triangles += new_tris
+            prev_ids, centre, d_prev = ids, new_c, d_new
+
+        # Qua co tay tham chieu: di thang tiep theo huong cang tay, giu ban kinh
+        # mang sec. Vong cuoi gan nhan cua tay.
+        r_end = r
+        k_over = max(1, round(overhang / LONG_SLEEVE_STEP)) if overhang > 0 else 0
+        for j in range(k_over + 1):
+            final = j == k_over
+            if j == 0:
+                # Vong dang co tro thanh vong cua tay neu khong di them.
+                if final:
+                    for v in prev_ids:
+                        regions[v] = cuff_region
+                continue
+            new_c = tuple(centre[k] + d_prev[k] * (overhang / k_over) for k in range(3))
+            walked += overhang / k_over
+            ids = []
+            for k, o in enumerate(offs):
+                kxo = cross3(ax, o)
+                kdo = dot(ax, o)
+                rot = tuple(o[jj] * cos_a + kxo[jj] * sin_a + ax[jj] * kdo * (1.0 - cos_a) for jj in range(3))
+                q = tuple(new_c[jj] + rot[jj] * (r_end / r0) for jj in range(3))
+                ids.append(len(positions))
+                positions.append(q)
+                uvs.append(uv_of(q[0], q[1]))
+                art_uvs.append(art_of(q[0], q[1]))
+                facing.append(facing[ring[k]])
+                regions.append(cuff_region if final else sleeve_region)
+            n = len(ids)
+            new_tris = []
+            for k in range(n):
+                a, b = prev_ids[k], prev_ids[(k + 1) % n]
+                c, e = ids[k], ids[(k + 1) % n]
+                new_tris += [(a, b, c), (c, b, e)]
+            if flipped:
+                new_tris = [(a, c, b) for a, b, c in new_tris]
+            triangles += new_tris
+            prev_ids, centre = ids, new_c
+        # Dai tay do tu dau vai (acromion) toi tam cua tay goc, cong doan
+        # vua noi them.
+        ac = body.acromion[side]
+        ac = (ac[0], ac[1] - body.shoulder_y, ac[2] - body.axis_z)
+        reached.append(math.dist(ac, c0) + walked)
+
+    loops = boundary_loops(triangles)
+    if len(loops) != 4:
+        raise RuntimeError(f"tay dai: {len(loops)} vong bien {loops}, phai la 4")
+    out = dict(m)
+    out.update(
+        positions=positions,
+        normals=compute_smooth_normals(positions, triangles),
+        uvs=uvs, art_uvs=art_uvs, regions=regions, facing=facing,
+        indices=[v for t in triangles for v in t],
+        boundaryLoops=loops,
+        # Dai tay THAT: dung o co tay nen co the ngan hon so trong bang size.
+        sleeveLength=sum(reached) / len(reached),
+    )
+    return out
+
+
+COLLAR_STAND_BACK = 0.032   # chieu cao chan co o sau gay (m)
+COLLAR_STAND_FRONT = 0.024  # ... o truoc co
+COLLAR_NECK_EASE = 0.008    # khe giua chan co va co nguoi
+COLLAR_FRONT_GAP = 0.07     # nua goc ho giua truoc (rad) -- ~4 mm moi ben
+COLLAR_COLUMNS = 64         # so cot cua luoi co (mau hon vong co 38 dinh cua ao)
+COLLAR_TIP_DROP = 0.032     # mui co chuc xuong duoi duong may co (m)
+COLLAR_TIP_SPREAD = 0.050   # mui co loe ngang ra ngoai (m) -- hai canh truoc xoe chu V
+COLLAR_TIP_REACH = 0.75     # rad -- tu mui co ve sau, la co thu dan ve ban sau gay
+
+
+def add_shirt_collar(m: dict, body: BodyReference) -> dict:
+    """Gan co so mi (chan co + la co lat xuong co hai mui) len ao.
+
+    Co la MOT LUOI RIENG, cot deu theo goc quanh truc co, khong dung dinh vong
+    co cua ao lam hang duoi. Ban truoc dung truc tiep 38 dinh vong co: hai dau
+    co bi cat vuong o dinh gan giua truoc nhat, khe ho truoc rong ca 4 cm lo
+    nguyen duong khoet co tron cua ao thun ben duoi, va la co khong co mui.
+    Luoi rieng cho phep dat dau co dung sat giua truoc (ho ~8 mm) va dung mui co.
+    Toan bo dinh co la `collarLeaf`, sim ghim cung -- khong can noi voi than
+    ao; hang duoi nam lui vao trong duong may 3 mm nen khong ho khe.
+
+      hang 0  duong may co (noi suy tren vong co cua ao)
+      hang 1  mep tren chan co, om sat co nguoi
+      hang 2  nep gap
+      hang 3  giua la co
+      hang 4  mep la co: sau gay trum qua duong may; ra truoc chuc xuong va loe
+              ngang thanh mui co. Cot sat giua truoc chinh la canh truoc cua la
+              co, chay cheo tu nep gap xuong mui.
+    """
+    positions = [tuple(p) for p in m["positions"]]
+    indices = m["indices"]
+    triangles = [tuple(indices[i:i + 3]) for i in range(0, len(indices), 3)]
+    neck = max(boundary_rings(triangles), key=lambda r: max(positions[i][1] for i in r))
+
+    # Co nguoi, 5 cm tren mom vai (cao hon la dinh ca cam).
+    ny = 0.05
+    ring_c = (sum(positions[i][0] for i in neck) / len(neck),
+              sum(positions[i][2] for i in neck) / len(neck))
+    slab = [(p[0], p[2] - body.axis_z) for p in body.positions
+            if abs(p[1] - body.shoulder_y - ny) < 0.012]
+    slab = [q for q in slab if math.dist(q, ring_c) < 0.11]
+    if len(slab) < 8:
+        raise RuntimeError("khong tim thay co nguoi de dung co ao")
+    ncx = sum(q[0] for q in slab) / len(slab)
+    ncz = sum(q[1] for q in slab) / len(slab)
+    bins = 24
+    neck_r = [0.0] * bins
+    for x, z in slab:
+        j = int((math.atan2(x - ncx, z - ncz) % (2 * math.pi)) / (2 * math.pi) * bins) % bins
+        neck_r[j] = max(neck_r[j], math.hypot(x - ncx, z - ncz))
+    mean_r = sum(r for r in neck_r if r > 0) / max(1, sum(1 for r in neck_r if r > 0))
+    neck_r = [r if r > 0 else mean_r for r in neck_r]
+
+    def neck_radius(a: float) -> float:
+        t = (a % (2 * math.pi)) / (2 * math.pi) * bins
+        j = int(t) % bins
+        f = t - int(t)
+        return neck_r[j] * (1 - f) + neck_r[(j + 1) % bins] * f
+
+    # Vong co cua ao, theo goc quanh truc co -> noi suy duoc o goc bat ky.
+    ring = sorted(((math.atan2(positions[i][0] - ncx, positions[i][2] - ncz) % (2 * math.pi), i)
+                   for i in neck))
+
+    def seam_at(a: float) -> tuple[float, float, float]:
+        a %= 2 * math.pi
+        for k in range(len(ring)):
+            a0, i0 = ring[k]
+            a1, i1 = ring[(k + 1) % len(ring)]
+            span = (a1 - a0) % (2 * math.pi)
+            off = (a - a0) % (2 * math.pi)
+            if off <= span + 1e-12:
+                f = off / span if span > 1e-12 else 0.0
+                p0, p1 = positions[i0], positions[i1]
+                return tuple(p0[j] + (p1[j] - p0[j]) * f for j in range(3))
+        return positions[ring[0][1]]
+
+    # Be mat than ao de dat la co NOI len tren: mui co dat theo ban kinh quanh
+    # truc co thi o 6 cm duoi duong may no nam chim duoi vai nguc (nguc nho ra
+    # truoc hon), va khi sim day than ao ra them ~1 cm thi mat han.
+    import numpy as np
+    from scipy.spatial import cKDTree
+
+    body_idx = [i for i, r in enumerate(m["regions"]) if r != REGION["collar"]]
+    shell = np.array([positions[i] for i in body_idx])
+    shell_n = np.array([m["normals"][i] for i in body_idx])
+    shell_tree = cKDTree(shell)
+
+    def above_shell(q, gap: float):
+        _, k = shell_tree.query(q)
+        n = shell_n[k]
+        h = float(np.dot(np.array(q) - shell[k], n))
+        if h >= gap:
+            return q
+        return tuple(float(v) for v in np.array(q) + n * (gap - h))
+
+    region_leaf = REGION["collarLeaf"]
+    uvs, art_uvs = list(m["uvs"]), list(m["art_uvs"])
+    regions, facing = list(m["regions"]), list(m["facing"])
+    nearest_src = lambda q: min(neck, key=lambda i: math.dist(positions[i], q))  # noqa: E731
+
+    cols = []
+    span = 2 * math.pi - 2 * COLLAR_FRONT_GAP
+    for c in range(COLLAR_COLUMNS + 1):
+        # a di tu +gap (canh phai cua khe truoc) vong ra sau roi ve -gap.
+        a = COLLAR_FRONT_GAP + span * c / COLLAR_COLUMNS
+        a_signed = math.atan2(math.sin(a), math.cos(a))  # 0 = giua truoc
+        side = 1.0 if a_signed > 0 else -1.0
+        d = (math.sin(a), math.cos(a))
+        seam = seam_at(a)
+        r_seam = math.hypot(seam[0] - ncx, seam[2] - ncz)
+
+        # 0 o sau gay -> 1 o giua truoc.
+        fr = max(0.0, 1.0 - abs(a_signed) / math.pi)
+        fr = fr * fr * (3.0 - 2.0 * fr)
+        # Mui co: 1 o canh truoc, thu ve 0 sau COLLAR_TIP_REACH rad.
+        tip = max(0.0, 1.0 - (abs(a_signed) - COLLAR_FRONT_GAP) / COLLAR_TIP_REACH)
+        tip = tip * tip * (3.0 - 2.0 * tip)
+
+        rn = neck_radius(a) + COLLAR_NECK_EASE
+        stand = COLLAR_STAND_BACK + (COLLAR_STAND_FRONT - COLLAR_STAND_BACK) * fr
+        base = (seam[0] - d[0] * 0.003, seam[1] - 0.003, seam[2] - d[1] * 0.003)
+        top = (ncx + d[0] * rn, seam[1] + stand, ncz + d[1] * rn)
+        fold = (top[0] + d[0] * 0.005, top[1] + 0.003, top[2] + d[1] * 0.005)
+        edge_r = max(r_seam, rn) + 0.005 + 0.010 * tip
+        edge = (ncx + d[0] * edge_r + side * COLLAR_TIP_SPREAD * tip,
+                seam[1] - 0.012 - COLLAR_TIP_DROP * tip,
+                ncz + d[1] * edge_r)
+        mid = tuple((fold[j] + edge[j]) / 2.0 for j in range(3))
+        mid = (mid[0] + d[0] * 0.004, mid[1], mid[2] + d[1] * 0.004)
+        # Chi phan mui co (phia truoc) moi can noi cao; phia sau nang len la la
+        # co venh ra khoi vai nhu cai canh.
+        edge = above_shell(edge, 0.003 + 0.011 * tip)
+        mid = above_shell(mid, 0.003 + 0.009 * tip)
+
+        src = nearest_src(seam)
+        col = []
+        for q in (base, top, fold, mid, edge):
+            col.append(len(positions))
+            positions.append(q)
+            uvs.append(uvs[src])
+            art_uvs.append(art_uvs[src])
+            facing.append(facing[src])
+            regions.append(region_leaf)
+        cols.append(col)
+
+    # Huong: chan co quay mat ra xa truc co.
+    def outward(a: int, b: int, c: int) -> bool:
+        pa, pb, pc = positions[a], positions[b], positions[c]
+        n = cross3(sub3(pb, pa), sub3(pc, pa))
+        cx = (pa[0] + pb[0] + pc[0]) / 3.0 - ncx
+        cz = (pa[2] + pb[2] + pc[2]) / 3.0 - ncz
+        return n[0] * cx + n[2] * cz > 0.0
+
+    flip = not outward(cols[0][0], cols[1][0], cols[0][1])
+    for c in range(len(cols) - 1):
+        for r in range(4):
+            t1 = (cols[c][r], cols[c + 1][r], cols[c][r + 1])
+            t2 = (cols[c][r + 1], cols[c + 1][r], cols[c + 1][r + 1])
+            for t in (t1, t2):
+                triangles.append((t[0], t[2], t[1]) if flip else t)
+
+    out = dict(m)
+    out["positions"] = positions
+    out["normals"] = compute_smooth_normals(positions, triangles)
+    out["uvs"] = uvs
+    out["art_uvs"] = art_uvs
+    out["regions"] = regions
+    out["facing"] = facing
+    out["indices"] = [v for t in triangles for v in t]
+    out["boundaryLoops"] = boundary_loops(triangles)
+    counts: dict[str, int] = {}
+    inv = {v: k for k, v in REGION.items()}
+    for r in regions:
+        counts[inv[r]] = counts.get(inv[r], 0) + 1
+    out["regionCounts"] = counts
+    return out
+
+
 def _close_inseam(
     positions, triangles, source, body: BodyReference, y_floor: float
 ) -> None:
@@ -1395,10 +2038,50 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # ban kinh dui de goc noi vao mong khong bi gay.
     thigh_r_ref = {s: ref_leg_r(s, 0.02, 0.10) for s in ("right", "left")}
 
+    # Ban kinh ong chan tham chieu theo tung doan doc truc chan. Truoc day ong
+    # bop theo MOT ti le (gau / dui) nhan len hinh chan that, nen gau lay dung
+    # co chan cua co the tham chieu (~23cm) thay vi `hem` trong bang size
+    # (38-44cm). Len nguoi khac gau roi len bap chan to hon -> vong gau bi keo
+    # gian 1.8-2.4 lan, mep rang cua, gai nhon o mat ca. Gio ong lay ban kinh
+    # MONG MUON noi suy tu dui (da scale) toi gau theo bang size.
+    LEG_BINS = 24
+    leg_bins = {s: [[0.0, 0] for _ in range(LEG_BINS)] for s in ("right", "left")}
+    for q in body.positions:
+        perp, t, s = body.leg_coords(q)
+        if s in leg_bins and 0.0 <= t <= LEG_LENGTH_REF and perp < LEG_PICK_RADIUS:
+            k = min(LEG_BINS - 1, int(t / LEG_LENGTH_REF * LEG_BINS))
+            leg_bins[s][k][0] += perp
+            leg_bins[s][k][1] += 1
+
+    def ref_r_at(side, t):
+        k = min(LEG_BINS - 1, max(0, int(t / LEG_LENGTH_REF * LEG_BINS)))
+        for d in range(LEG_BINS):
+            for kk in (k - d, k + d):
+                if 0 <= kk < LEG_BINS and leg_bins[side][kk][1]:
+                    return leg_bins[side][kk][0] / leg_bins[side][kk][1]
+        return thigh_r_ref[side]
+
+    # Day thun eo: mep tren cung (waist_cut) truoc day dung CHUNG scale_waist
+    # phang voi ca doan duoi no -- vi waist_cut (day chau + rise, ~0.94m o
+    # short M) nam THAP HON body.waist_y (~1.01m, eo tu nhien tren co the
+    # tham chieu), nen hscale() khong bao gio thay mot dinh nao dat toi
+    # `y >= body.waist_y` de tra ve scale_waist rieng biet -- ca vanh eo chi
+    # la mot diem tren duong noi hip_y->waist_y, khong co gi phan biet no voi
+    # phan than ben duoi ve HINH DANG, nhin nhu mot ong thang dung ("do/cung").
+    # Neo do thot theo khoang cach THAT toi waist_cut (mep tren cung thuc su
+    # cua mesh), khong phai body.waist_y (co the nam ngoai pham vi mesh).
+    CINCH_BAND = 0.045  # be day doan eo bop lai, do tu mep tren xuong (m)
+
+    def waist_cinch(y: float) -> float:
+        t = min(1.0, max(0.0, (y - (waist_cut - CINCH_BAND)) / CINCH_BAND))
+        t = t * t * (3.0 - 2.0 * t)
+        return 1.0 - CINCH_ABOVE_WAIST * t
+
     def hs(y: float) -> float:
         # eo -> mong roi giu nguyen ti le mong xuong toi chan (khong dung ti le
         # nay de thon chan -- thon lam bang squeeze quanh truc ong ben duoi).
-        return hscale(y) if y >= body.hip_y else scale_hip
+        base = hscale(y) if y >= body.hip_y else scale_hip
+        return base * waist_cinch(y)
 
     def place(p, side):
         x, y, z = p
@@ -1411,9 +2094,13 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
         origin, axis = body.leg_axis(side)
         b = min(1.0, max(0.0, (body.crotch_y - y) / max(natural_leg, 1e-6)))
         b = b * b * (3.0 - 2.0 * b)
-        squeeze_end = hem_r_target / max(thigh_r_ref[side] * scale_hip, 1e-4)
-        squeeze_end = min(1.15, max(0.7, squeeze_end))  # chan combo cuc doan
-        sq = 1.0 + (squeeze_end - 1.0) * b
+        _, t_ref, _ = body.leg_coords(p)
+        r_ref = max(ref_r_at(side, t_ref), 0.03)
+        r_want = thigh_r_ref[side] * scale_hip * (1.0 - b) + hem_r_target * b
+        # Khong bop ong nho hon chan that (+ FABRIC_GAP) -- quan khong duoc
+        # ngam vao bap chan cua chinh co the tham chieu.
+        sq = max(r_want, r_ref + FABRIC_GAP) / (r_ref * scale_hip)
+        sq = 1.0 + (sq - 1.0) * b
         d = sub3((nx, ny, nz), origin)
         t = dot(d, axis)
         perpv = (d[0] - axis[0] * t, d[1] - axis[1] * t, d[2] - axis[2] * t)
@@ -1456,6 +2143,14 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     # huong rieng khi mo phong, hien ra thanh mep luon song/rang cua o ong
     # quan (dung y "ren xoe" thay vi mot duong gau phang). Tinh lai bien MOI
     # lan truoc weld vi weld truoc do co the da doi tap hop bien.
+    #
+    # (Da thu cho phep gop dinh vanh gau voi dinh noi bo ke no de xoa dai
+    # tam giac gan-suy-bien sat mieng ong -- BI LOI: dai tam giac do khong
+    # phai mot dai don gian ma la mot "khau" zigzag noi vanh voi vong ke, gop
+    # mot ben ma khong gop dong bo phia doi dien lam rach mat, ra THEM lo
+    # thung moi (vd size S: 4 vong bien [43,4,4,5] thay vi 3). Giu nguyen loai
+    # het canh cham vanh gau; xu ly do nhan/bit o gau bang smooth_surface
+    # them luot ngay duoi day, khong dung weld xuyen bien.)
     for _ in range(5):
         before_n = len(positions)
         ec: dict[tuple[int, int], int] = {}
@@ -1466,7 +2161,10 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
         hem_boundary = {v for (a, b), n in ec.items() if n == 1 for v in (a, b)}
         positions, uvs, triangles, source = weld_near_duplicates(
             positions, uvs, triangles, source, WELD_DIST,
-            weldable=lambda v: side_of[source[v]] is not None and v not in hem_boundary,
+            weldable=lambda x, y: (
+                side_of[source[x]] is not None and side_of[source[y]] is not None
+                and x not in hem_boundary and y not in hem_boundary
+            ),
         )
         if len(positions) == before_n:
             break
@@ -1577,9 +2275,476 @@ def build_pants_size(body: BodyReference, size: str, size_chart: dict = PANTS_SI
     }
 
 
+def build_shorts_from_pants(
+    pants: dict, body: BodyReference, size: str, size_chart: dict = SHORTS_SIZE_CHART,
+) -> dict:
+    """Dung quan short bang cach CAT NGANG ong chan cua quan dai da dung xong.
+
+    Truoc day quan short tu chon vung rieng (giong build_pants_size, chon ca
+    ong chan tu day chau xuong tan mat ca) roi NEN DOC lai cho vua inseam rat
+    ngan (~18-21cm tren nguoi tham chieu co chan tu nhien ~69cm -- ti le nen
+    toi ~4 lan). Nen manh co lam cac vong ngang von cach nhau ~1.5cm truoc
+    khi nen con chua toi 1mm sau khi nen; mo phong chi xich nhe la ty le gian
+    da vot len vai lan, hien ra nhu ong quan nhan nheo va bit lai o gau. Da
+    thu weld xuyen bien va tang so luot lam muot, ca hai deu khong het han
+    che vi goc van la HINH HOC bi nen qua manh, khong phai do thieu weld/muot.
+
+    Sua tan goc: KHONG nen gi ca nua. Dung nguyen `pants` (da qua toan bo
+    build_pants_size voi ti le nen ~1, tu nhien nhu quan that -- xem
+    PANTS_SIZE_CHART, inseam ~74-80cm gan voi chan that ~69cm) roi CAT
+    NGANG hai ong chan ngay tai do cao inseam cua short, y het lay keo cat
+    ong quan dai. Doan giu lai (eo -> cho cat) mang nguyen hinh dang cua
+    quan dai o do cao do, khong co gi bi nen nen khong the nhan nheo.
+
+    Vanh cat moi duoc lam tron + ha phang bang chinh ky thuat smooth_ring +
+    snap-to-plane da dung cho vanh eo/gau trong build_pants_size -- ap dung
+    tren nen hinh hoc khong bi nen nen chat luong it nhat bang gau quan dai.
+    """
+    spec = size_chart[size]
+    inseam = spec["inseam"] * CM
+    hem_y = (body.crotch_y - body.waist_y) - inseam
+
+    positions = list(pants["positions"])
+    flat = pants["indices"]
+    triangles = [(flat[i], flat[i + 1], flat[i + 2]) for i in range(0, len(flat), 3)]
+
+    keep = [p[1] >= hem_y for p in positions]
+    tris = [t for t in triangles if keep[t[0]] and keep[t[1]] and keep[t[2]]]
+    if not tris:
+        raise RuntimeError(f"{size}: cat short khong con lai tam giac nao")
+
+    used = sorted({v for t in tris for v in t})
+    remap = {o: n for n, o in enumerate(used)}
+    positions = [positions[i] for i in used]
+    regions = [pants["regions"][i] for i in used]
+    triangles = [(remap[a], remap[b], remap[c]) for a, b, c in tris]
+
+    # KHONG goi fill_stray_holes() o day: no dung de don rac ngay sau buoc
+    # chon vung tho tu co the (luc mesh con nhieu manh vun that). Ap dung lai
+    # tren mot mesh QUAN DAI DA HOAN THIEN (dedupe/orient/khau xong xuoi) thi
+    # heuristic "vong nho la rac" cua no lai hieu nham mot phan hop le gan
+    # khe hong o day chau/dui trong (xem _close_inseam) la mieng vun roi bo
+    # di -- gay ra mot lo den o mat trong dui (thay ro o size XL). Vong bien
+    # da duoc kiem thang bang boundary_loops() ==3 ben duoi, du de bat loi
+    # that neu mieng cat that su tao ra manh roi.
+    rings = boundary_rings(triangles)
+    waist_ring = max(rings, key=lambda r: sum(positions[i][1] for i in r) / len(r))
+    hem_rings = [r for r in rings if r is not waist_ring]
+
+    # Lam tron + ha phang hai vanh gau moi, giong het snap_to_cut() trong
+    # build_pants_size: xen ke lam muot doc theo vanh (giu chu vi, khong co
+    # dan vao) roi ep Y ve dung mat phang cat.
+    for _ in range(4):
+        for ring in hem_rings:
+            smooth_ring(positions, ring)
+        for ring in hem_rings:
+            for v in ring:
+                p = positions[v]
+                positions[v] = (p[0], hem_y, p[2])
+
+    for ring in hem_rings:
+        for v in ring:
+            regions[v] = PANTS_REGION["hemRight"] if positions[v][0] >= 0 else PANTS_REGION["hemLeft"]
+
+    normals = compute_smooth_normals(positions, triangles)
+
+    xs = [abs(p[0]) for p in positions]
+    half = max(xs) or 1.0
+    ys = [p[1] for p in positions]
+    y0, y1 = min(ys), max(ys)
+    hgt = (y1 - y0) or 1.0
+    uvs = [(0.5 + p[0] / (2.0 * half), (p[1] - y0) / hgt) for p in positions]
+
+    ax0 = min(p[0] for p in positions)
+    ax1 = max(p[0] for p in positions)
+    awd = (ax1 - ax0) or 1.0
+    art_uvs = []
+    facing = []
+    for p in positions:
+        art_uvs.append(((p[0] - ax0) / awd, (p[1] - y0) / hgt))
+        t = max(0.0, min(1.0, (p[2] + 0.02) / 0.04))
+        facing.append(int(round(t * t * (3.0 - 2.0 * t) * 255)))
+
+    loops = boundary_loops(triangles)
+    if len(loops) != 3:
+        raise RuntimeError(
+            f"{size}: short co {len(loops)} vong bien {loops}, phai la 3 "
+            "(cap + hai gau) -- co lo thung hoac hai ong dinh nhau"
+        )
+
+    counts: dict[str, int] = {}
+    inv = {v: k for k, v in PANTS_REGION.items()}
+    for r in regions:
+        counts[inv[r]] = counts.get(inv[r], 0) + 1
+
+    indices: list[int] = []
+    for a, b, c in triangles:
+        indices.extend((a, b, c))
+
+    rough = surface_roughness(positions, triangles)
+
+    return {
+        "size": size,
+        "boundaryLoops": loops,
+        "holesFilled": 0,
+        "dupFaces": 0,
+        "flippedFaces": 0,
+        "positions": positions,
+        "normals": normals,
+        "uvs": uvs,
+        "art_uvs": art_uvs,
+        "regions": regions,
+        "facing": facing,
+        "indices": indices,
+        "waistCircTarget": pants["waistCircTarget"],
+        "waistCircAchieved": pants["waistCircAchieved"],
+        "hipCircAchieved": pants["hipCircAchieved"],
+        "inseam": inseam,
+        "hemY": hem_y,
+        "scale": pants["scale"],
+        "regionCounts": counts,
+        "rough": (rough, rough),
+    }
+
+
+def build_skirt_size(body: BodyReference, size: str, size_chart: dict = SKIRT_SIZE_CHART,
+                     rise: float = 0.0) -> dict:
+    """Dung chan vay chu A: mot luoi ong (vong ngang x goc) quanh truc than.
+
+    Khong cat tu mesh co the nhu ao/quan -- vay khong bam theo tung chan, nen
+    dung thang mot luoi deu: moi vong ngang co SKIRT_ANGLES dinh, ban kinh
+    moi goc lay tu duong bao co the o do cao do.
+
+      1. Tren mong: ban kinh = duong bao co the (vay om eo -> mong).
+      2. Duoi mong: ban kinh khong bao gio nho di (lay max voi vong ben tren),
+         vi vai ru thang xuong tu mong, khong chui vao khe giua hai chan.
+      3. Scale theo bang size: cap dung chu vi `waist`, ngang mong dung `hip`.
+      4. Xoe dan tu mong xuong gau cho chu vi gau dat `hem`.
+    """
+    spec = size_chart[size]
+    waist_target = spec["waist"] * CM
+    hip_target = spec["hip"] * CM
+    length = spec["length"] * CM + rise
+    hem_target = spec["hem"] * CM
+
+    n = SKIRT_ANGLES
+    # rise > 0: cap vay nam TREN eo (vay cua dam -- phu len vat than).
+    y_top = body.waist_y + rise
+    y_hem = y_top - length
+    n_rings = max(2, round(length / SKIRT_RING_STEP)) + 1
+    ring_ys = [y_top - length * i / (n_rings - 1) for i in range(n_rings)]
+    angles = [2.0 * math.pi * j / n for j in range(n)]
+
+    # Dinh co the trong vung vay. Bo dinh o xa truc than (ban tay o tu the A
+    # thong xuong ngang hong, cach truc ~0.5m) de khong keo vay xoe ra toi tay.
+    pts = []
+    for p in body.positions:
+        if not (y_hem - 0.03 <= p[1] <= y_top + 0.03):
+            continue
+        dx, dz = p[0], p[2] - body.axis_z
+        if math.hypot(dx, dz) > 0.35:
+            continue
+        # Tren eo (cap cao cua dam) canh tay chu A ep sat suon -- bo dinh
+        # ngoai be ngang than de duong bao khong om ca tay.
+        if p[1] > body.waist_y and abs(dx) > abs(body.acromion["right"][0]) * 0.95:
+            continue
+        pts.append((p[1], dx, dz))
+
+    def hull_2d(xy: list[tuple[float, float]]) -> list[tuple[float, float]]:
+        xy = sorted(set(xy))
+        if len(xy) < 3:
+            return xy
+
+        def cross(o, a, b):
+            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+        lower: list[tuple[float, float]] = []
+        for q in xy:
+            while len(lower) >= 2 and cross(lower[-2], lower[-1], q) <= 0:
+                lower.pop()
+            lower.append(q)
+        upper: list[tuple[float, float]] = []
+        for q in reversed(xy):
+            while len(upper) >= 2 and cross(upper[-2], upper[-1], q) <= 0:
+                upper.pop()
+            upper.append(q)
+        return lower[:-1] + upper[:-1]
+
+    def silhouette(y: float) -> list[float]:
+        """Ban kinh theo goc cua BAO LOI lat cat co the o do cao y.
+
+        Vai khong chui vao cho lom (khe giua hai chan, eo lung, duoi mong), nen
+        lay bao loi chu khong lay duong bao that -- lay duong bao that thi vay bi
+        lom lom lom theo mong va dui.
+        """
+        hull = hull_2d([(dx, dz) for py, dx, dz in pts if abs(py - y) <= 0.012])
+        if len(hull) < 3:
+            raise RuntimeError(f"{size}: khong co dinh co the nao o do cao {y:.3f}")
+        cx = sum(q[0] for q in hull) / len(hull)
+        cz = sum(q[1] for q in hull) / len(hull)
+        row = []
+        for a in angles:
+            ux, uz = math.sin(a), math.cos(a)
+            best = 0.0
+            # Tia tu truc than (0, 0) cat canh bao loi. Truc than nam trong bao
+            # loi o moi do cao cua vay nen luon co dung mot giao diem xa nhat.
+            for k in range(len(hull)):
+                (x1, z1), (x2, z2) = hull[k], hull[(k + 1) % len(hull)]
+                ex, ez = x2 - x1, z2 - z1
+                den = ux * ez - uz * ex
+                if abs(den) < 1e-12:
+                    continue
+                t = (x1 * ez - z1 * ex) / den
+                u = (x1 * uz - z1 * ux) / den
+                if t > 0.0 and -1e-9 <= u <= 1.0 + 1e-9:
+                    best = max(best, t)
+            row.append(best if best > 0.0 else math.hypot(cx, cz))
+        return row
+
+    def smooth_circular(row: list[float], passes: int = 3) -> list[float]:
+        for _ in range(passes):
+            row = [(row[j - 1] + 2.0 * row[j] + row[(j + 1) % n]) / 4.0 for j in range(n)]
+        return row
+
+    def perimeter(row: list[float]) -> float:
+        total = 0.0
+        for j in range(n):
+            a, b = angles[j], angles[(j + 1) % n]
+            total += math.dist(
+                (row[j] * math.sin(a), row[j] * math.cos(a)),
+                (row[(j + 1) % n] * math.sin(b), row[(j + 1) % n] * math.cos(b)),
+            )
+        return total
+
+    def monotone_down(rows: list[list[float]]) -> None:
+        # Chan vay chu A khong bao gio hep lai khi di xuong: moi goc lay max voi
+        # vong ngay tren.
+        for i in range(1, len(rows)):
+            rows[i] = [max(a, b) for a, b in zip(rows[i], rows[i - 1])]
+
+    base = [smooth_circular(silhouette(y), 2) for y in ring_ys]
+    monotone_down(base)
+
+    hip_i = min(range(n_rings), key=lambda i: abs(ring_ys[i] - body.hip_y))
+    gap_circ = 2.0 * math.pi * FABRIC_GAP
+    s_waist = (waist_target - gap_circ) / perimeter(base[0])
+    s_hip = (hip_target - gap_circ) / perimeter(base[hip_i])
+    hip_y = ring_ys[hip_i]
+
+    def s_at(y: float) -> float:
+        if y <= hip_y:
+            return s_hip
+        t = (y - hip_y) / max(y_top - hip_y, 1e-6)
+        t = t * t * (3.0 - 2.0 * t)
+        return s_hip + (s_waist - s_hip) * t
+
+    radii = [[r * s_at(y) + FABRIC_GAP for r in row] for y, row in zip(ring_ys, base)]
+    monotone_down(radii)
+
+    # Duoi mong: xoe DEU (tuyen tinh theo chieu cao, nhu hai canh chu A) tu vong
+    # mong ra toi chu vi gau. Hinh vong giu theo vong mong nhung nghieng dan ve
+    # elip de gau tron deu, khong con u mong o mat sau.
+    hip_row = radii[hip_i]
+    hip_len = perimeter(hip_row)
+    ex = max(r * abs(math.sin(a)) for r, a in zip(hip_row, angles))
+    ez = max(r * abs(math.cos(a)) for r, a in zip(hip_row, angles))
+    ellipse = [ex * ez / math.hypot(ez * math.sin(a), ex * math.cos(a)) for a in angles]
+    ellipse = [r * hip_len / perimeter(ellipse) for r in ellipse]
+    for i, y in enumerate(ring_ys):
+        if i <= hip_i:
+            continue
+        t = (hip_y - y) / max(hip_y - y_hem, 1e-6)
+        shape = [h + (e - h) * min(1.0, 2.0 * t) for h, e in zip(hip_row, ellipse)]
+        want = hip_len + (hem_target - hip_len) * t
+        k = want / perimeter(shape)
+        radii[i] = [r * k for r in shape]
+
+    # Lam muot doc theo chieu cao cho doan eo -> mong -> xoe noi nhau em. Giu
+    # nguyen vong cap va vong gau.
+    for _ in range(3):
+        new = [list(r) for r in radii]
+        for i in range(1, n_rings - 1):
+            for j in range(n):
+                new[i][j] = (radii[i - 1][j] + 2.0 * radii[i][j] + radii[i + 1][j]) / 4.0
+        radii = new
+    monotone_down(radii)
+
+    positions = []
+    for i, y in enumerate(ring_ys):
+        for j, a in enumerate(angles):
+            r = radii[i][j]
+            positions.append((r * math.sin(a), y - body.waist_y, r * math.cos(a)))
+
+    triangles = []
+    for i in range(n_rings - 1):
+        for j in range(n):
+            a = i * n + j
+            b = (i + 1) * n + j
+            c = i * n + (j + 1) % n
+            d = (i + 1) * n + (j + 1) % n
+            triangles.append((a, b, c))
+            triangles.append((c, b, d))
+
+    regions = []
+    for i in range(n_rings):
+        for j in range(n):
+            x, _, z = positions[i * n + j]
+            if i == 0:
+                regions.append(PANTS_REGION["waistband"])
+            elif i == n_rings - 1:
+                regions.append(PANTS_REGION["hemRight"] if x >= 0 else PANTS_REGION["hemLeft"])
+            else:
+                regions.append(PANTS_REGION["seatFront"] if z >= 0 else PANTS_REGION["seatBack"])
+
+    normals = compute_smooth_normals(positions, triangles)
+
+    xs = [abs(p[0]) for p in positions]
+    half = max(xs) or 1.0
+    ys = [p[1] for p in positions]
+    y0, y1 = min(ys), max(ys)
+    hgt = (y1 - y0) or 1.0
+    uvs = [(0.5 + p[0] / (2.0 * half), (p[1] - y0) / hgt) for p in positions]
+    art_uvs = [((p[0] + half) / (2.0 * half), (p[1] - y0) / hgt) for p in positions]
+    facing = []
+    for p in positions:
+        t = max(0.0, min(1.0, (p[2] + 0.02) / 0.04))
+        facing.append(int(round(t * t * (3.0 - 2.0 * t) * 255)))
+
+    loops = boundary_loops(triangles)
+    if len(loops) != 2:
+        raise RuntimeError(f"{size}: vay co {len(loops)} vong bien {loops}, phai la 2 (cap + gau)")
+
+    def ring_perimeter(i: int) -> float:
+        pts_i = positions[i * n:(i + 1) * n]
+        return sum(math.dist(pts_i[j], pts_i[(j + 1) % n]) for j in range(n))
+
+    counts: dict[str, int] = {}
+    inv = {v: k for k, v in PANTS_REGION.items()}
+    for r in regions:
+        counts[inv[r]] = counts.get(inv[r], 0) + 1
+
+    indices: list[int] = []
+    for a, b, c in triangles:
+        indices.extend((a, b, c))
+
+    rough = surface_roughness(positions, triangles)
+
+    return {
+        "size": size,
+        "boundaryLoops": loops,
+        "holesFilled": 0,
+        "dupFaces": 0,
+        "flippedFaces": 0,
+        "positions": positions,
+        "normals": normals,
+        "uvs": uvs,
+        "art_uvs": art_uvs,
+        "regions": regions,
+        "facing": facing,
+        "indices": indices,
+        "waistCircTarget": waist_target,
+        "waistCircAchieved": ring_perimeter(0),
+        "hipCircAchieved": ring_perimeter(hip_i),
+        "hemCircAchieved": ring_perimeter(n_rings - 1),
+        "length": length,
+        "hemY": y_hem - body.waist_y,
+        "scale": s_waist,
+        "regionCounts": counts,
+        "rough": (rough, rough),
+    }
+
+
 def pack_region_bytes(regions: list[int]) -> bytes:
     data = bytes(regions)
     return data + b"\x00" * ((-len(data)) % 4)
+
+
+BIND_K = 8  # so dinh co the moi dinh vai bam theo
+
+
+def taper_bodice_to_waist(m: dict, body: BodyReference, hem_circ: float) -> dict:
+    """Bop than dam vao eo cho gau than bang dung cap vay.
+
+    Than ao thuong buong thang tu nguc xuong, nen ghep voi vay (cap om eo) lo
+    ra mot gờ ngang eo trong nhu ao rieng + chan vay. Day: tu duoi nguc tro
+    xuong, thu ban kinh (x, z) dan theo smoothstep cho toi gau thi chu vi gau
+    = hem_circ (m). Tay ao giu nguyen. Toa do mesh tinh tu (0, vai, truc than).
+    """
+    sleeve = {REGION[k] for k in ("sleeveLeft", "sleeveRight", "cuffLeft", "cuffRight")}
+    pos = m["positions"]
+    hem_y = min(p[1] for p in pos)
+    band = [math.hypot(p[0], p[2]) for v, p in enumerate(pos)
+            if m["regions"][v] not in sleeve and p[1] < hem_y + 0.02]
+    r_hem = sum(band) / len(band)
+    k = (hem_circ / (2.0 * math.pi)) / r_hem
+    y_start = (body.waist_y - body.shoulder_y) + 0.14  # duoi nguc
+    out = []
+    for v, p in enumerate(pos):
+        if m["regions"][v] in sleeve or p[1] >= y_start:
+            out.append(p)
+            continue
+        t = min(1.0, (y_start - p[1]) / max(1e-6, y_start - hem_y))
+        t = t * t * (3.0 - 2.0 * t)
+        f = 1.0 + (k - 1.0) * t
+        out.append((p[0] * f, p[1], p[2] * f))
+    m["positions"] = out
+    return m
+
+
+def add_body_binding(meshes: list[dict], body: BodyReference, origin_y: float,
+                     legs: bool = True) -> None:
+    """Gan moi dinh vai vao BIND_K dinh co the tham chieu gan nhat.
+
+    Mesh vai dung tren MOT co the tham chieu (~1.65 m). Truoc day trinh duyet
+    chi doi no len xuong cho khop vai / eo cua avatar -- avatar cao hon, vai
+    rong hon, tay xien khac thi ong tay / ong quan van nam theo dang co the
+    tham chieu: tay ao dai lech khoi canh tay, quan lung thanh quan dai tren
+    nguoi thap. Avatar la chinh mesh tham chieu nay (cung 14517 dinh, cung
+    thu tu) cong morph, nen trinh duyet dich moi dinh vai theo dung luong cac
+    dinh co the no bam da dich:  p' = p + sum w_k (avatar[b_k] - ref[b_k]).
+    Chi la VI TRI BAT DAU -- do dai nghi cua vai giu nguyen, nen ao nho mac
+    len nguoi to van bi keo cang nhu that.
+
+    _BIND  (VEC4 float): chi so dinh co the (trung thu tu voi avatar-*.glb).
+    _BINDW (VEC4 float): trong so, tong = 1.
+    Voi BIND_K = 8, moi thuoc tinh la HAI VEC4 lien tiep (_BIND, _BIND2 ...) --
+    xem write_garment.
+    """
+    import numpy as np
+    from scipy.spatial import cKDTree
+
+    # legs=False (ao, chan vay): chi bam vao than tu day chau tro len. Gau ao
+    # dai / than vay nam ngang dui, gan dui nhat -- bam vao dui thi nguoi mau
+    # dang chan la gau bi xe thanh hai ong nhu quan dui.
+    all_pts = np.array(body.positions)
+    keep = np.arange(len(all_pts)) if legs else np.nonzero(all_pts[:, 1] > body.crotch_y + 0.02)[0]
+    tree = cKDTree(all_pts[keep])
+    for m in meshes:
+        world = np.array(m["positions"]) + np.array([0.0, origin_y, body.axis_z])
+        dist, sub = tree.query(world, k=BIND_K)
+        idx = keep[sub]
+        # Trong so mem (khong phai 1/d^2): 1/d^2 gan nhu chi lay dinh gan
+        # nhat, nen gau quan canh mat ca bam vao dinh ban chan va bi xe rang cua.
+        w = 1.0 / (dist ** 2 + 0.02 ** 2)
+        w /= w.sum(axis=1, keepdims=True)
+        m["bind"] = [tuple(float(i) for i in row) for row in idx]
+        m["bindW"] = [tuple(float(x) for x in row) for row in w]
+        m["refOrigin"] = [0.0, origin_y, body.axis_z]
+
+
+def write_body_reference(body: BodyReference) -> Path:
+    """Vi tri co the tham chieu (Float32 x,y,z x 14517) cho _BIND o trinh duyet."""
+    import struct
+
+    out = OUT_DIR / "body-reference.bin"
+    out.write_bytes(b"".join(struct.pack("<3f", *p) for p in body.positions))
+    return out
+
+
+def pack_vec4_array(rows) -> bytes:
+    import struct
+
+    return b"".join(struct.pack("<4f", *r) for r in rows)
 
 
 def write_garment(meshes: list[dict], out_name: str, mesh_prefix: str) -> Path:
@@ -1633,6 +2798,18 @@ def write_garment(meshes: list[dict], out_name: str, mesh_prefix: str) -> Path:
         })
         fac_acc = len(accessors) - 1
 
+        extra_attrs = {}
+        if "bind" in m:
+            for key, name in (("bind", "_BIND"), ("bindW", "_BINDW")):
+                for chunk in range(BIND_K // 4):
+                    rows = [r[chunk * 4:chunk * 4 + 4] for r in m[key]]
+                    view = bb.add(pack_vec4_array(rows))
+                    accessors.append({
+                        "bufferView": view, "componentType": 5126,
+                        "count": len(rows), "type": "VEC4",
+                    })
+                    extra_attrs[name + ("" if chunk == 0 else str(chunk + 1))] = len(accessors) - 1
+
         idx_view = bb.add(pack_uint32_array(m["indices"]))
         accessors.append({
             "bufferView": idx_view, "componentType": 5125,
@@ -1646,6 +2823,7 @@ def write_garment(meshes: list[dict], out_name: str, mesh_prefix: str) -> Path:
                 "attributes": {
                     "POSITION": pos_acc, "NORMAL": norm_acc,
                     "TEXCOORD_0": uv_acc, "_ARTUV": art_acc, "_REGION": reg_acc, "_FACING": fac_acc,
+                    **extra_attrs,
                 },
                 "indices": idx_acc,
             }],
@@ -1696,17 +2874,98 @@ def main() -> None:
     )
 
     shirts = [build_size(body, s) for s in SIZE_ORDER]
+    tanks = [build_size(body, s, TANK_SIZE_CHART) for s in SIZE_ORDER]
+    croptops = [build_size(body, s, CROPTOP_SIZE_CHART) for s in SIZE_ORDER]
+    dress_shirts = [add_shirt_collar(build_size(body, s, SHIRT_SIZE_CHART), body)
+                    for s in SIZE_ORDER]
     pants = [build_pants_size(body, s) for s in SIZE_ORDER]
-    shorts = [build_pants_size(body, s, SHORTS_SIZE_CHART) for s in SIZE_ORDER]
+    # Short = cat ngang ong chan cua quan dai da dung xong (khong tu nen doc
+    # rieng) -- xem docstring cua build_shorts_from_pants.
+    shorts = [build_shorts_from_pants(p, body, s) for p, s in zip(pants, SIZE_ORDER)]
+    capris = [build_shorts_from_pants(p, body, s, CAPRI_SIZE_CHART) for p, s in zip(pants, SIZE_ORDER)]
+    skirts = [build_skirt_size(body, s) for s in SIZE_ORDER]
+
+    # Bap tay rong 0.42 x nguc (truoc 0.38): nguoi to (C, nguc 108) mac vua nguc
+    # van bi bap tay keo gian 1.9 lan.
+    long_base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.42)
+                 for k, v in LONGSHIRT_SIZE_CHART.items()}
+    long_shirts = [
+        add_shirt_collar(
+            extend_sleeves(build_size(body, s, long_base), body,
+                           LONGSHIRT_SIZE_CHART[s]["armFit"], LONGSHIRT_SIZE_CHART[s]["cuff"]),
+            body)
+        for s in SIZE_ORDER
+    ]
+    def long_sleeved(chart, collar):
+        base = {k: dict(v, sleeveLength=LONG_SLEEVE_BASE, sleeveOpening=v["chest"] * 0.42)
+                for k, v in chart.items()}
+        out = []
+        for s in SIZE_ORDER:
+            m = extend_sleeves(build_size(body, s, base), body, chart[s]["armFit"], chart[s]["cuff"])
+            if collar:
+                m = add_shirt_collar(m, body)
+            else:
+                # extend_sleeves khong dem lai vung (add_shirt_collar moi dem).
+                inv = {v: k for k, v in REGION.items()}
+                m["regionCounts"] = {}
+                for r in m["regions"]:
+                    m["regionCounts"][inv[r]] = m["regionCounts"].get(inv[r], 0) + 1
+            out.append(m)
+        return out
+
+    sweaters = long_sleeved(SWEATER_SIZE_CHART, collar=False)
+    jackets = long_sleeved(JACKET_SIZE_CHART, collar=True)
+    # Cap cao 10cm tren eo: than dam co len khi ru (gau than ve ~eo), cap vay o
+    # dung eo de lo mot khe da. Cap cao phu len vat than, cung mot mau vai.
+    dress_skirts = [build_skirt_size(body, s, DRESS_SKIRT_SIZE_CHART, rise=0.10) for s in SIZE_ORDER]
+    # Than dam: croptop keo dai toi 4cm duoi eo (phu len cap vay) roi bop eo
+    # cho gau than = cap vay + 2cm -> than va vay noi lien, khong lo go.
+    hps_y = body.shoulder_y + HPS_RISE
+    bodice_len = (hps_y - (body.waist_y - 0.04)) / CM
+    # Size to dai them chut (nguoi to thuong cao hon); XL o dung bodice_len
+    # cat trung mot vung luoi xau de lai lo thung.
+    extra = {"S": 0.0, "M": 0.5, "L": 1.0, "XL": 1.5}
+    bodice_chart = {k: dict(v, bodyLength=bodice_len + extra[k])
+                    for k, v in CROPTOP_SIZE_CHART.items()}
+    bodices = [taper_bodice_to_waist(build_size(body, s, bodice_chart), body,
+                                     (DRESS_SKIRT_SIZE_CHART[s]["waist"] - 6.0) * CM)
+               for s in SIZE_ORDER]
+    for group in (shirts, tanks, croptops, long_shirts, dress_shirts, sweaters, jackets, bodices):
+        add_body_binding(group, body, body.shoulder_y, legs=False)
+    for group in (pants, shorts, capris):
+        add_body_binding(group, body, body.waist_y)
+    add_body_binding(skirts, body, body.waist_y, legs=False)
+    add_body_binding(dress_skirts, body, body.waist_y, legs=False)
+    ref_bin = write_body_reference(body)
+    print(ref_bin.name + ": " + str(ref_bin.stat().st_size) + " B")
 
     shirt_glb = write_garment(shirts, "garment-tshirt.glb", "tshirt_")
+    tank_glb = write_garment(tanks, "garment-tank.glb", "tank_")
+    croptop_glb = write_garment(croptops, "garment-croptop.glb", "croptop_")
+    long_shirt_glb = write_garment(long_shirts, "garment-longshirt.glb", "longshirt_")
+    dress_shirt_glb = write_garment(dress_shirts, "garment-shirt.glb", "shirt_")
     pants_glb = write_garment(pants, "garment-pants.glb", "pants_")
     shorts_glb = write_garment(shorts, "garment-shorts.glb", "shorts_")
+    capri_glb = write_garment(capris, "garment-capri.glb", "capri_")
+    skirt_glb = write_garment(skirts, "garment-skirt.glb", "skirt_")
+    sweater_glb = write_garment(sweaters, "garment-sweater.glb", "sweater_")
+    jacket_glb = write_garment(jackets, "garment-jacket.glb", "jacket_")
+    dress_skirt_glb = write_garment(dress_skirts, "garment-dressskirt.glb", "dressskirt_")
+    bodice_glb = write_garment(bodices, "garment-dress.glb", "dress_")
 
     metadata = {
         "units": "metres, Y up, z=0 at body axis, front is +Z",
         "source": "Lay khuon tu base mesh MakeHuman (CC0) -- xem PROVENANCE.md",
-        "note": "Mesh khong bind vao body. Do chat/rong tinh o client (garmentFit.ts).",
+        "note": "Do chat/rong tinh o client (garmentFit.ts). _BIND/_BINDW gan dinh vai vao body-reference.bin.",
+        "bodyReference": {
+            "file": "body-reference.bin",
+            "vertexCount": len(body.positions),
+            # Goc toa do local cua mesh vai trong he toa do co the tham chieu:
+            # ao tinh tu vai, quan / vay tinh tu eo, z tu truc than.
+            "shoulderY": body.shoulder_y,
+            "waistY": body.waist_y,
+            "axisZ": body.axis_z,
+        },
         # --- ao (giu nguyen shape cu de client khong vo) ---
         "garment": "tshirt",
         "yZero": "shoulder line",
@@ -1751,6 +3010,135 @@ def main() -> None:
                         "regionCounts": m["regionCounts"],
                     }
                     for m in shirts
+                },
+            },
+            "tank": {
+                "glb": "garment-tank.glb",
+                "meshPrefix": "tank_",
+                "label": "Áo Cộc Tay",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": TANK_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in tanks
+                },
+            },
+            "croptop": {
+                "glb": "garment-croptop.glb",
+                "meshPrefix": "croptop_",
+                "label": "Áo Croptop",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": CROPTOP_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in croptops
+                },
+            },
+            "shirt": {
+                "glb": "garment-shirt.glb",
+                "meshPrefix": "shirt_",
+                "label": "Áo Sơ Mi",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": SHIRT_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in dress_shirts
+                },
+            },
+            "longshirt": {
+                "glb": "garment-longshirt.glb",
+                "meshPrefix": "longshirt_",
+                "label": "Sơ Mi Dài Tay",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": SHIRT_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "sleeveLengthCm": round(m["sleeveLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in long_shirts
+                },
+            },
+            "sweater": {
+                "glb": "garment-sweater.glb",
+                "meshPrefix": "sweater_",
+                "label": "Áo Len",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "sleeveLengthCm": round(m["sleeveLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in sweaters
+                },
+            },
+            "jacket": {
+                "glb": "garment-jacket.glb",
+                "meshPrefix": "jacket_",
+                "label": "Áo Khoác",
+                "yZero": "shoulder line",
+                "regions": REGION,
+                "pinRegion": REGION["collar"],
+                "fitKey": "chestCircCm",
+                "printCalibration": SHIRT_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+                        "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+                        "sleeveLengthCm": round(m["sleeveLength"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in jackets
                 },
             },
             "pants": {
@@ -1799,17 +3187,119 @@ def main() -> None:
                     for m in shorts
                 },
             },
+            "capri": {
+                "glb": "garment-capri.glb",
+                "meshPrefix": "capri_",
+                "label": "Quần lửng",
+                "yZero": "waist line",
+                "regions": PANTS_REGION,
+                "pinRegion": PANTS_REGION["waistband"],
+                "fitKey": "waistCircCm",
+                "printCalibration": PANTS_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "waistCircCm": round(m["waistCircAchieved"] * 100, 2),
+                        "hipCircCm": round(m["hipCircAchieved"] * 100, 2),
+                        "inseamCm": round(m["inseam"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in capris
+                },
+            },
+            "skirt": {
+                "glb": "garment-skirt.glb",
+                "meshPrefix": "skirt_",
+                "label": "Chân váy",
+                "yZero": "waist line",
+                "regions": PANTS_REGION,
+                "pinRegion": PANTS_REGION["waistband"],
+                "fitKey": "waistCircCm",
+                "printCalibration": PANTS_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "waistCircCm": round(m["waistCircAchieved"] * 100, 2),
+                        "hipCircCm": round(m["hipCircAchieved"] * 100, 2),
+                        "hemCircCm": round(m["hemCircAchieved"] * 100, 2),
+                        "lengthCm": round(m["length"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in skirts
+                },
+            },
+            "dressskirt": {
+                "glb": "garment-dressskirt.glb",
+                "meshPrefix": "dressskirt_",
+                "label": "Váy của đầm",
+                "yZero": "waist line",
+                "regions": PANTS_REGION,
+                "pinRegion": PANTS_REGION["waistband"],
+                "fitKey": "waistCircCm",
+                "printCalibration": PANTS_PRINT_CALIBRATION,
+                "sizes": {
+                    m["size"]: {
+                        "waistCircCm": round(m["waistCircAchieved"] * 100, 2),
+                        "hipCircCm": round(m["hipCircAchieved"] * 100, 2),
+                        "hemCircCm": round(m["hemCircAchieved"] * 100, 2),
+                        "lengthCm": round(m["length"] * 100, 2),
+                        "hemYm": round(m["hemY"], 4),
+                        "vertexCount": len(m["positions"]),
+                        "triangleCount": len(m["indices"]) // 3,
+                        "regionCounts": m["regionCounts"],
+                    }
+                    for m in dress_skirts
+                },
+            },
         },
     }
+    # Than dam = mesh croptop (gau ngang eo); vay cua dam la "dressskirt".
+    metadata["garments"]["dress"] = dict(
+        metadata["garments"]["croptop"], glb="garment-dress.glb", meshPrefix="dress_",
+        label="Đầm", skirt="dressskirt",
+        sizes={m["size"]: {
+            "chestCircCm": round(m["chestCircAchieved"] * 100, 2),
+            "bodyLengthCm": round(m["bodyLength"] * 100, 2),
+            "hemYm": round(m["hemY"], 4),
+            "vertexCount": len(m["positions"]),
+            "triangleCount": len(m["indices"]) // 3,
+            "regionCounts": m["regionCounts"],
+        } for m in bodices})
     meta_path = OUT_DIR / "garment-metadata.json"
     meta_path.write_text(json.dumps(metadata, separators=(",", ":")), encoding="utf-8")
 
     print(shirt_glb.name + ": " + str(shirt_glb.stat().st_size) + " B")
     _print_report("Ao thun", shirts, "chestCirc")
+    print(tank_glb.name + ": " + str(tank_glb.stat().st_size) + " B")
+    _print_report("Ao ba lo", tanks, "chestCirc")
+    print(croptop_glb.name + ": " + str(croptop_glb.stat().st_size) + " B")
+    _print_report("Ao croptop", croptops, "chestCirc")
+    print(dress_shirt_glb.name + ": " + str(dress_shirt_glb.stat().st_size) + " B")
+    _print_report("Ao so mi", dress_shirts, "chestCirc")
+    print(long_shirt_glb.name + ": " + str(long_shirt_glb.stat().st_size) + " B")
+    _print_report("So mi dai tay", long_shirts, "chestCirc")
     print(pants_glb.name + ": " + str(pants_glb.stat().st_size) + " B")
     _print_report("Quan", pants, "waistCirc")
     print(shorts_glb.name + ": " + str(shorts_glb.stat().st_size) + " B")
     _print_report("Quan short", shorts, "waistCirc")
+    print(capri_glb.name + ": " + str(capri_glb.stat().st_size) + " B")
+    _print_report("Quan lung", capris, "waistCirc")
+    print(skirt_glb.name + ": " + str(skirt_glb.stat().st_size) + " B")
+    _print_report("Chan vay", skirts, "waistCirc")
+    for m in skirts:
+        print(f"  {m['size']:<3} vay: eo {m['waistCircAchieved'] * 100:.1f}  mong "
+              f"{m['hipCircAchieved'] * 100:.1f}  gau {m['hemCircAchieved'] * 100:.1f} cm")
+    for g, name in ((sweater_glb, "Ao len"), (jacket_glb, "Ao khoac"), (dress_skirt_glb, "Vay dam")):
+        print(g.name + ": " + str(g.stat().st_size) + " B  " + name)
+    _print_report("Ao len", sweaters, "chestCirc")
+    _print_report("Ao khoac", jackets, "chestCirc")
+    _print_report("Vay dam", dress_skirts, "waistCirc")
+    _print_report("Than dam", bodices, "chestCirc")
+    print(bodice_glb.name + ": " + str(bodice_glb.stat().st_size) + " B")
     print(meta_path.name + ": " + str(meta_path.stat().st_size) + " B")
 
 

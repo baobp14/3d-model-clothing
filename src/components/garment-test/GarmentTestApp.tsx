@@ -14,6 +14,7 @@ import {
   type MorphRig,
 } from '@/lib/avatar/avatarMorphService';
 import { FEMALE_PROFILES, FORM_FIELDS, PROFILES } from '@/lib/avatar/bodyProfiles';
+import { applyPose, armMask, handMask, poseMatrices, trunkMask, POSES, type AvatarRig, type PoseKey } from '@/lib/avatar/pose';
 import {
   removeGarmentBackground,
   trimToContent,
@@ -22,6 +23,9 @@ import {
 } from '@/lib/tryon/backgroundRemoval';
 import {
   buildBodyCollider,
+  deformPositions,
+  placeGarment,
+  GARMENT_REGION,
   buildConstraints,
   verdictForEase,
   FABRICS,
@@ -29,6 +33,8 @@ import {
   type GarmentConstraints,
   type GarmentGeometry,
 } from '@/lib/tryon/garmentFit';
+import type { CameraView, FabricPatternKey, GarmentPieceInput } from './GarmentClothCanvas';
+import { CLIP_BINS } from './clipProfile';
 
 const GarmentClothCanvas = dynamic(() => import('./GarmentClothCanvas'), {
   ssr: false,
@@ -164,17 +170,77 @@ interface GarmentMeta {
   /** Default print zoom / shift baked with the mesh so an upload lands right. */
   printCalibration?: { scale: number; offsetX?: number; offsetY: number };
   garments: Record<string, GarmentEntry>;
+  bodyReference?: { file: string; shoulderY: number; waistY: number; axisZ: number };
 }
 
 const DEFAULT_CALIB = { scale: 1, offsetX: 0, offsetY: 0 };
-type GarmentKind = 'tshirt' | 'pants' | 'shorts';
+type GarmentKind =
+  | 'tshirt'
+  | 'tank'
+  | 'croptop'
+  | 'shirt'
+  | 'longshirt'
+  | 'sweater'
+  | 'jacket'
+  | 'dress'
+  | 'dressskirt'
+  | 'pants'
+  | 'shorts'
+  | 'capri'
+  | 'skirt';
 const GARMENT_LABEL: Record<GarmentKind, string> = {
   tshirt: 'Áo thun',
+  tank: 'Áo Cộc Tay',
+  croptop: 'Áo Croptop',
+  shirt: 'Áo Sơ Mi',
+  longshirt: 'Sơ Mi Dài Tay',
+  sweater: 'Áo Len',
+  jacket: 'Áo Khoác',
+  dress: 'Đầm',
+  dressskirt: 'Váy của đầm',
   pants: 'Quần',
   shorts: 'Quần short',
+  capri: 'Quần lửng',
+  skirt: 'Chân váy',
 };
 
+// A top and a bottom are worn together now -- two independent slots instead
+// of one "which single garment is on the body" selection. Each slot only
+// offers the kinds that fit it.
+type Slot = 'top' | 'bottom';
+const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
+  // Đầm sits in the top slot: its bodice is the croptop mesh and it brings
+  // its own skirt (dressskirt) into the bottom slot -- see resolveSlot.
+  // Áo len / áo khoác: mesh vẫn build được nhưng tạm ẩn khỏi trang thử.
+  top: ['tshirt', 'tank', 'croptop', 'shirt', 'longshirt', 'dress'],
+  bottom: ['pants', 'shorts', 'capri', 'skirt'],
+};
+const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
+
 type SizedGeom = Record<string, { geom: GarmentGeometry; constraints: GarmentConstraints }>;
+
+/**
+ * _BIND / _BINDW come as several VEC4 attributes (_bind, _bind2, ...) because
+ * glTF has no wider vertex type. Stitch them back into K values per vertex.
+ */
+function interleaveVec4(g: THREE.BufferGeometry, name: string): Float32Array | undefined {
+  const parts: ArrayLike<number>[] = [];
+  for (let i = 1; ; i++) {
+    const a = g.getAttribute(i === 1 ? name : `${name}${i}`);
+    if (!a) break;
+    parts.push(a.array as ArrayLike<number>);
+  }
+  if (!parts.length) return undefined;
+  const n = parts[0].length / 4;
+  const K = parts.length * 4;
+  const out = new Float32Array(n * K);
+  for (let v = 0; v < n; v++) {
+    for (let p = 0; p < parts.length; p++) {
+      for (let k = 0; k < 4; k++) out[v * K + p * 4 + k] = parts[p][v * 4 + k];
+    }
+  }
+  return out;
+}
 
 type Loaded = {
   rigs: Record<string, MorphRig>;
@@ -182,6 +248,8 @@ type Loaded = {
   meshes: Record<string, THREE.Mesh>;
   garments: Record<GarmentKind, SizedGeom>;
   meta: GarmentMeta;
+  bodyRef?: Float32Array;
+  poseRigs: Record<string, AvatarRig>;
 };
 
 /**
@@ -262,11 +330,168 @@ function Button({
   );
 }
 
+// Built-in shirt prints, pre-cut and pre-trimmed at build time (npm run
+// prints:build -> public/prints/). Switching is just a texture swap -- none
+// of the WASM background-removal that an upload needs.
+type PrintEntry = {
+  id: string;
+  name: string;
+  /** Which mesh this photo was shot for -- the dataset mixes tees, shorts and
+   *  long pants in one flat list (see build_prints.mjs's garmentKindOf). Only
+   *  ever 'tshirt' | 'pants' | 'shorts': there's no separate photo set for
+   *  tank/croptop/shirt, so top-slot kinds all reuse the 'tshirt' photos
+   *  (see presetMatchesKind) -- a flat-lay tee photo maps onto any of them
+   *  through the same whole-garment _ARTUV unwrap. */
+  kind?: GarmentKind;
+  front: string;
+  back: string | null;
+  baseColor: string;
+};
+
+// Quần lửng is cut from the same pants mesh, so the pants photos fit it; the
+// skirt has no photo set of its own.
+// Chan vay va so mi la vai det: vai thun gian 20% lam vay chay luon song va
+// so mi mem nhu ao thun.
+const DEFAULT_FABRIC: Partial<Record<GarmentKind, keyof typeof FABRICS>> = {
+  skirt: 'woven',
+  shirt: 'woven',
+  longshirt: 'woven',
+};
+
+function presetMatchesKind(presetKind: GarmentKind, activeKind: GarmentKind): boolean {
+  // No flat-lay photo set fits a dress bodice + skirt pair.
+  if (activeKind === 'dress' || activeKind === 'dressskirt') return false;
+  if (activeKind === 'shirt' || activeKind === 'longshirt' || activeKind === 'jacket')
+    return presetKind === 'shirt';
+  if (SLOT_KINDS.top.includes(activeKind)) return presetKind === 'tshirt';
+  if (activeKind === 'capri') return presetKind === 'pants';
+  return presetKind === activeKind;
+}
+
+/**
+ * Fabric choices per garment: the surface pattern the shader draws, its
+ * colours, and the cloth model the simulator uses for it (denim hangs stiff,
+ * jersey clings). Each garment lists only what it is actually made from --
+ * a T-shirt is not offered in corduroy, trousers are not offered in jersey rib.
+ */
+interface TextureOpt {
+  key: string;
+  label: string;
+  pattern: FabricPatternKey;
+  color: string;
+  color2: string;
+  fabric: keyof typeof FABRICS;
+}
+
+const KNIT_TOP_TEXTURES: TextureOpt[] = [
+  { key: 'cotton', label: 'Cotton trơn', pattern: 'plain', color: '#41599c', color2: '#ffffff', fabric: 'knit' },
+  { key: 'melange', label: 'Melange xám', pattern: 'heather', color: '#9a9ca3', color2: '#ffffff', fabric: 'knit' },
+  { key: 'stripe', label: 'Sọc ngang', pattern: 'stripeH', color: '#1f2a44', color2: '#f2efe8', fabric: 'knit' },
+  { key: 'rib', label: 'Thun gân', pattern: 'rib', color: '#e8e2d6', color2: '#ffffff', fabric: 'knit' },
+];
+const SHIRT_TEXTURES: TextureOpt[] = [
+  { key: 'oxford', label: 'Oxford xanh', pattern: 'oxford', color: '#9fb4d6', color2: '#ffffff', fabric: 'woven' },
+  { key: 'poplin', label: 'Poplin trắng', pattern: 'plain', color: '#f1f1ed', color2: '#ffffff', fabric: 'woven' },
+  { key: 'pinstripe', label: 'Sọc dọc', pattern: 'pinstripe', color: '#f4f4f1', color2: '#3b5ea8', fabric: 'woven' },
+  { key: 'gingham', label: 'Caro nhỏ', pattern: 'gingham', color: '#ffffff', color2: '#b8322a', fabric: 'woven' },
+  { key: 'flannel', label: 'Flannel caro', pattern: 'plaid', color: '#8c1d1d', color2: '#e6c07b', fabric: 'woven' },
+  { key: 'linen', label: 'Linen be', pattern: 'linen', color: '#d9ccb4', color2: '#ffffff', fabric: 'woven' },
+  { key: 'chambray', label: 'Chambray (jean mỏng)', pattern: 'denim', color: '#5b7fae', color2: '#ffffff', fabric: 'woven' },
+];
+const BOTTOM_TEXTURES: TextureOpt[] = [
+  { key: 'denim', label: 'Jean xanh', pattern: 'denim', color: '#2b4a7a', color2: '#ffffff', fabric: 'denim' },
+  { key: 'denimBlack', label: 'Jean đen', pattern: 'denim', color: '#2a2c33', color2: '#ffffff', fabric: 'denim' },
+  { key: 'khaki', label: 'Kaki be', pattern: 'twill', color: '#c8b48f', color2: '#ffffff', fabric: 'woven' },
+  { key: 'khakiOlive', label: 'Kaki rêu', pattern: 'twill', color: '#5e6645', color2: '#ffffff', fabric: 'woven' },
+  { key: 'fleece', label: 'Nỉ xám', pattern: 'heather', color: '#8d9097', color2: '#ffffff', fabric: 'knit' },
+  { key: 'cord', label: 'Nhung tăm nâu', pattern: 'corduroy', color: '#6b4a33', color2: '#ffffff', fabric: 'woven' },
+];
+const SKIRT_TEXTURES: TextureOpt[] = [
+  { key: 'denim', label: 'Jean', pattern: 'denim', color: '#3a5f93', color2: '#ffffff', fabric: 'denim' },
+  { key: 'khaki', label: 'Kaki', pattern: 'twill', color: '#c8b48f', color2: '#ffffff', fabric: 'woven' },
+  { key: 'tartan', label: 'Caro tartan', pattern: 'plaid', color: '#283a6b', color2: '#e4c35b', fabric: 'woven' },
+  { key: 'cord', label: 'Nhung tăm', pattern: 'corduroy', color: '#7a3b2e', color2: '#ffffff', fabric: 'woven' },
+  { key: 'linen', label: 'Linen', pattern: 'linen', color: '#e5dccb', color2: '#ffffff', fabric: 'woven' },
+  { key: 'black', label: 'Trơn đen', pattern: 'plain', color: '#22232a', color2: '#ffffff', fabric: 'woven' },
+];
+const SWEATER_TEXTURES: TextureOpt[] = [
+  { key: 'cable', label: 'Len gân kem', pattern: 'rib', color: '#e6dcc8', color2: '#ffffff', fabric: 'knit' },
+  { key: 'navy', label: 'Len trơn navy', pattern: 'heather', color: '#2c3a5c', color2: '#ffffff', fabric: 'knit' },
+  { key: 'grey', label: 'Len melange xám', pattern: 'heather', color: '#8f9198', color2: '#ffffff', fabric: 'knit' },
+  { key: 'stripe', label: 'Len sọc', pattern: 'stripeH', color: '#7a2630', color2: '#efe6d6', fabric: 'knit' },
+];
+const JACKET_TEXTURES: TextureOpt[] = [
+  { key: 'denim', label: 'Khoác jean', pattern: 'denim', color: '#3d5f8f', color2: '#ffffff', fabric: 'denim' },
+  { key: 'khaki', label: 'Kaki be', pattern: 'twill', color: '#b9a37c', color2: '#ffffff', fabric: 'denim' },
+  { key: 'olive', label: 'Kaki rêu', pattern: 'twill', color: '#4f5a3c', color2: '#ffffff', fabric: 'denim' },
+  { key: 'cord', label: 'Nhung tăm nâu', pattern: 'corduroy', color: '#6b4a33', color2: '#ffffff', fabric: 'denim' },
+  { key: 'plaid', label: 'Dạ caro', pattern: 'plaid', color: '#3a3f4a', color2: '#9b8b6a', fabric: 'denim' },
+];
+const DRESS_TEXTURES: TextureOpt[] = [
+  { key: 'black', label: 'Trơn đen', pattern: 'plain', color: '#1f2026', color2: '#ffffff', fabric: 'woven' },
+  { key: 'linen', label: 'Linen be', pattern: 'linen', color: '#e2d6c0', color2: '#ffffff', fabric: 'woven' },
+  { key: 'gingham', label: 'Caro nhỏ', pattern: 'gingham', color: '#ffffff', color2: '#c0413b', fabric: 'woven' },
+  { key: 'red', label: 'Thun đỏ', pattern: 'plain', color: '#a3242e', color2: '#ffffff', fabric: 'knit' },
+  { key: 'stripe', label: 'Sọc xanh', pattern: 'pinstripe', color: '#f3f1ea', color2: '#3b5ea8', fabric: 'woven' },
+];
+const TEXTURES: Record<GarmentKind, TextureOpt[]> = {
+  sweater: SWEATER_TEXTURES,
+  jacket: JACKET_TEXTURES,
+  dress: DRESS_TEXTURES,
+  dressskirt: DRESS_TEXTURES,
+  tshirt: KNIT_TOP_TEXTURES,
+  tank: KNIT_TOP_TEXTURES,
+  croptop: KNIT_TOP_TEXTURES,
+  shirt: SHIRT_TEXTURES,
+  longshirt: SHIRT_TEXTURES,
+  pants: BOTTOM_TEXTURES,
+  shorts: BOTTOM_TEXTURES,
+  capri: BOTTOM_TEXTURES,
+  skirt: SKIRT_TEXTURES,
+};
+
+interface SlotState {
+  kind: GarmentKind | null;
+  /** Chosen entry of TEXTURES[kind]; null once a photo print replaces it. */
+  textureKey: string | null;
+  pattern: FabricPatternKey;
+  color2: string;
+  size: string;
+  fabricKey: keyof typeof FABRICS;
+  front: THREE.Texture | null;
+  back: THREE.Texture | null;
+  baseColor: string;
+  printScale: number;
+  printOffsetY: number;
+  presetIdx: number;
+  presetAuto: boolean;
+}
+
+function makeSlot(kind: GarmentKind | null, calib: { scale: number; offsetY: number }): SlotState {
+  const tex = kind ? TEXTURES[kind][0] : null;
+  return {
+    kind,
+    size: 'M',
+    fabricKey: tex?.fabric ?? 'knit',
+    textureKey: tex?.key ?? null,
+    pattern: tex?.pattern ?? 'plain',
+    color2: tex?.color2 ?? '#ffffff',
+    front: null,
+    back: null,
+    baseColor: tex?.color ?? '#41599c',
+    printScale: calib.scale,
+    printOffsetY: calib.offsetY,
+    presetIdx: -1,
+    presetAuto: false,
+  };
+}
+
 export default function GarmentTestApp() {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [profileKey, setProfileKey] = useState<string>('B');
+  const [pose, setPose] = useState<PoseKey>('apose');
   const [customMode, setCustomMode] = useState(false);
   const [custom, setCustom] = useState<AvatarBodyInput>({ ...PROFILES.B });
   // Per-field: ticked = the user sets it, unticked = the app estimates it.
@@ -283,39 +508,58 @@ export default function GarmentTestApp() {
         boolean
       >,
     );
-  const [size, setSize] = useState('M');
-  const [fabricKey, setFabricKey] = useState<keyof typeof FABRICS>('knit');
   const [spinning, setSpinning] = useState(false);
   const [spinSpeed, setSpinSpeed] = useState(1.6);
   const [turnNonce, setTurnNonce] = useState(0);
+  const [showTop, setShowTop] = useState(true);
+  const [showBottom, setShowBottom] = useState(true);
   const [showStretch, setShowStretch] = useState(false);
   const [showFaces, setShowFaces] = useState(false);
   const [wireframe, setWireframe] = useState(false);
-  const [front, setFront] = useState<THREE.Texture | null>(null);
-  const [back, setBack] = useState<THREE.Texture | null>(null);
-  const [baseColor, setBaseColor] = useState('#41599c');
-  const [printScale, setPrintScale] = useState(1);
-  const [printOffsetY, setPrintOffsetY] = useState(0);
-  const [garmentKind, setGarmentKind] = useState<GarmentKind>('tshirt');
-  const gEntry = loaded?.meta.garments?.[garmentKind];
-  // Slider values the mesh ships with; sliders start here, "Bỏ ảnh in" returns here.
-  const calib = gEntry?.printCalibration ?? loaded?.meta.printCalibration ?? DEFAULT_CALIB;
-  const [printBusy, setPrintBusy] = useState<string | null>(null);
+  const [view, setView] = useState<CameraView>('full');
 
-  // Built-in shirt prints, pre-cut and pre-trimmed at build time
-  // (npm run prints:build -> public/prints/). Switching is just a texture
-  // swap -- none of the WASM background-removal that an upload needs.
-  type PrintEntry = {
-    id: string;
-    name: string;
-    front: string;
-    back: string | null;
-    baseColor: string;
-  };
+  // Which slot's controls (món đồ / size / vải / ảnh in) the sidebar is
+  // currently showing. Both slots stay worn on the body regardless of which
+  // tab is focused -- this only picks which one you're editing.
+  const [activeSlot, setActiveSlot] = useState<Slot>('top');
+  const [slots, setSlots] = useState<Record<Slot, SlotState>>({
+    top: makeSlot('tshirt', { scale: 0.83, offsetY: -0.03 }),
+    bottom: makeSlot('pants', { scale: 0.9, offsetY: 0 }),
+  });
+  const updateSlot = (slot: Slot, patch: Partial<SlotState>) =>
+    setSlots((s) => ({ ...s, [slot]: { ...s[slot], ...patch } }));
+
+  const active = slots[activeSlot];
+  const activeEntry = active.kind ? loaded?.meta.garments?.[active.kind] : undefined;
+  // Which body measurement the ACTIVE slot's garment is sized against --
+  // shirts fit off the chest, pants/shorts off the waist. Only governs the
+  // "Người mẫu" hint text and the active slot's own size/ease numbers; the
+  // other, non-focused slot still fits correctly on its own terms.
+  const fitKey = activeEntry?.fitKey ?? 'chestCircCm';
+  const calib = activeEntry?.printCalibration ?? loaded?.meta.printCalibration ?? DEFAULT_CALIB;
+  // { slot, what } rather than a bare string: a front-photo upload for the
+  // bottom slot must not be mistaken for a preset load on the top slot.
+  const [printBusy, setPrintBusy] = useState<{ slot: Slot; what: 'front' | 'back' | 'preset' } | null>(
+    null,
+  );
+
   const [presets, setPresets] = useState<PrintEntry[]>([]);
-  const [presetIdx, setPresetIdx] = useState(-1);
-  const [presetAuto, setPresetAuto] = useState(false);
   const texCache = useRef(new Map<string, THREE.Texture>());
+  // Clicking through the collection fires loadPreset() again before the
+  // previous call's texture fetch has resolved, and fetches do not resolve
+  // in click order (cache hits are instant, network misses are not). Only the
+  // most recently STARTED call for THAT slot may write its result -- one
+  // counter per slot so a stale top-slot load can't stomp a fresh bottom-slot
+  // one or vice versa.
+  const presetRequestId = useRef<Record<Slot, number>>({ top: 0, bottom: 0 });
+  // The collection is scoped to whichever kind the active slot has selected.
+  // There's only ever a 'tshirt'-tagged photo set (see PrintEntry.kind), so
+  // every top-slot kind (áo thun/cộc tay/croptop/sơ mi) reuses it; bottom
+  // kinds still match their own tag exactly.
+  const kindPresets = useMemo(
+    () => (active.kind ? presets.filter((p) => presetMatchesKind(p.kind ?? 'tshirt', active.kind!)) : []),
+    [presets, active.kind],
+  );
 
   useEffect(() => {
     let off = false;
@@ -352,44 +596,78 @@ export default function GarmentTestApp() {
     return tex;
   }
 
-  async function loadPreset(idx: number) {
-    const entry = presets[idx];
+  // `slot` and `list` are captured at call time, not re-read from live state
+  // after the await -- so a slot switch mid-fetch can't make this write to
+  // the wrong slot or index into the wrong (now-stale) preset list.
+  async function loadPreset(slot: Slot, list: PrintEntry[], idx: number) {
+    const entry = list[idx];
     if (!entry) return;
-    setPresetIdx(idx);
-    setPrintBusy('preset');
+    const requestId = ++presetRequestId.current[slot];
+    updateSlot(slot, { presetIdx: idx });
+    setPrintBusy({ slot, what: 'preset' });
     try {
       const [f, b] = await Promise.all([
         presetTexture(entry.front),
         entry.back ? presetTexture(entry.back) : Promise.resolve(null),
       ]);
-      setFront(f);
-      setBack(b);
-      setBaseColor(entry.baseColor);
+      if (presetRequestId.current[slot] !== requestId) return; // superseded, drop it
+      updateSlot(slot, { front: f, back: b, baseColor: entry.baseColor });
     } catch (err) {
+      if (presetRequestId.current[slot] !== requestId) return;
       console.error('[garment-test] preset', err);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setPrintBusy(null);
+      if (presetRequestId.current[slot] === requestId) setPrintBusy(null);
     }
   }
 
+  // "Mặc thử cả bộ" from the outfit recommender links here as
+  // ?top=<print id>&bottom=<print id>: dress both slots in those prints once
+  // the meshes and the print manifest are loaded.
+  const outfitApplied = useRef(false);
+  useEffect(() => {
+    if (outfitApplied.current || !loaded || !presets.length) return;
+    outfitApplied.current = true;
+    const q = new URLSearchParams(window.location.search);
+    for (const slot of ['top', 'bottom'] as const) {
+      const entry = presets.find((p) => p.id === q.get(slot));
+      if (!entry) continue;
+      const kind: GarmentKind = entry.kind ?? 'tshirt';
+      if (!SLOT_KINDS[slot].includes(kind) || !loaded.meta.garments[kind]) continue;
+      const c = loaded.meta.garments[kind]?.printCalibration ?? DEFAULT_CALIB;
+      const list = presets.filter((p) => presetMatchesKind(p.kind ?? 'tshirt', kind));
+      updateSlot(slot, {
+        kind,
+        fabricKey: DEFAULT_FABRIC[kind] ?? 'knit',
+        textureKey: null,
+        pattern: 'plain',
+        printScale: c.scale,
+        printOffsetY: c.offsetY,
+      });
+      void loadPreset(slot, list, list.indexOf(entry));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, presets]);
+
   const stepPreset = (delta: number) => {
-    if (!presets.length) return;
-    const base = presetIdx < 0 ? (delta > 0 ? -1 : 0) : presetIdx;
-    void loadPreset((base + delta + presets.length) % presets.length);
+    if (!kindPresets.length) return;
+    const base = active.presetIdx < 0 ? (delta > 0 ? -1 : 0) : active.presetIdx;
+    void loadPreset(activeSlot, kindPresets, (base + delta + kindPresets.length) % kindPresets.length);
   };
 
   // Auto-advance: wait for the current one to finish draping, then move on.
+  // Scoped to the active slot/tab only -- switching tabs pauses it rather
+  // than advancing a slot you're no longer looking at.
   useEffect(() => {
-    if (!presetAuto || !presets.length || printBusy) return;
+    if (!active.presetAuto || !kindPresets.length || printBusy) return;
     const t = setTimeout(() => stepPreset(1), 3500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presetAuto, presetIdx, printBusy, presets.length]);
+  }, [active.presetAuto, active.presetIdx, printBusy, kindPresets.length, activeSlot]);
 
-  async function loadPrint(side: 'front' | 'back', file: File | undefined) {
+  async function loadPrint(slot: Slot, side: 'front' | 'back', file: File | undefined) {
     if (!file) return;
-    setPrintBusy(side);
+    setPrintBusy({ slot, what: side });
     try {
       const blob = await removeGarmentBackground(file);
       const trimmed = await trimToContent(blob);
@@ -397,10 +675,10 @@ export default function GarmentTestApp() {
       // instead of shrinking to a patch in the middle of it.
       const tex = await blobToTexture(trimmed);
       tex.colorSpace = THREE.SRGBColorSpace;
-      (side === 'front' ? setFront : setBack)(tex);
+      updateSlot(slot, side === 'front' ? { front: tex } : { back: tex });
       // Tint the bare fabric (sleeves, collar) to the shirt's own colour so
       // it does not read as a contrast panel where the photo runs out.
-      if (side === 'front') setBaseColor(await averageOpaqueColor(trimmed));
+      if (side === 'front') updateSlot(slot, { baseColor: await averageOpaqueColor(trimmed) });
     } catch (err) {
       console.error('[garment-test] print', err);
       setError(err instanceof Error ? err.message : String(err));
@@ -421,6 +699,7 @@ export default function GarmentTestApp() {
         const rigs: Record<string, MorphRig> = {};
         const avatars: Record<string, THREE.Object3D> = {};
         const meshes: Record<string, THREE.Mesh> = {};
+        const poseRigs: Record<string, AvatarRig> = {};
         for (const gender of ['male', 'female'] as const) {
           const gltf = await loader.loadAsync(`/models/avatar-${gender}.glb`);
           let body: THREE.Mesh | null = null;
@@ -433,7 +712,9 @@ export default function GarmentTestApp() {
           if (!morphs) throw new Error(`avatar-${gender}.glb has no position morph targets`);
           rigs[gender] = createMorphRig(
             {
-              position: g.attributes.position.array as Float32Array,
+              // A copy: posing writes the skinned body into the mesh's own
+              // position buffer, which must not become the rig's rest shape.
+              position: Float32Array.from(g.attributes.position.array as Float32Array),
               morphDeltas: morphs.map((a) => a.array as Float32Array),
             },
             metadata,
@@ -441,11 +722,31 @@ export default function GarmentTestApp() {
           );
           avatars[gender] = gltf.scene;
           meshes[gender] = body as THREE.Mesh;
+          // Keep the unposed base so switching back to chữ A restores morphs.
+          (body as THREE.Mesh).userData.basePosition = Float32Array.from(
+            g.attributes.position.array as Float32Array,
+          );
+          const rigRes = await fetch(`/models/avatar-rig-${gender}.json`);
+          if (rigRes.ok) poseRigs[gender] = await rigRes.json();
         }
 
         const gMetaRes = await fetch('/models/garment-metadata.json');
         if (!gMetaRes.ok) throw new Error('garment-metadata.json missing — run npm run garment:build');
         const meta: GarmentMeta = await gMetaRes.json();
+
+        // Reference body the garments were cut from + where each garment's
+        // local origin sits on it (tops: shoulder line, bottoms: waist).
+        const refInfo = meta.bodyReference;
+        let bodyRef: Float32Array | undefined;
+        if (refInfo) {
+          const r = await fetch(`/models/${refInfo.file}`);
+          if (r.ok) bodyRef = new Float32Array(await r.arrayBuffer());
+        }
+        const BOTTOM_PREFIXES = ['pants_', 'shorts_', 'capri_', 'skirt_', 'dressskirt_'];
+        const originOf = (prefix: string): [number, number, number] | undefined =>
+          refInfo
+            ? [0, BOTTOM_PREFIXES.includes(prefix) ? refInfo.waistY : refInfo.shoulderY, refInfo.axisZ]
+            : undefined;
 
         const loadGarment = async (url: string, prefix: string): Promise<SizedGeom> => {
           const gltf = await loader.loadAsync(url);
@@ -465,6 +766,9 @@ export default function GarmentTestApp() {
               facing: Float32Array.from(facing.array as ArrayLike<number>, (v) =>
                 facing.normalized ? v / 255 : v,
               ),
+              bind: interleaveVec4(m.geometry, '_bind'),
+              bindW: interleaveVec4(m.geometry, '_bindw'),
+              refOrigin: originOf(prefix),
             };
             const sizeKey = m.name.replace(prefix, '');
             out[sizeKey] = { geom, constraints: buildConstraints(geom, []) };
@@ -474,12 +778,22 @@ export default function GarmentTestApp() {
 
         const garments = {
           tshirt: await loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
+          tank: await loadGarment('/models/garment-tank.glb', 'tank_'),
+          croptop: await loadGarment('/models/garment-croptop.glb', 'croptop_'),
+          shirt: await loadGarment('/models/garment-shirt.glb', 'shirt_'),
+          longshirt: await loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
+          sweater: await loadGarment('/models/garment-sweater.glb', 'sweater_'),
+          jacket: await loadGarment('/models/garment-jacket.glb', 'jacket_'),
+          dress: await loadGarment('/models/garment-dress.glb', 'dress_'),
+          dressskirt: await loadGarment('/models/garment-dressskirt.glb', 'dressskirt_'),
           pants: await loadGarment('/models/garment-pants.glb', 'pants_'),
           shorts: await loadGarment('/models/garment-shorts.glb', 'shorts_'),
+          capri: await loadGarment('/models/garment-capri.glb', 'capri_'),
+          skirt: await loadGarment('/models/garment-skirt.glb', 'skirt_'),
         };
 
         if (cancelled) return;
-        setLoaded({ rigs, avatars, meshes, garments, meta });
+        setLoaded({ rigs, avatars, meshes, garments, meta, bodyRef, poseRigs });
       } catch (err) {
         if (cancelled) return;
         console.error('[garment-test]', err);
@@ -505,15 +819,6 @@ export default function GarmentTestApp() {
     [customMode, customResolved, profileKey],
   );
 
-  // Snap the print sliders to the mesh's baked calibration when it loads, so a
-  // user who uploads a photo gets the right fit without touching anything.
-  useEffect(() => {
-    if (!loaded) return;
-    const c = loaded.meta.printCalibration ?? DEFAULT_CALIB;
-    setPrintScale(c.scale);
-    setPrintOffsetY(c.offsetY);
-  }, [loaded]);
-
   // Solve the body, push the morphs onto the visible mesh, and rebuild the
   // colliders. Cheap enough to redo whenever the profile changes.
   const scene = useMemo(() => {
@@ -523,28 +828,51 @@ export default function GarmentTestApp() {
     const influences = axesToInfluences(rig, solved.axes);
 
     const mesh = loaded.meshes[profile.gender];
-    if (!mesh.morphTargetInfluences || mesh.morphTargetInfluences.length !== influences.length) {
-      mesh.morphTargetInfluences = Array.from(influences);
+    const poseRig = loaded.poseRigs[profile.gender];
+    // Posed: skin on the CPU and show the result directly (morphs baked in,
+    // influences zeroed). Chữ A: the untouched base + GPU morphs as before.
+    const unposed = pose !== 'apose' && poseRig ? deformPositions(rig, influences) : undefined;
+    const mats = unposed && poseRig ? poseMatrices(poseRig, unposed, pose) : null;
+    const posed = unposed && poseRig ? applyPose(poseRig, unposed, pose) : undefined;
+    const posAttr = mesh.geometry.attributes.position as THREE.BufferAttribute;
+    const base = mesh.userData.basePosition as Float32Array;
+    (posAttr.array as Float32Array).set(posed ?? base);
+    posAttr.needsUpdate = true;
+    mesh.geometry.computeVertexNormals();
+    mesh.geometry.computeBoundingSphere();
+    const shown = posed ? new Array(influences.length).fill(0) : Array.from(influences);
+    if (!mesh.morphTargetInfluences || mesh.morphTargetInfluences.length !== shown.length) {
+      mesh.morphTargetInfluences = shown;
     } else {
-      for (let i = 0; i < influences.length; i++) mesh.morphTargetInfluences[i] = influences[i];
+      for (let i = 0; i < shown.length; i++) mesh.morphTargetInfluences[i] = shown[i];
     }
 
     const index = mesh.geometry.index;
     if (!index) throw new Error('Body mesh has no index buffer');
-    const collider: BodyCollider = buildBodyCollider(rig, influences, index.array);
+    const collider: BodyCollider = buildBodyCollider(
+      rig,
+      influences,
+      index.array,
+      0.05,
+      posed,
+      poseRig ? handMask(poseRig) : undefined,
+    );
     collider.yaw = 0;
+    collider.refPositions = loaded.bodyRef;
+    if (poseRig) {
+      collider.armMask = armMask(poseRig);
+      collider.trunkMask = trunkMask(poseRig);
+    }
+    if (unposed && mats && poseRig) {
+      collider.unposed = unposed;
+      collider.pose = { skinK: poseRig.skinK, skinIndex: poseRig.skinIndex, skinWeight: poseRig.skinWeight, mats };
+    }
 
     // Lowest point of the morphed body = where the floor must sit, otherwise a
     // shorter body hangs above the disc or a taller one sinks through it.
-    const base = mesh.geometry.attributes.position.array as Float32Array;
-    const deltas = (mesh.geometry.morphAttributes.position ?? []).map(
-      (a) => a.array as Float32Array,
-    );
     let groundY = Infinity;
-    for (let i = 1; i < base.length; i += 3) {
-      let y = base[i];
-      for (let m = 0; m < deltas.length; m++) y += influences[m] * deltas[m][i];
-      if (y < groundY) groundY = y;
+    for (let i = 1; i < collider.positions.length; i += 3) {
+      if (collider.positions[i] < groundY) groundY = collider.positions[i];
     }
 
     return {
@@ -557,24 +885,38 @@ export default function GarmentTestApp() {
         .filter((d) => d.outOfRange)
         .map((d) => MEASURE_FIELDS[d.dimension as (typeof FORM_FIELDS)[number]]?.label ?? d.dimension),
     };
-  }, [loaded, profile]);
+  }, [loaded, profile, pose]);
 
-  const garment = loaded?.garments[garmentKind]?.[size] ?? null;
-  const fitKey = gEntry?.fitKey ?? 'chestCircCm';
-  const garmentCircCm =
-    (loaded && gEntry?.sizes[size]?.[fitKey]) ??
-    (loaded ? loaded.meta.sizes[size]?.chestCircCm : 0);
-  const bodyCircCm = scene
-    ? fitKey === 'waistCircCm'
-      ? scene.body.waist
-      : scene.body.chest
-    : 0;
-  const ease = loaded && scene ? garmentCircCm - bodyCircCm : null;
+  // One resolved { geom, constraints, entry } per slot that currently has a
+  // kind chosen -- feeds both the 3D pieces array and each slot's own
+  // ease/size numbers.
+  const wearingDress = slots.top.kind === 'dress';
+  function resolveSlot(slot: Slot) {
+    // A dress fills both slots: the bottom becomes the dress's own skirt, cut
+    // from the same cloth and size as its bodice.
+    const st: SlotState =
+      slot === 'bottom' && wearingDress ? { ...slots.top, kind: 'dressskirt' } : slots[slot];
+    if (!loaded || !st.kind) return null;
+    const sized = loaded.garments[st.kind]?.[st.size];
+    if (!sized) return null;
+    const entry = loaded.meta.garments[st.kind];
+    return { state: st, entry, ...sized };
+  }
+  const topResolved = resolveSlot('top');
+  const bottomResolved = resolveSlot('bottom');
+
+  const activeResolved = activeSlot === 'top' ? topResolved : bottomResolved;
+  const garmentCircCm = activeResolved
+    ? activeResolved.entry?.sizes[activeResolved.state.size]?.[fitKey]
+    : undefined;
+  const bodyCircCm = scene ? (fitKey === 'waistCircCm' ? scene.body.waist : scene.body.chest) : 0;
+  const ease =
+    activeResolved && scene && garmentCircCm !== undefined ? garmentCircCm - bodyCircCm : null;
 
   if (error) {
     return <div className="p-6 text-sm text-red-600">Lỗi: {error}</div>;
   }
-  if (!loaded || !scene || !garment) {
+  if (!loaded || !scene) {
     return <div className="p-6 text-sm text-stone-500">Đang tải avatar và mesh áo…</div>;
   }
 
@@ -585,6 +927,83 @@ export default function GarmentTestApp() {
     rong: 'Rộng',
   };
 
+  // The top's hem line all the way round the body, as world Y per angle:
+  // the bottom is not drawn above it, since the two cloths do not collide and
+  // a waistband under an untucked shirt would saw through it. One flat cut at
+  // the lowest hem point left the waistband poking out at the sides, where a
+  // curved shirt-tail hem rides higher. Sleeves are left out -- a cuff hanging
+  // at hip height is not a hem.
+  const topHemProfile = (() => {
+    if (!topResolved || !showTop) return undefined;
+    const g = topResolved.geom;
+    const placed = placeGarment(g, scene.colliders, topResolved.constraints, scene.colliders.shoulderY);
+    const prof = new Float32Array(CLIP_BINS).fill(Infinity);
+    for (let v = 0; v < g.regions.length; v++) {
+      const r = g.regions[v];
+      if (r >= GARMENT_REGION.sleeveRight && r <= GARMENT_REGION.cuffLeft) continue;
+      const x = placed[v * 3];
+      const z = placed[v * 3 + 2] - scene.colliders.axisZ;
+      const a = (Math.atan2(x, z) + Math.PI * 2) % (Math.PI * 2);
+      const b = Math.floor((a / (Math.PI * 2)) * CLIP_BINS) % CLIP_BINS;
+      prof[b] = Math.min(prof[b], placed[v * 3 + 1]);
+    }
+    for (let b = 0; b < CLIP_BINS; b++) {
+      if (Number.isFinite(prof[b])) continue;
+      for (let d = 1; d < CLIP_BINS; d++) {
+        const c = prof[(b + d) % CLIP_BINS];
+        if (Number.isFinite(c)) {
+          prof[b] = c;
+          break;
+        }
+      }
+    }
+    // Slack: this is the hem as PLACED, and the simulated hem rides up when the
+    // shirt settles -- loose tops now hang straight and lift up to ~4cm at the
+    // sides, which opened a white gap between the hem and the clipped bottom.
+    for (let b = 0; b < CLIP_BINS; b++) prof[b] += 0.04;
+    // Where the top stops above the waistband (croptop, a hem riding up at the
+    // sides) there is nothing over the bottom to hide it under -- cutting it
+    // there bared a band of skin between the two. Leave those angles alone.
+    const waistTop = scene.colliders.waistY - 0.02;
+    for (let b = 0; b < CLIP_BINS; b++) if (prof[b] > waistTop) prof[b] = 1e3;
+    return prof;
+  })();
+
+  const pieces: GarmentPieceInput[] = [];
+  for (const [slot, resolved] of [['top', topResolved], ['bottom', bottomResolved]] as const) {
+    if (!resolved) continue;
+    pieces.push({
+      key: slot,
+      geom: resolved.geom,
+      constraints: resolved.constraints,
+      fabric: FABRICS[resolved.state.fabricKey],
+      pinRegion: resolved.entry?.pinRegion ?? 5,
+      anchorY: (resolved.entry?.yZero ?? '').startsWith('waist')
+        ? scene.colliders.waistY
+        : scene.colliders.shoulderY,
+      showGarment: slot === 'top' ? showTop : showBottom,
+      showStretch: showStretch && slot === activeSlot,
+      showFaces: showFaces && slot === activeSlot,
+      frontPrint: resolved.state.front,
+      backPrint: resolved.state.back,
+      baseColor: resolved.state.baseColor,
+      printScale: resolved.state.printScale,
+      printOffset: [0, resolved.state.printOffsetY],
+      placket:
+        resolved.state.kind === 'shirt' ||
+        resolved.state.kind === 'longshirt' ||
+        resolved.state.kind === 'jacket',
+      pattern: resolved.state.front || resolved.state.back ? 'plain' : resolved.state.pattern,
+      color2: resolved.state.color2,
+      // A dress's skirt is the same cloth as its bodice: overlapping is fine,
+      // and cutting it under the bodice hem bared the hips.
+      clipProfile:
+        slot === 'bottom' && resolved.state.kind !== 'dressskirt' ? topHemProfile : undefined,
+      clipPull:
+        resolved.state.kind === 'skirt' || resolved.state.kind === 'dressskirt' ? 0.035 : 0.012,
+    });
+  }
+
   return (
     <div className="flex h-screen flex-col bg-stone-50">
       <header className="border-b border-stone-200 px-5 py-3">
@@ -593,7 +1012,7 @@ export default function GarmentTestApp() {
         </h1>
         <p className="text-xs text-stone-500">
           Áo là mesh có kích thước theo bảng size, không phải ảnh dán. Xoay người để thấy tà áo
-          văng theo quán tính.
+          văng theo quán tính. Áo và quần mặc cùng lúc — tab bên dưới chỉ chọn cái bạn đang chỉnh.
         </p>
       </header>
 
@@ -603,6 +1022,10 @@ export default function GarmentTestApp() {
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Người mẫu
             </h2>
+            <p className="mb-1.5 text-[11px] text-stone-400">
+              Số đo {fitKey === 'waistCircCm' ? 'vòng eo' : 'vòng ngực'} của người mẫu — không
+              phải size {fitKey === 'waistCircCm' ? 'quần' : 'áo'} đang chỉnh.
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {PROFILE_LIST.map(([key, p]) => (
                 <Button
@@ -614,7 +1037,7 @@ export default function GarmentTestApp() {
                   }}
                   title={p.label}
                 >
-                  {key} · {p.chest}cm
+                  {key} · {fitKey === 'waistCircCm' ? p.waist : p.chest}cm
                 </Button>
               ))}
               <Button active={customMode} onClick={() => setCustomMode(true)}>
@@ -748,52 +1171,313 @@ export default function GarmentTestApp() {
 
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Món đồ
+              Trang phục
             </h2>
             <div className="mb-2 flex gap-1.5">
-              {(['tshirt', 'pants', 'shorts'] as const).map((k) => (
+              {(['top', 'bottom'] as const).map((s) => (
+                <Button key={s} active={activeSlot === s} onClick={() => setActiveSlot(s)}>
+                  {SLOT_LABEL[s]}
+                  {slots[s].kind ? ` · ${GARMENT_LABEL[slots[s].kind!]}` : ' · (trống)'}
+                </Button>
+              ))}
+            </div>
+            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+              Món đồ ({SLOT_LABEL[activeSlot]})
+            </h2>
+            {activeSlot === 'bottom' && wearingDress && (
+              <p className="mb-1.5 text-[11px] text-amber-700">
+                Đang mặc đầm — phần váy đi theo đầm. Đổi áo ở tab Áo để mặc quần/váy riêng.
+              </p>
+            )}
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {SLOT_KINDS[activeSlot].map((k) => (
                 <Button
                   key={k}
-                  active={garmentKind === k}
-                  onClick={() => setGarmentKind(k)}
+                  active={active.kind === k}
+                  onClick={() => {
+                    const nextKind = active.kind === k ? null : k;
+                    const nextCalib = nextKind
+                      ? (loaded.meta.garments[nextKind]?.printCalibration ?? DEFAULT_CALIB)
+                      : DEFAULT_CALIB;
+                    // presetIdx is a position in that kind's preset list,
+                    // which is about to change -- the old index would point
+                    // at an unrelated entry, or past the end.
+                    const tex = nextKind ? TEXTURES[nextKind][0] : null;
+                    updateSlot(activeSlot, {
+                      kind: nextKind,
+                      presetIdx: -1,
+                      fabricKey: tex?.fabric ?? (nextKind && DEFAULT_FABRIC[nextKind]) ?? 'knit',
+                      printScale: nextCalib.scale,
+                      printOffsetY: nextCalib.offsetY,
+                      ...(tex
+                        ? {
+                            textureKey: tex.key,
+                            pattern: tex.pattern,
+                            baseColor: tex.color,
+                            color2: tex.color2,
+                            front: null,
+                            back: null,
+                          }
+                        : {}),
+                    });
+                  }}
                 >
                   {GARMENT_LABEL[k]}
                 </Button>
               ))}
             </div>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Size {garmentKind === 'tshirt' ? 'áo' : 'quần'}
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {loaded.meta.sizeOrder.map((s) => (
-                <Button key={s} active={size === s} onClick={() => setSize(s)}>
-                  {s} · {Math.round((gEntry?.sizes[s]?.[fitKey] ?? loaded.meta.sizes[s]?.chestCircCm) || 0)}cm
-                </Button>
-              ))}
-            </div>
+            {active.kind && (
+              <>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Size {fitKey === 'waistCircCm' ? 'quần' : 'áo'}
+                </h2>
+                <div className="flex flex-wrap gap-1.5">
+                  {loaded.meta.sizeOrder.map((s) => (
+                    <Button
+                      key={s}
+                      active={active.size === s}
+                      onClick={() => updateSlot(activeSlot, { size: s })}
+                    >
+                      {s} · {Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0)}cm
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Chất vải
-            </h2>
-            <div className="flex flex-col gap-1.5">
-              {FABRIC_LIST.map(([key, label]) => (
-                <Button
-                  key={key}
-                  active={fabricKey === key}
-                  onClick={() => setFabricKey(key as keyof typeof FABRICS)}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </section>
+          {active.kind && (
+            <>
+              <section>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Chất liệu ({GARMENT_LABEL[active.kind]})
+                </h2>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {TEXTURES[active.kind].map((t) => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() =>
+                        updateSlot(activeSlot, {
+                          textureKey: t.key,
+                          pattern: t.pattern,
+                          baseColor: t.color,
+                          color2: t.color2,
+                          fabricKey: t.fabric,
+                          front: null,
+                          back: null,
+                          presetIdx: -1,
+                          presetAuto: false,
+                        })
+                      }
+                      className={`flex items-center gap-1.5 rounded border px-1.5 py-1 text-left text-[11px] ${
+                        active.textureKey === t.key
+                          ? 'border-stone-900 bg-stone-900 text-white'
+                          : 'border-stone-300 bg-white text-stone-700 hover:border-stone-500'
+                      }`}
+                    >
+                      <span
+                        className="h-4 w-4 shrink-0 rounded-sm border border-black/10"
+                        style={{
+                          background:
+                            t.pattern === 'plain' || t.color2 === '#ffffff'
+                              ? t.color
+                              : `repeating-linear-gradient(90deg, ${t.color} 0 4px, ${t.color2} 4px 6px)`,
+                        }}
+                      />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 flex items-center gap-3 text-[11px] text-stone-600">
+                  <label className="flex items-center gap-1">
+                    Màu chính
+                    <input
+                      id={`color1-${activeSlot}`}
+                      type="color"
+                      value={active.baseColor}
+                      onChange={(e) => updateSlot(activeSlot, { baseColor: e.target.value })}
+                      className="h-6 w-8 cursor-pointer"
+                    />
+                  </label>
+                  <label className="flex items-center gap-1">
+                    Màu phụ
+                    <input
+                      id={`color2-${activeSlot}`}
+                      type="color"
+                      value={active.color2}
+                      onChange={(e) => updateSlot(activeSlot, { color2: e.target.value })}
+                      className="h-6 w-8 cursor-pointer"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Độ cứng vải khi mô phỏng
+                </h2>
+                <div className="flex flex-col gap-1.5">
+                  {FABRIC_LIST.map(([key, label]) => (
+                    <Button
+                      key={key}
+                      active={active.fabricKey === key}
+                      onClick={() => updateSlot(activeSlot, { fabricKey: key as keyof typeof FABRICS })}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                  Ảnh in lên {fitKey === 'waistCircCm' ? 'quần' : 'áo'} ({SLOT_LABEL[activeSlot]})
+                </h2>
+                <div className="space-y-1.5">
+                  {(['front', 'back'] as const).map((side) => (
+                    <label key={side} className="block text-xs text-stone-600">
+                      <span className="mb-0.5 block">
+                        {side === 'front' ? 'Mặt trước' : 'Mặt sau'}
+                        {printBusy?.slot === activeSlot && printBusy.what === side && ' — đang tách nền…'}
+                        {(side === 'front' ? active.front : active.back) && ' ✓'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => loadPrint(activeSlot, side, e.target.files?.[0])}
+                        className="w-full text-[11px] file:mr-2 file:rounded file:border file:border-stone-300 file:bg-white file:px-2 file:py-0.5 file:text-[11px]"
+                      />
+                    </label>
+                  ))}
+                  {kindPresets.length > 0 && (
+                    <div className="rounded border border-stone-200 bg-stone-50 p-1.5">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => stepPreset(-1)}
+                          disabled={printBusy?.slot === activeSlot && printBusy.what === 'preset'}
+                          className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
+                        >
+                          ◀
+                        </button>
+                        <span className="flex-1 truncate text-center text-[11px] text-stone-600">
+                          {printBusy?.slot === activeSlot && printBusy.what === 'preset'
+                            ? 'đang tải…'
+                            : active.presetIdx < 0
+                              ? `Bộ sưu tập (${kindPresets.length})`
+                              : `${kindPresets[active.presetIdx].name} · ${active.presetIdx + 1}/${kindPresets.length}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => stepPreset(1)}
+                          disabled={printBusy?.slot === activeSlot && printBusy.what === 'preset'}
+                          className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                      <Button
+                        active={active.presetAuto}
+                        onClick={() => {
+                          const next = !active.presetAuto;
+                          updateSlot(activeSlot, { presetAuto: next });
+                          if (next && active.presetIdx < 0) stepPreset(1);
+                        }}
+                      >
+                        {active.presetAuto ? '⏸ dừng tự chạy' : '▶ tự chạy hết bộ'}
+                      </Button>
+                    </div>
+                  )}
+                  <Button
+                    active={false}
+                    onClick={() => {
+                      const s = makeSamplePrints();
+                      updateSlot(activeSlot, { front: s.front, back: s.back });
+                    }}
+                  >
+                    Dùng ảnh mẫu
+                  </Button>
+                  {(active.front || active.back) && (
+                    <Button
+                      active={false}
+                      onClick={() => {
+                        updateSlot(activeSlot, {
+                          front: null,
+                          back: null,
+                          baseColor: '#41599c',
+                          printScale: calib.scale,
+                          printOffsetY: calib.offsetY,
+                          presetAuto: false,
+                          presetIdx: -1,
+                        });
+                      }}
+                    >
+                      Bỏ ảnh in
+                    </Button>
+                  )}
+                </div>
+
+                {(active.front || active.back) && (
+                  <div className="mt-2 space-y-2 border-t border-stone-200 pt-2">
+                    <p className="text-[10px] leading-snug text-stone-400">
+                      Đã căn sẵn cho mẫu áo này ({calib.scale}× · {calib.offsetY}). Chỉ chỉnh nếu
+                      ảnh của bạn khác bố cục.
+                    </p>
+                    <label className="block text-xs text-stone-600">
+                      Phóng ảnh in: {active.printScale.toFixed(2)}×
+                      <input
+                        type="range"
+                        min={0.5}
+                        max={2}
+                        step={0.01}
+                        value={active.printScale}
+                        onChange={(e) => updateSlot(activeSlot, { printScale: parseFloat(e.target.value) })}
+                        className="mt-1 w-full"
+                      />
+                      <span className="text-[10px] text-stone-400">nhỏ = hoa văn to · lớn = hoa văn nhỏ</span>
+                    </label>
+                    <label className="block text-xs text-stone-600">
+                      Dời lên / xuống: {active.printOffsetY > 0 ? '+' : ''}
+                      {active.printOffsetY.toFixed(2)}
+                      <input
+                        type="range"
+                        min={-0.3}
+                        max={0.3}
+                        step={0.01}
+                        value={active.printOffsetY}
+                        onChange={(e) => updateSlot(activeSlot, { printOffsetY: parseFloat(e.target.value) })}
+                        className="mt-1 w-full"
+                      />
+                    </label>
+                    {(active.printScale !== calib.scale || active.printOffsetY !== calib.offsetY) && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateSlot(activeSlot, { printScale: calib.scale, printOffsetY: calib.offsetY })
+                        }
+                        className="text-[11px] text-stone-500 underline underline-offset-2"
+                      >
+                        ↺ về mẫu chuẩn
+                      </button>
+                    )}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
 
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Chuyển động
             </h2>
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {(Object.keys(POSES) as PoseKey[]).map((k) => (
+                <Button key={k} active={pose === k} onClick={() => setPose(k)}>
+                  {POSES[k].label}
+                </Button>
+              ))}
+            </div>
             <div className="flex flex-col gap-1.5">
               <Button active={spinning} onClick={() => setSpinning((v) => !v)}>
                 {spinning ? 'Đang quay — dừng' : 'Quay người liên tục'}
@@ -818,144 +1502,15 @@ export default function GarmentTestApp() {
 
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Ảnh in lên áo
-            </h2>
-            <div className="space-y-1.5">
-              {(['front', 'back'] as const).map((side) => (
-                <label key={side} className="block text-xs text-stone-600">
-                  <span className="mb-0.5 block">
-                    {side === 'front' ? 'Mặt trước' : 'Mặt sau'}
-                    {printBusy === side && ' — đang tách nền…'}
-                    {(side === 'front' ? front : back) && ' ✓'}
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => loadPrint(side, e.target.files?.[0])}
-                    className="w-full text-[11px] file:mr-2 file:rounded file:border file:border-stone-300 file:bg-white file:px-2 file:py-0.5 file:text-[11px]"
-                  />
-                </label>
-              ))}
-              {presets.length > 0 && (
-                <div className="rounded border border-stone-200 bg-stone-50 p-1.5">
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => stepPreset(-1)}
-                      disabled={printBusy === 'preset'}
-                      className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-                    >
-                      ◀
-                    </button>
-                    <span className="flex-1 truncate text-center text-[11px] text-stone-600">
-                      {printBusy === 'preset'
-                        ? 'đang tải…'
-                        : presetIdx < 0
-                          ? `Bộ sưu tập (${presets.length})`
-                          : `${presets[presetIdx].name} · ${presetIdx + 1}/${presets.length}`}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => stepPreset(1)}
-                      disabled={printBusy === 'preset'}
-                      className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-                    >
-                      ▶
-                    </button>
-                  </div>
-                  <Button
-                    active={presetAuto}
-                    onClick={() => {
-                      const next = !presetAuto;
-                      setPresetAuto(next);
-                      if (next && presetIdx < 0) stepPreset(1);
-                    }}
-                  >
-                    {presetAuto ? '⏸ dừng tự chạy' : '▶ tự chạy hết bộ'}
-                  </Button>
-                </div>
-              )}
-              <Button
-                active={false}
-                onClick={() => {
-                  const s = makeSamplePrints();
-                  setFront(s.front);
-                  setBack(s.back);
-                }}
-              >
-                Dùng ảnh mẫu
-              </Button>
-              {(front || back) && (
-                <Button
-                  active={false}
-                  onClick={() => {
-                    setFront(null);
-                    setBack(null);
-                    setBaseColor('#41599c');
-                    setPrintScale(calib.scale);
-                    setPrintOffsetY(calib.offsetY);
-                    setPresetAuto(false);
-                    setPresetIdx(-1);
-                  }}
-                >
-                  Bỏ ảnh in
-                </Button>
-              )}
-            </div>
-
-            {(front || back) && (
-              <div className="mt-2 space-y-2 border-t border-stone-200 pt-2">
-                <p className="text-[10px] leading-snug text-stone-400">
-                  Đã căn sẵn cho mẫu áo này ({calib.scale}× · {calib.offsetY}). Chỉ chỉnh nếu
-                  ảnh của bạn khác bố cục.
-                </p>
-                <label className="block text-xs text-stone-600">
-                  Phóng ảnh in: {printScale.toFixed(2)}×
-                  <input
-                    type="range"
-                    min={0.5}
-                    max={2}
-                    step={0.01}
-                    value={printScale}
-                    onChange={(e) => setPrintScale(parseFloat(e.target.value))}
-                    className="mt-1 w-full"
-                  />
-                  <span className="text-[10px] text-stone-400">nhỏ = hoa văn to · lớn = hoa văn nhỏ</span>
-                </label>
-                <label className="block text-xs text-stone-600">
-                  Dời lên / xuống: {printOffsetY > 0 ? '+' : ''}
-                  {printOffsetY.toFixed(2)}
-                  <input
-                    type="range"
-                    min={-0.3}
-                    max={0.3}
-                    step={0.01}
-                    value={printOffsetY}
-                    onChange={(e) => setPrintOffsetY(parseFloat(e.target.value))}
-                    className="mt-1 w-full"
-                  />
-                </label>
-                {(printScale !== calib.scale || printOffsetY !== calib.offsetY) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPrintScale(calib.scale);
-                      setPrintOffsetY(calib.offsetY);
-                    }}
-                    className="text-[11px] text-stone-500 underline underline-offset-2"
-                  >
-                    ↺ về mẫu chuẩn
-                  </button>
-                )}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Hiển thị
             </h2>
             <div className="flex flex-col gap-1.5">
+              <Button active={showTop} onClick={() => setShowTop((v) => !v)}>
+                Hiện áo
+              </Button>
+              <Button active={showBottom} onClick={() => setShowBottom((v) => !v)}>
+                Hiện quần / váy
+              </Button>
               <Button
                 active={showFaces}
                 onClick={() => {
@@ -963,7 +1518,7 @@ export default function GarmentTestApp() {
                   setShowStretch(false);
                 }}
               >
-                Vùng trước / sau
+                Vùng trước / sau ({SLOT_LABEL[activeSlot]})
               </Button>
               <Button
                 active={showStretch}
@@ -972,11 +1527,27 @@ export default function GarmentTestApp() {
                   setShowFaces(false);
                 }}
               >
-                Bản đồ độ căng
+                Bản đồ độ căng ({SLOT_LABEL[activeSlot]})
               </Button>
               <Button active={wireframe} onClick={() => setWireframe((v) => !v)}>
                 Khung lưới
               </Button>
+            </div>
+            <h3 className="mb-1 mt-3 text-[11px] font-medium text-stone-500">Góc nhìn</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  ['full', 'Toàn thân'],
+                  ['neck', 'Cổ trước'],
+                  ['neckBack', 'Cổ sau'],
+                  ['arm', 'Tay'],
+                  ['legs', 'Chân'],
+                ] as const
+              ).map(([v, label]) => (
+                <Button key={v} active={view === v} onClick={() => setView(v)}>
+                  {label}
+                </Button>
+              ))}
             </div>
             {showFaces && (
               <p className="mt-1.5 text-[11px] leading-snug text-stone-500">
@@ -987,66 +1558,54 @@ export default function GarmentTestApp() {
             )}
           </section>
 
-          <section className="rounded border border-stone-200 bg-stone-50 p-2.5 text-xs">
-            <div className="flex justify-between">
-              <span className="text-stone-500">
-                {fitKey === 'waistCircCm' ? 'Eo người' : 'Ngực người'}
-              </span>
-              <span className="font-medium">{bodyCircCm.toFixed(1)} cm</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">
-                {fitKey === 'waistCircCm' ? 'Eo quần' : 'Ngực áo'}
-              </span>
-              <span className="font-medium">{Math.round(garmentCircCm)} cm</span>
-            </div>
-            <div className="mt-1 flex justify-between border-t border-stone-200 pt-1">
-              <span className="text-stone-500">Ease</span>
-              <span
-                className={
-                  'font-semibold ' +
-                  (verdict === 'vua'
-                    ? 'text-emerald-600'
-                    : verdict === 'chat'
-                      ? 'text-red-600'
-                      : 'text-amber-600')
-                }
-              >
-                {ease !== null && ease >= 0 ? '+' : ''}
-                {ease?.toFixed(1)} cm · {verdictLabel[verdict]}
-              </span>
-            </div>
-            <p className="mt-1.5 text-[11px] leading-snug text-stone-400">
-              Ease tính thẳng từ chu vi, không phụ thuộc mô phỏng.
-            </p>
-          </section>
+          {activeResolved && (
+            <section className="rounded border border-stone-200 bg-stone-50 p-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-stone-500">
+                  {fitKey === 'waistCircCm' ? 'Eo người' : 'Ngực người'}
+                </span>
+                <span className="font-medium">{bodyCircCm.toFixed(1)} cm</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-500">
+                  {fitKey === 'waistCircCm' ? 'Eo quần' : 'Ngực áo'}
+                </span>
+                <span className="font-medium">{Math.round(garmentCircCm ?? 0)} cm</span>
+              </div>
+              <div className="mt-1 flex justify-between border-t border-stone-200 pt-1">
+                <span className="text-stone-500">Ease</span>
+                <span
+                  className={
+                    'font-semibold ' +
+                    (verdict === 'vua'
+                      ? 'text-emerald-600'
+                      : verdict === 'chat'
+                        ? 'text-red-600'
+                        : 'text-amber-600')
+                  }
+                >
+                  {ease !== null && ease >= 0 ? '+' : ''}
+                  {ease?.toFixed(1)} cm · {verdictLabel[verdict]}
+                </span>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-snug text-stone-400">
+                Ease tính thẳng từ chu vi, không phụ thuộc mô phỏng.
+              </p>
+            </section>
+          )}
         </aside>
 
         <main className="min-w-0 flex-1">
           <GarmentClothCanvas
             avatar={scene.avatar}
-            geom={garment.geom}
-            constraints={garment.constraints}
             colliders={scene.colliders}
             groundY={scene.groundY}
-            pinRegion={gEntry?.pinRegion ?? 5}
-            anchorY={
-              (gEntry?.yZero ?? '').startsWith('waist')
-                ? scene.colliders.waistY
-                : scene.colliders.shoulderY
-            }
-            fabric={FABRICS[fabricKey]}
             spinning={spinning}
             spinSpeed={spinSpeed}
             turnNonce={turnNonce}
-            showStretch={showStretch}
-            showFaces={showFaces}
             wireframe={wireframe}
-            frontPrint={front}
-            backPrint={back}
-            baseColor={baseColor}
-            printScale={printScale}
-            printOffset={[0, printOffsetY]}
+            view={view}
+            pieces={pieces}
           />
         </main>
       </div>

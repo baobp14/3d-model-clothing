@@ -3,5 +3,9 @@
   "title": "Sunny Parade - Heavy Graphic T-shirt",
   "source": "https://jumpthedark.co.uk/products/sunny-parade-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/SUNNY_PARADE_FRONT_FLATLAY.jpg?v=1771167769",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/SUNNY_PARADE_BACK_FLATLAY.jpg?v=1771165433"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/SUNNY_PARADE_BACK_FLATLAY.jpg?v=1771165433",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/SUNNY_PARADE_FRONT.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/SUNNY_PARADE_BACK.jpg"
+  ]
 }

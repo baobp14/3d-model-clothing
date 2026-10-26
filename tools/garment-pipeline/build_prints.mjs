@@ -20,8 +20,31 @@ const WIDTH = 640; // the shirt UV never resolves finer than this on screen
 const EXTS = ['jpg', 'jpeg', 'png', 'webp'];
 const TOL = 42; // per-channel distance from the corner colour that still counts as background
 
+/**
+ * Which garment mesh a dataset folder's photos belong on.
+ *
+ * The dataset mixes tees, shorts and long pants in one flat folder list (see
+ * dataset/README.txt) with no separate field for it -- only the folder name
+ * says which is which ("ascolour_5903_beach_shorts_..." vs
+ * "ascolour_5932_relax_track_pants_..."). Without this, the manifest gave
+ * every item the same shirt-only treatment: browsing the preset collection
+ * put pants/shorts photos on the T-shirt mesh no matter what they showed.
+ * "short" is checked before "pant"/"trouser" so a folder like
+ * "board_shorts_pantone_blue" still lands on shorts.
+ */
+function garmentKindOf(folder) {
+  const s = folder.toLowerCase();
+  if (/skirt/.test(s)) return 'skirt';
+  // Button-up shirts ("oxford_shirt", "work_ss_shirt"), but not "t_shirt".
+  if (/(^|_)(?!t_)[a-z]*_?shirt/.test(s) && !/t_shirt|tee/.test(s)) return 'shirt';
+  if (/short/.test(s)) return 'shorts';
+  if (/pant|trouser|jean/.test(s)) return 'pants';
+  return 'tshirt';
+}
+
 async function findSide(dir, side) {
-  for (const ext of EXTS) {
+  // A BiRefNet cutout from cutout.py wins over the raw photo.
+  for (const ext of ['cut.png', ...EXTS]) {
     const p = path.join(dir, `${side}.${ext}`);
     try {
       await readFile(p);
@@ -35,7 +58,7 @@ async function findSide(dir, side) {
 
 /** BFS flood-fill from every border pixel, clearing alpha where the colour is
  *  within TOL of the seed (corner-average) background. */
-function keyOutBackground(data, w, h) {
+function keyOutBackground(data, w, h, tol = TOL) {
   const seed = [0, 0, 0];
   const corners = [
     [0, 0],
@@ -50,9 +73,9 @@ function keyOutBackground(data, w, h) {
     seed[2] += data[i + 2] / 4;
   }
   const near = (i) =>
-    Math.abs(data[i] - seed[0]) <= TOL &&
-    Math.abs(data[i + 1] - seed[1]) <= TOL &&
-    Math.abs(data[i + 2] - seed[2]) <= TOL;
+    Math.abs(data[i] - seed[0]) <= tol &&
+    Math.abs(data[i + 1] - seed[1]) <= tol &&
+    Math.abs(data[i + 2] - seed[2]) <= tol;
 
   const seen = new Uint8Array(w * h);
   const queue = [];
@@ -81,6 +104,34 @@ function keyOutBackground(data, w, h) {
   return cleared / (w * h);
 }
 
+function fillInterior(data, original, w, h) {
+  const rowLo = new Int32Array(h).fill(w);
+  const rowHi = new Int32Array(h).fill(-1);
+  const colLo = new Int32Array(w).fill(h);
+  const colHi = new Int32Array(w).fill(-1);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (data[(y * w + x) * 4 + 3] < 128) continue;
+      rowLo[y] = Math.min(rowLo[y], x);
+      rowHi[y] = Math.max(rowHi[y], x);
+      colLo[x] = Math.min(colLo[x], y);
+      colHi[x] = Math.max(colHi[x], y);
+    }
+  }
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (data[i + 3] >= 128) continue;
+      if (x > rowLo[y] && x < rowHi[y] && y > colLo[x] && y < colHi[x]) {
+        data[i] = original[i];
+        data[i + 1] = original[i + 1];
+        data[i + 2] = original[i + 2];
+        data[i + 3] = 255;
+      }
+    }
+  }
+}
+
 function averageOpaque(data, w, h) {
   let r = 0;
   let g = 0;
@@ -106,11 +157,30 @@ async function processSide(srcPath, destPath) {
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  const frac = keyOutBackground(data, info.width, info.height);
-  // A sane key clears a chunk but not the whole frame. If it went wild (or did
-  // nothing), keep the photo opaque and just trim -- better a boxy print than
-  // a hole-punched one.
-  const keyed = frac > 0.04 && frac < 0.9;
+  // A sane key clears a chunk but not the whole frame. A white garment on a
+  // light-grey studio floor sits inside the default tolerance, so the fill
+  // leaks through the whole garment -- retry tighter before giving up. If
+  // every tolerance goes wild (or does nothing), keep the photo opaque --
+  // better a boxy print than an empty one. (The failed pass has already
+  // cleared alpha in `data`, so each try works on a fresh copy.)
+  const original = Buffer.from(data);
+  // Already cut out by cutout.py (BiRefNet): its alpha is the mask. The
+  // colour key below is only the fallback -- it eats white/cream fabric on a
+  // light studio floor.
+  let keyed = srcPath.endsWith('.cut.png');
+  for (const tol of keyed ? [] : [TOL, 20, 10, 5]) {
+    data.set(original);
+    const frac = keyOutBackground(data, info.width, info.height, tol);
+    if (frac > 0.04 && frac < 0.9) {
+      keyed = true;
+      // Even the tighter key leaks into a white garment through its own
+      // shading and punches holes in it. Fill back every pixel that sits
+      // inside the garment both across its row and down its column.
+      if (tol !== TOL) fillInterior(data, original, info.width, info.height);
+      break;
+    }
+  }
+  if (!keyed) data.set(original);
 
   const baseColor = averageOpaque(data, info.width, info.height);
 
@@ -153,16 +223,18 @@ async function main() {
       hasBack = true;
     }
 
+    const kind = garmentKindOf(folder);
     items.push({
       id: folder,
       name: folder.replace(/_/g, ' '),
+      kind,
       front: `/prints/${folder}__front.webp`,
       back: hasBack ? `/prints/${folder}__back.webp` : null,
       baseColor: front.baseColor,
       source,
     });
     process.stdout.write(
-      `  ${folder}  ${front.keyed ? 'keyed' : 'as-is'}  ${front.baseColor}${hasBack ? '  +back' : ''}\n`,
+      `  ${folder}  [${kind}]  ${front.keyed ? 'keyed' : 'as-is'}  ${front.baseColor}${hasBack ? '  +back' : ''}\n`,
     );
   }
 

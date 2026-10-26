@@ -3,5 +3,9 @@
   "title": "Broken Saint - Heavy Graphic T-Shirt",
   "source": "https://jumpthedark.co.uk/products/broken-saint-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BROKENSAINTBLACKFRONTFLAT.jpg?v=1778770677",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BROKENSAINTBLACKBACKFLAT.jpg?v=1778770678"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BROKENSAINTBLACKBACKFLAT.jpg?v=1778770678",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BROKENSAINTBLACKBACK.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/BROKENSAINTBLACKFRONT.jpg"
+  ]
 }

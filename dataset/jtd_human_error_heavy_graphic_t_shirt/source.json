@@ -3,5 +3,10 @@
   "title": "Human Error - Heavy Graphic T-Shirt",
   "source": "https://jumpthedark.co.uk/products/human-error-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/HUMANERRORFRONTFLAT.jpg?v=1778836700",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/HUMANERRORBACKFLAT.jpg?v=1778836700"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/HUMANERRORBACKFLAT.jpg?v=1778836700",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/HUMANERRORBACK.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/HUMANERRORFRONTCLOSEUP.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/HUMANERRORFRONT.jpg"
+  ]
 }

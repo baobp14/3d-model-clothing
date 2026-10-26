@@ -53,6 +53,34 @@ async function buildRig(gender) {
   return createMorphRig({ position, morphDeltas }, metadata, gender);
 }
 
+function interleaveVec4(g, name) {
+  const parts = [];
+  for (let i = 1; ; i++) {
+    const a = g.getAttribute(i === 1 ? name : `${name}${i}`);
+    if (!a) break;
+    parts.push(a.array);
+  }
+  if (!parts.length) return undefined;
+  const n = parts[0].length / 4;
+  const K = parts.length * 4;
+  const out = new Float32Array(n * K);
+  for (let v = 0; v < n; v++) {
+    for (let p = 0; p < parts.length; p++) {
+      for (let k = 0; k < 4; k++) out[v * K + p * 4 + k] = parts[p][v * 4 + k];
+    }
+  }
+  return out;
+}
+
+const bodyRef = (() => {
+  try {
+    const b = readFileSync(path.join(MODELS_DIR, 'body-reference.bin'));
+    return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+  } catch {
+    return undefined;
+  }
+})();
+
 async function loadGarments() {
   const gltf = await loadGlb(path.join(MODELS_DIR, 'garment-tshirt.glb'));
   const meta = JSON.parse(readFileSync(path.join(MODELS_DIR, 'garment-metadata.json'), 'utf-8'));
@@ -66,6 +94,12 @@ async function loadGarments() {
       positions: o.geometry.getAttribute('position').array,
       indices: o.geometry.index.array,
       regions: region.array,
+      // Same body-following start position the page uses (_BIND).
+      bind: interleaveVec4(o.geometry, '_bind'),
+      bindW: interleaveVec4(o.geometry, '_bindw'),
+      refOrigin: meta.bodyReference
+        ? [0, meta.bodyReference.shoulderY, meta.bodyReference.axisZ]
+        : undefined,
     };
     out[size] = { geom, constraints: buildConstraints(geom, meta.sizes[size]?.seams ?? []) };
   });
@@ -99,6 +133,7 @@ async function main() {
     const body = measure(rig, solved.axes);
     const influences = axesToInfluences(rig, solved.axes);
     const collider = buildBodyCollider(rig, influences, bodyIndices[profile.gender]);
+    collider.refPositions = bodyRef;
 
     // Independent verifier: same idea, finer grid than the solver uses (3 cm /
     // 2 cells vs 5 cm / 1 cell), so it can catch contacts the solver's coarser
@@ -199,6 +234,7 @@ async function main() {
       axesToInfluences(rig, solved.axes),
       bodyIndices[profile.gender],
     );
+    collider.refPositions = bodyRef;
     const g = garments.XL;
 
     const hemRadius = (state) => {

@@ -3,5 +3,9 @@
   "title": "Raise Hell - Heavy Graphic T-shirt",
   "source": "https://jumpthedark.co.uk/products/raise-hell-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/RAISE_HELL_FRONT_BROWN_FLATLAY.jpg?v=1771175494",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/RAISE_HELL_BACK_BROWN_FLATLAY.jpg?v=1771175494"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/RAISE_HELL_BACK_BROWN_FLATLAY.jpg?v=1771175494",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/RAISE_HELL_FRONT_BROWN.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/RAISE_HELL_BACK_BROWN.jpg"
+  ]
 }

@@ -1,0 +1,9 @@
+{
+  "front": {
+    "score": 9,
+    "differences": [
+      "The color of the denim in the generated image appears slightly lighter and less saturated than in the reference images.",
+      "The texture of the denim in the generated image seems a bit smoother, lacking some of the subtle variations seen in the real garment."
+    ]
+  }
+}

@@ -65,6 +65,8 @@ def all_remote_paths() -> list[str]:
         + measure_target_paths()
         + macrodetail_paths()
         + ["data/modifiers/measurement_modifiers.json", "../LICENSE.ASSETS.md"]
+        # Bo xuong + trong so da cho tao dang (build_avatar_rig.py).
+        + ["data/rigs/default.mhskel", "data/rigs/default_weights.mhw"]
     )
 
 

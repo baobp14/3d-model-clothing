@@ -3,5 +3,12 @@
   "title": "DECAY - Premium Heavy Graphic T-Shirt",
   "source": "https://jumpthedark.co.uk/products/decay-premium-heavy-graphic-t-shirt",
   "front": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAY_FRONT_FLAT.jpg?v=1772554335",
-  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAY_BACK_FLAT.jpg?v=1772554335"
+  "back": "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAY_BACK_FLAT.jpg?v=1772554335",
+  "extra": [
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAY_BACK.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAY_FRONT.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/20250121-012353.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAYPOSTER.jpg",
+    "https://cdn.shopify.com/s/files/1/0813/4066/2089/files/DECAYFRONT.jpg"
+  ]
 }
