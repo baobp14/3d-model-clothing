@@ -405,30 +405,35 @@ def change_order_status(db, order_id, values, user, admin=False):
         db.add(OrderRefund(order_id=order.id, amount=order.total, created_by=user.id))
         log_event(db, order, 'refund_required', user)
     if values.status == 'canceled':
-        quantities = Counter()
-        for item in order.items:
-            quantities[item['product_id']] += item['quantity']
-        for product_id in sorted(quantities):
-            product = db.scalar(select(Product).where(Product.id == product_id).with_for_update())
-            if product is None or product.stock + quantities[product_id] > 2147483647:
-                fail('NB_INVALID_PRODUCT', 409)
-            before = stock_snapshot(db, product)
-            inventory = db.get(VariantInventory, product_id)
-            if inventory:
-                rows = [dict(row) for row in inventory.variants]
-                counts = line_counts([item for item in order.items if item['product_id'] == product_id])
-                for row in rows:
-                    row['stock'] += counts[(product_id, row['color'], row['size'])]
-                if sum(counts.values()) != sum(counts[(product_id, row['color'], row['size'])] for row in rows):
-                    fail('NB_VARIANT_IN_USE', 409)
-                inventory.variants = rows
-                inventory.revision += 1
-            product.stock += quantities[product_id]
-            record_stock(db, product, before, user, 'cancel', order_id=order.id)
+        restock_order(db, order, user, 'cancel')
     log_event(db, order, 'status', user, from_status=order.status, to_status=values.status)
     order.status = values.status
     db.flush()
     return order_dict(db, order)
+
+
+def restock_order(db, order, user, kind):
+    """Put every line of `order` back into product and variant stock (cancel or sellable return)."""
+    quantities = Counter()
+    for item in order.items:
+        quantities[item['product_id']] += item['quantity']
+    for product_id in sorted(quantities):
+        product = db.scalar(select(Product).where(Product.id == product_id).with_for_update())
+        if product is None or product.stock + quantities[product_id] > 2147483647:
+            fail('NB_INVALID_PRODUCT', 409)
+        before = stock_snapshot(db, product)
+        inventory = db.get(VariantInventory, product_id)
+        if inventory:
+            rows = [dict(row) for row in inventory.variants]
+            counts = line_counts([item for item in order.items if item['product_id'] == product_id])
+            for row in rows:
+                row['stock'] += counts[(product_id, row['color'], row['size'])]
+            if sum(counts.values()) != sum(counts[(product_id, row['color'], row['size'])] for row in rows):
+                fail('NB_VARIANT_IN_USE', 409)
+            inventory.variants = rows
+            inventory.revision += 1
+        product.stock += quantities[product_id]
+        record_stock(db, product, before, user, kind, order_id=order.id)
 
 
 def receive_payment(db, order_id, user=None, gateway_reference=None):

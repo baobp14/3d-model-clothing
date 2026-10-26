@@ -4,12 +4,13 @@ from .config import Settings
 from .db import make_engine
 from .models import WishlistItem, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, Order, DemoOrder
 from .models import StockMovement, NotificationRead, ArchivedProduct, DatasetProduct, OrderEvent, OrderRefund, QrPayment, PromotionRule
+from .models import Review, ReturnRequest
 
 
 def migrate(engine):
     with engine.begin() as connection:
         for model in (WishlistItem, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, DemoOrder, StockMovement, NotificationRead, ArchivedProduct, DatasetProduct,
-                      OrderEvent, OrderRefund, QrPayment, PromotionRule):
+                      OrderEvent, OrderRefund, QrPayment, PromotionRule, Review, ReturnRequest):
             model.__table__.create(connection, checkfirst=True)
             if engine.dialect.name == 'postgresql':
                 # Access is through the authenticated Python API, never public SQL.

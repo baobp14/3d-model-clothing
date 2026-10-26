@@ -5,6 +5,7 @@ import { useLang } from '../i18n'
 import { useAuth } from '../hooks/useAuth'
 import ExportButton from '../components/ExportButton'
 import QrPayment from '../components/QrPayment'
+import OrderAftersales from '../components/OrderAftersales'
 
 const words = {
   vi: { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipped: 'Đang giao', delivered: 'Đã giao', canceled: 'Đã hủy' },
@@ -12,8 +13,8 @@ const words = {
 }
 const transitions = { pending: ['confirmed', 'canceled'], confirmed: ['shipped', 'canceled'], shipped: ['delivered'] }
 const eventWords = {
-  vi: { created: 'Đặt hàng', status: 'Đổi trạng thái', payment: 'Ghi nhận thanh toán', refund_required: 'Cần hoàn tiền', refunded: 'Đã hoàn tiền' },
-  en: { created: 'Order placed', status: 'Status changed', payment: 'Payment recorded', refund_required: 'Refund required', refunded: 'Refunded' },
+  vi: { created: 'Đặt hàng', status: 'Đổi trạng thái', payment: 'Ghi nhận thanh toán', refund_required: 'Cần hoàn tiền', refunded: 'Đã hoàn tiền', return_requested: 'Khách yêu cầu đổi trả', return_approved: 'Duyệt đổi trả', return_rejected: 'Từ chối đổi trả', return_received: 'Nhận hàng trả' },
+  en: { created: 'Order placed', status: 'Status changed', payment: 'Payment recorded', refund_required: 'Refund required', refunded: 'Refunded', return_requested: 'Return requested', return_approved: 'Return approved', return_rejected: 'Return rejected', return_received: 'Return received' },
 }
 const roleWords = { vi: { customer: 'khách', admin: 'admin', gateway: 'cổng thanh toán', system: 'hệ thống' }, en: { customer: 'customer', admin: 'admin', gateway: 'payment gateway', system: 'system' } }
 const filterKeys = ['q', 'status', 'paid', 'start', 'end', 'scope']
@@ -34,6 +35,7 @@ export default function Orders({ admin = false }) {
   const [revision, setRevision] = useState(0)
   const [payingId, setPayingId] = useState(null)
   const [history, setHistory] = useState({})
+  const [aftersales, setAftersales] = useState({ reviewed: new Set(), returns: {} })
   const lock = useRef(false)
   const endpoint = admin ? '/admin/orders' : '/orders'
   const money = value => new Intl.NumberFormat(vi ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(value)
@@ -54,6 +56,17 @@ export default function Orders({ admin = false }) {
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [endpoint, query, user?.id, failure, revision])
+
+  // Reviews and returns only apply to delivered orders, so skip the lookup when none is shown.
+  const hasDelivered = !admin && result.orders.some(order => order.status === 'delivered')
+  useEffect(() => {
+    if (!hasDelivered) return
+    const controller = new AbortController()
+    shopApi.request('/orders/aftersales', { auth: true, signal: controller.signal })
+      .then(data => { if (!controller.signal.aborted) setAftersales({ reviewed: new Set((data?.reviewed || []).map(r => `${r.order_id}:${r.product_id}`)), returns: data?.returns || {} }) })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [hasDelivered, user?.id, revision])
 
   function apply(e) {
     e.preventDefault()
@@ -159,6 +172,7 @@ export default function Orders({ admin = false }) {
         {admin && <button disabled={busy || loading} className="button" onClick={() => markTest(order)}>{order.is_test ? (vi ? 'Chuyển thành đơn thật' : 'Mark as real order') : (vi ? 'Đánh dấu đơn test' : 'Mark as test order')}</button>}
         {admin && <button disabled={busy} className="button" onClick={() => toggleHistory(order)}>{history[order.id] ? (vi ? 'Ẩn lịch sử' : 'Hide history') : (vi ? 'Lịch sử' : 'History')}</button>}
       </div>
+      {!admin && order.status === 'delivered' && <OrderAftersales order={order} reviewed={aftersales.reviewed} returnRequest={aftersales.returns[order.id]} onChanged={() => setRevision(x => x + 1)} />}
       {history[order.id] && <ol className="mt-4 space-y-1 border-t border-line pt-4 text-xs">{history[order.id].map(event => <li key={event.id}>{new Date(event.created_at).toLocaleString(vi ? 'vi-VN' : 'en-US', { timeZone: 'Asia/Ho_Chi_Minh' })} · {eventWords[lang][event.kind] || event.kind}{event.to_status && `: ${words[lang][event.from_status] || '—'} → ${words[lang][event.to_status]}`} · {roleWords[lang][event.actor_role] || event.actor_role}</li>)}{!history[order.id].length && <li>{vi ? 'Đơn cũ chưa có lịch sử.' : 'No history recorded for this older order.'}</li>}</ol>}
     </article>)}</div>
     {!error && <nav aria-label={vi ? 'Phân trang đơn hàng' : 'Order pagination'} className="mt-8 flex items-center justify-center gap-5"><button disabled={loading || busy || result.page <= 1} className="button" onClick={() => page(result.page - 1)}>{vi ? 'Trang trước' : 'Previous page'}</button><span>{result.page}/{result.pages}</span><button disabled={loading || busy || result.page >= result.pages} className="button" onClick={() => page(result.page + 1)}>{vi ? 'Trang sau' : 'Next page'}</button></nav>}

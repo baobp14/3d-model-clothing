@@ -11,6 +11,16 @@ import ProductDescription from '../components/ProductDescription'
 import { AccordionItem } from '../components/ui/Accordion'
 import { Skeleton } from '../components/ui/Skeleton'
 import EmptyState from '../components/ui/EmptyState'
+import ProductReviews from '../components/ProductReviews'
+
+// The 3D try-on app (Next.js) loads garments by their dataset folder, which is also the image folder.
+const TRYON_URL = import.meta.env.VITE_TRYON_URL || 'http://localhost:3011'
+const tryOnSlot = { 'm-tshirts': 'top', 'm-shirts': 'top', 'm-trousers': 'bottom', 'w-skirts': 'bottom' }
+export function tryOnLink(category, image) {
+  const slot = tryOnSlot[category]
+  const folder = /\/img\/clothing\/([^/]+)\//.exec(image || '')?.[1]
+  return slot && folder ? `${TRYON_URL}/garment-test?${slot}=${encodeURIComponent(folder)}` : null
+}
 
 export const departmentPath = d => ({ men: '/men/ready-to-wear', women: '/women/ready-to-wear', bags: '/bags', watches: '/watches' }[d] || '/')
 
@@ -55,6 +65,7 @@ function Detail({ product, colors }) {
   useEffect(() => { if (selectedStock > 0) setQuantity(current => Math.min(current, selectedStock, 99)) }, [selectedStock])
   const gallery = product.colorImages?.[color] || []
   const image = gallery[imageIndex] || product.images[product.colors.indexOf(color)] || product.images[0]
+  const tryOn = tryOnLink(product.category, gallery[0] || image)
   const colorName = c => colors.find(x => x.id === c)?.[lang] || product.colorNames?.[c]?.[lang] || c
   const shopper = canShop(user, authLoading, recovery)
   const needsSize = product.sizes.length > 0 && !size
@@ -165,6 +176,7 @@ function Detail({ product, colors }) {
             </div>
           </div>
           <p role="status" className={`text-body-sm ${message ? 'mt-4' : ''} ${added ? 'text-success' : ''}`}>{message}</p>
+          {tryOn && <a href={tryOn} target="_blank" rel="noopener" className="button mt-3 w-full">{vi ? 'Mặc thử 3D' : 'Try on in 3D'}</a>}
           {added && <Link to="/cart" className="button mt-3 w-full">{vi ? 'Xem giỏ hàng' : 'View bag'}</Link>}
           {pending && <p className="mt-4 border border-warning/30 bg-warning-soft px-4 py-3 text-body-sm text-warning"><Link to="/checkout" className="underline">{vi ? 'Có đơn đang chờ xác nhận. Kiểm tra lại đơn trước khi thêm sản phẩm.' : 'An order is awaiting confirmation. Check it before adding products.'}</Link></p>}
 
@@ -175,5 +187,6 @@ function Detail({ product, colors }) {
         </div>
       </form>
     </div>
+    <ProductReviews productId={product.id} />
   </main>
 }

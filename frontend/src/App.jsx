@@ -27,6 +27,7 @@ const Overview = lazy(() => import('./pages/Overview'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Promotions = lazy(() => import('./pages/Promotions'))
 const StockAlerts = lazy(() => import('./pages/StockAlerts'))
+const Returns = lazy(() => import('./pages/Returns'))
 const Terms = lazy(() => import('./pages/Legal').then(module => ({ default: module.Terms })))
 const Privacy = lazy(() => import('./pages/Legal').then(module => ({ default: module.Privacy })))
 
@@ -75,6 +76,7 @@ function AppContent() {
         <Route path="pricing/products" element={<Inventory pricing />} />
         <Route path="pricing/promotions" element={<Promotions />} />
         <Route path="orders" element={<Orders admin />} />
+        <Route path="returns" element={<Returns />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

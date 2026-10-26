@@ -195,3 +195,20 @@ class RefundComplete(Input):
 class ArchiveInput(Input):
     archived: StrictBool
     reason: Annotated[str, StringConstraints(strict=True, max_length=300)] = ''
+
+
+class ReviewCreate(Input):
+    order_id: UUID
+    rating: Annotated[int, Field(strict=True, ge=1, le=5)]
+    comment: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=1000)] = ''
+
+
+class ReturnCreate(Input):
+    reason: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=5, max_length=1000)]
+
+
+class ReturnDecision(Input):
+    action: Literal['approve', 'reject', 'receive']
+    expected_status: Literal['pending', 'approved']
+    restock: StrictBool = False
+    note: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=500)] = ''

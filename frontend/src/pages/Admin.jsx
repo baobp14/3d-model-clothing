@@ -13,6 +13,7 @@ const sections = [
     { to: '/admin/pricing/promotions', label: 'admin.promotions' },
   ] },
   { to: '/admin/orders', icon: 'receipt', label: 'admin.orders' },
+  { to: '/admin/returns', icon: 'refresh', label: 'admin.returns' },
 ]
 
 const linkClass = ({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-colors ${isActive ? 'bg-[#eef0ff] text-[#303a9f]' : 'text-[#505b72] hover:bg-[#f5f6fa] hover:text-[#252d78]'}`

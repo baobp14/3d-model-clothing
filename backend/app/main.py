@@ -20,6 +20,8 @@ from .errors import fail
 from .models import Category, Color, Order, Product, Promotion, PromotionRule, QrPayment, WishlistItem, VariantInventory, OrderPayment, as_dict, active_products, ArchivedProduct
 from .schemas import AddressMutation, ArchiveInput, OrderCreate, OrderStatus, ProductCreate, ProductUpdate, PromotionInput, WishlistInput, VariantConfigure, PaymentReceive, RefundComplete
 from .search import search_products
+from .aftersales import add_review, create_return, decide_return, list_returns, my_aftersales, product_reviews
+from .schemas import ReturnCreate, ReturnDecision, ReviewCreate
 from .services import add_product, edit_product, load_book, mutate_book, place_order, change_order_status, order_dict, lock_customer, product_dict, configure_variants, receive_payment
 from .services import check_promotion, complete_refund, order_events, promotion_dict, set_archived
 from .payments import ensure_qr, order_for_reference, sync_payment
@@ -424,6 +426,35 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
             db.flush()
             result = promotion_dict(db, row)
         return result
+
+    @app.get('/api/products/{product_id}/reviews')
+    def reviews(product_id: int, page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=50), db: Session = Depends(get_db)):
+        return product_reviews(db, product_id, page, limit)
+
+    @app.post('/api/products/{product_id}/reviews', status_code=201)
+    def review(product_id: int, values: ReviewCreate, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        with db.begin():
+            return add_review(db, user, product_id, values)
+
+    @app.get('/api/orders/aftersales')
+    def aftersales(user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        return my_aftersales(db, user)
+
+    @app.post('/api/orders/{order_id}/returns', status_code=201)
+    def request_return(order_id: UUID, values: ReturnCreate, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        with db.begin():
+            return create_return(db, user, order_id, values)
+
+    @app.get('/api/admin/returns')
+    def admin_returns(status: Literal['pending', 'approved', 'rejected', 'received'] | None = None,
+                      page: int = Query(1, ge=1), limit: int = Query(20, ge=1, le=100),
+                      user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return list_returns(db, status, page, limit)
+
+    @app.patch('/api/admin/returns/{return_id}')
+    def decide(return_id: UUID, values: ReturnDecision, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        with db.begin():
+            return decide_return(db, user, return_id, values)
 
     return app
 

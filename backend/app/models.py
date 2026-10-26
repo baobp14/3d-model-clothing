@@ -214,5 +214,35 @@ class PromotionRule(Base):
     min_subtotal: Mapped[int] = mapped_column(BigInteger, default=0)
 
 
+class Review(Base):
+    """One rating per product per delivered order of the customer who bought it."""
+    __tablename__ = 'shop_reviews'
+    __table_args__ = (UniqueConstraint('order_id', 'product_id'), CheckConstraint('rating BETWEEN 1 AND 5'))
+    id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
+    product_id: Mapped[int] = mapped_column(ForeignKey('products.id'), index=True)
+    order_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey('shop_orders.id'))
+    user_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), index=True)
+    rating: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str] = mapped_column(Text, default='')
+    author: Mapped[str] = mapped_column(Text, default='')
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class ReturnRequest(Base):
+    """Return of a delivered order: pending -> approved | rejected, approved -> received.
+    Stock comes back only when an admin receives the goods and marks them sellable."""
+    __tablename__ = 'shop_return_requests'
+    __table_args__ = (CheckConstraint("status IN ('pending', 'approved', 'rejected', 'received')"),)
+    id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
+    order_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey('shop_orders.id'), unique=True)
+    user_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), index=True)
+    reason: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, default='pending')
+    restocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    admin_note: Mapped[str] = mapped_column(Text, default='')
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 def as_dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}
