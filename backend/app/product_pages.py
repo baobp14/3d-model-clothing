@@ -6,6 +6,15 @@ from sqlalchemy import Text, case, exists, func, literal, or_, select
 from .models import ArchivedProduct, Category, Color, Product, VariantInventory, WishlistItem, as_dict, active_products
 from .search import normalize
 
+# T-shirts and shirts in the clothing dataset are unisex: list them under both men and women.
+UNISEX_CATEGORIES = ('m-tshirts', 'm-shirts')
+
+
+def in_department(department):
+    if department in ('men', 'women'):
+        return or_(Product.department == department, Product.category.in_(UNISEX_CATEGORIES))
+    return Product.department == department
+
 TRANSLATE_CHARACTERS = ''.join(chr(i) for i in range(0x00c0, 0x2000)
                               if len(normalize(chr(i))) == 1 and normalize(chr(i)) != chr(i)
                               and unicodedata.category(chr(i)).startswith('L'))
@@ -35,7 +44,7 @@ def product_page(db, page=1, limit=20, q='', department=None, categories='', col
     if owner:
         statement = statement.join(WishlistItem, WishlistItem.product_id == Product.id).where(WishlistItem.user_id == owner)
     if department:
-        statement = statement.where(Product.department == department)
+        statement = statement.where(in_department(department))
     for raw, column in ((categories, Product.category),):
         selected = [value for value in raw.split(',') if value]
         if selected:
@@ -47,7 +56,7 @@ def product_page(db, page=1, limit=20, q='', department=None, categories='', col
     if stock:
         statement = statement.where(Product.stock == 0 if stock == 'out' else
                                     (Product.stock.between(1, 20) if stock == 'low' else Product.stock <= 20 if stock == 'low_or_out' else Product.stock > 20))
-    department_names = case((Product.department == 'men', 'nam men'), (Product.department == 'women', 'nu women'),
+    department_names = case((Product.category.in_(UNISEX_CATEGORIES), 'nam nu men women unisex'), (Product.department == 'men', 'nam men'), (Product.department == 'women', 'nu women'),
                             (Product.department == 'bags', 'tui phu kien bags accessories'), else_='dong ho watches')
     haystack = normalized(db, Product.id.cast(Text) + literal(' ') + Product.name_vi + literal(' ') + Product.name_en
                           + literal(' ') + Category.name_vi + literal(' ') + Category.name_en + literal(' ') + department_names)
@@ -67,13 +76,13 @@ def product_page(db, page=1, limit=20, q='', department=None, categories='', col
     if db.bind.dialect.name == 'postgresql':
         size_query = select(func.unnest(Product.sizes).label('size')).where(active_products()).distinct()
         if department:
-            size_query = size_query.where(Product.department == department)
+            size_query = size_query.where(in_department(department))
         available_sizes = list(db.scalars(size_query))
     else:
         options = func.json_each(Product.sizes).table_valued('key', 'value').alias()
         size_query = select(options.c.value).select_from(Product).join(options, literal(True)).where(active_products()).distinct()
         if department:
-            size_query = size_query.where(Product.department == department)
+            size_query = size_query.where(in_department(department))
         available_sizes = list(db.scalars(size_query))
     # Storefront filters list only colors that active products in this department use;
     # `colors` stays the full palette for existing consumers.
@@ -83,10 +92,11 @@ def product_page(db, page=1, limit=20, q='', department=None, categories='', col
         color_options = func.json_each(Product.colors).table_valued('key', 'value').alias()
         color_query = select(color_options.c.value).select_from(Product).join(color_options, literal(True)).where(active_products()).distinct()
     if department:
-        color_query = color_query.where(Product.department == department)
+        color_query = color_query.where(in_department(department))
     used_colors = set(db.scalars(color_query))
     return {'products': [{**as_dict(p), 'variants': inventory[p.id].variants if p.id in inventory else None,
                           'stock_revision': inventory[p.id].revision if p.id in inventory else None} for p in rows],
             'total': total, 'stock_units': stock_units, 'page': page, 'limit': limit, 'pages': max(1, (total + limit - 1) // limit),
-            'categories': [as_dict(c) for c in category_rows if not department or c.department == department],
+            'categories': [as_dict(c) for c in category_rows if not department or c.department == department
+                           or (department in ('men', 'women') and c.id in UNISEX_CATEGORIES)],
             'colors': [as_dict(c) for c in color_rows], 'color_options': sorted(used_colors), 'sizes': sorted(available_sizes)}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { recommend } from '@/lib/outfit/recommend'
 import { shopApi } from '../lib/api'
 import { useLang } from '../i18n'
-import { folderOf, outfitLink, tryOnSlot } from '../tryon/links'
+import { folderOf, outfitLink, tryOnSlot, UNISEX_CATEGORIES } from '../tryon/links'
 import Price from './Price'
 
 // Outfit tags (colours, pattern, style, formality, season) were generated once by AI
@@ -40,7 +40,8 @@ export default function OutfitSuggestions({ product, color }) {
       const item = catalog.find(entry => entry.id === folder)
       if (!item) { setState(null); return }
       // Suggest from the same department (men's shirt → men's trousers), unless it has too few.
-      const sameDepartment = catalog.filter(entry => entry.id === item.id || shop.get(entry.id).product.department === product.department)
+      const fits = other => other.department === product.department || UNISEX_CATEGORIES.includes(other.category) || UNISEX_CATEGORIES.includes(product.category)
+      const sameDepartment = catalog.filter(entry => entry.id === item.id || fits(shop.get(entry.id).product))
       const pool = sameDepartment.filter(entry => entry.category !== item.category).length >= 2 ? sameDepartment : catalog
       const seen = new Set()
       const matches = recommend(item, pool, { limit: 20 })

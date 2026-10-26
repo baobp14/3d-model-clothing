@@ -124,7 +124,8 @@ def test_product_pages_filter_before_sql_pagination_and_keep_global_totals(shop)
     assert 'M' in filtered['sizes'] and 'L' in filtered['sizes']
     # Storefront filter options: only colors used by active products in the department.
     assert client.get('/api/product-page', params={'department': 'men'}).json()['color_options'] == ['black']
-    assert client.get('/api/product-page', params={'department': 'women'}).json()['color_options'] == []
+    # The black T-shirt is unisex, so its colour is offered under women too.
+    assert client.get('/api/product-page', params={'department': 'women'}).json()['color_options'] == ['black']
     assert client.get('/api/product-page', params={'sizes': 'unknown'}).json()['total'] == 0
     assert client.get('/api/product-page', params={'q': '%'}).json()['total'] == 0
     assert client.get('/api/product-page', params={'sort': 'priceDesc', 'limit': 1}).json()['products'][0]['id'] == 2

@@ -212,7 +212,8 @@ const SLOT_KINDS: Record<Slot, GarmentKind[]> = {
   // Đầm sits in the top slot: its bodice is the croptop mesh and it brings
   // its own skirt (dressskirt) into the bottom slot -- see resolveSlot.
   // Áo len / áo khoác: mesh vẫn build được nhưng tạm ẩn khỏi trang thử.
-  top: ['tshirt', 'shirt', 'longshirt'],
+  // Shirts are hidden until their collar and placket mesh look right.
+  top: ['tshirt'],
   bottom: ['pants', 'shorts', 'skirt'],
 };
 const SLOT_LABEL: Record<Slot, string> = { top: 'Áo', bottom: 'Quần' };
