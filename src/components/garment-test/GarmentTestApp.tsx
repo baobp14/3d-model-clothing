@@ -1284,7 +1284,12 @@ export default function GarmentTestApp() {
                       onClick={() => updateSlot(activeSlot, { size: s })}
                     >
                       {activeChart
-                        ? `${s} (${activeChart.sizes[s as SizeLetter].label}) · ${Math.round(fitCircCm(activeChart, s as SizeLetter) ?? 0)}cm`
+                        ? (() => {
+                            const size = activeChart.sizes[s as SizeLetter];
+                            if (!size) return `${s} · chưa đo`;
+                            const label = size.label && size.label !== s ? ` (${size.label})` : '';
+                            return `${s}${label} · ${Math.round(fitCircCm(activeChart, s as SizeLetter) ?? 0)}cm`;
+                          })()
                         : `${s} · ${Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0)}cm`}
                     </Button>
                   ))}
@@ -1294,7 +1299,8 @@ export default function GarmentTestApp() {
                     <>
                       Bảng size thật: <b>{activeChart.brand}</b> · {activeChart.style}
                       {activeChart.waistStretchCm ? ` (lưng thun, tính thêm ${activeChart.waistStretchCm}cm co giãn)` : ''}.{' '}
-                      <a className="underline" href={activeChart.source} target="_blank" rel="noopener noreferrer">Nguồn</a>
+                      {activeChart.source && <a className="underline" href={activeChart.source} target="_blank" rel="noopener noreferrer">Nguồn</a>}
+                      {activeChart.note && <span className="block">{activeChart.note}</span>}
                       {activeChart.estimate && <span className="block text-amber-700">{activeChart.estimate}</span>}
                     </>
                   ) : (

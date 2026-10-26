@@ -216,3 +216,32 @@ class ReturnDecision(Input):
 
 class UserLock(Input):
     locked: StrictBool
+
+
+Measure = Annotated[float, Field(gt=0, lt=300)]
+
+
+class SizeMeasures(Input):
+    label: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=20)] = ''
+    chestCircCm: Measure | None = None
+    bodyLengthCm: Measure | None = None
+    waistCircCm: Measure | None = None
+    hipCircCm: Measure | None = None
+    inseamCm: Measure | None = None
+
+
+class SizeChartInput(Input):
+    source: Literal['brand', 'measured']
+    brand_chart: Annotated[str, StringConstraints(strict=True, pattern=r'^[a-z0-9_]{0,60}$')] = ''
+    kind: Literal['tshirt', 'pants', 'shorts', 'skirt']
+    sizes: dict[Literal['S', 'M', 'L', 'XL'], SizeMeasures]
+    note: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=300)] = ''
+
+    @model_validator(mode='after')
+    def validate_chart(self):
+        if self.source == 'brand' and not self.brand_chart:
+            raise ValueError('NB_INVALID_SIZE_CHART')
+        needed = {'tshirt': ('chestCircCm', 'bodyLengthCm'), 'pants': ('waistCircCm',), 'shorts': ('waistCircCm',), 'skirt': ('waistCircCm',)}[self.kind]
+        if not self.sizes or any(getattr(m, key) is None for m in self.sizes.values() for key in needed):
+            raise ValueError('NB_INVALID_SIZE_CHART')
+        return self

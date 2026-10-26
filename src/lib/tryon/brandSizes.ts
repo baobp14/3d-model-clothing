@@ -35,7 +35,10 @@ export interface BrandChart {
    * so the garment is taken to be this much bigger (mid of the 'vừa' ease band).
    */
   bodyChartEaseCm?: number;
-  sizes: Record<SizeLetter, BrandSize>;
+  /** The shop measured the garments itself (no brand chart). */
+  measured?: boolean;
+  note?: string;
+  sizes: Partial<Record<SizeLetter, BrandSize>> & Record<'M', BrandSize>;
 }
 
 const IN = 2.54;
@@ -101,9 +104,39 @@ export const BRAND_CHARTS: BrandChart[] = [
 
 const byId = new Map(BRAND_CHARTS.map((c) => [c.id, c]));
 
-/** The brand chart for a dataset print id, or null when the brand publishes none we have. */
+/** A chart an admin saved for a product (GET /api/products/:id/size-chart). */
+export interface SavedChart {
+  product_id: number;
+  source: 'brand' | 'measured';
+  brand_chart: string;
+  kind: BrandChart['kind'];
+  sizes: Partial<Record<SizeLetter, BrandSize>>;
+  note: string;
+  folders?: string[];
+}
+
+export function fromSaved(saved: SavedChart | null | undefined): BrandChart | null {
+  if (!saved) return null;
+  if (saved.source === 'brand') return byId.get(saved.brand_chart) ?? null;
+  const sizes = Object.fromEntries(Object.entries(saved.sizes).map(([letter, size]) => [letter, { ...size, label: size?.label || letter }]));
+  return { id: `measured_${saved.product_id}`, brand: 'N&B', style: 'Số đo shop tự đo', kind: saved.kind, source: '', measured: true, note: saved.note, sizes } as BrandChart;
+}
+
+// Charts saved in the shop take precedence over the built-in brand lookup.
+const savedByFolder = new Map<string, BrandChart>();
+export function registerSavedCharts(list: SavedChart[]): void {
+  savedByFolder.clear();
+  for (const saved of list) {
+    const chart = fromSaved(saved);
+    if (chart) for (const folder of saved.folders ?? []) savedByFolder.set(folder, chart);
+  }
+}
+
+/** The size chart for a dataset print id: saved by the shop, else the brand's, else null. */
 export function chartForPrint(printId: string | null | undefined): BrandChart | null {
   if (!printId) return null;
+  const saved = savedByFolder.get(printId);
+  if (saved) return saved;
   if (printId.startsWith('jtd_')) {
     return byId.get(printId.includes('premium') ? 'jtd_premium' : printId.includes('heavy') ? 'jtd_heavy' : 'jtd_standard') ?? null;
   }
@@ -115,6 +148,7 @@ export function chartForPrint(printId: string | null | undefined): BrandChart | 
 /** Chest for tops, waist (plus any elastic stretch) for bottoms: what the fit verdict compares with the body. */
 export function fitCircCm(chart: BrandChart, size: SizeLetter): number | undefined {
   const s = chart.sizes[size];
+  if (!s) return undefined;
   const extra = (chart.waistStretchCm ?? 0) + (chart.bodyChartEaseCm ?? 0);
   return chart.kind === 'tshirt' ? s.chestCircCm : s.waistCircCm !== undefined ? s.waistCircCm + extra : undefined;
 }
@@ -125,6 +159,7 @@ export function fitCircCm(chart: BrandChart, size: SizeLetter): number | undefin
  */
 export function meshScale(chart: BrandChart, size: SizeLetter, base: Record<string, number>): { sx: number; sy: number } {
   const s = chart.sizes[size];
+  if (!s) return { sx: 1, sy: 1 };
   const ratio = (target?: number, mesh?: number) => (target && mesh ? target / mesh : 1);
   if (chart.kind === 'tshirt') return { sx: ratio(s.chestCircCm, base.chestCircCm), sy: ratio(s.bodyLengthCm, base.bodyLengthCm) };
   if (chart.kind === 'skirt') return { sx: ratio(s.hipCircCm && s.hipCircCm + (chart.bodyChartEaseCm ?? 0), base.hipCircCm), sy: 1 };

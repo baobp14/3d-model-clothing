@@ -32,6 +32,8 @@ from .product_pages import product_page
 from .admin_tools import mark_demo, stock_history, stock_alerts, notifications, read_notifications, export_data
 from .schemas import DemoMark, ReadNotifications, UserLock
 from .users import list_users, set_locked
+from .sizecharts import all_charts, delete_chart, get_chart, save_chart
+from .schemas import SizeChartInput
 from datetime import date, timezone
 from typing import Literal
 from uuid import UUID
@@ -465,6 +467,22 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
     @app.patch('/api/admin/users/{user_id}')
     def admin_lock_user(user_id: UUID, values: UserLock, user: User = Depends(require_admin), db: Session = Depends(get_db)):
         return set_locked(db, app.state.settings, app.state.auth_http, app.state.user_cache, user, str(user_id), values.locked)
+
+    @app.get('/api/size-charts')
+    def size_charts(db: Session = Depends(get_db)):
+        return all_charts(db)
+
+    @app.get('/api/products/{product_id}/size-chart')
+    def product_size_chart(product_id: int, db: Session = Depends(get_db)):
+        return get_chart(db, product_id)
+
+    @app.put('/api/admin/products/{product_id}/size-chart')
+    def save_size_chart(product_id: int, values: SizeChartInput, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return save_chart(db, product_id, values)
+
+    @app.delete('/api/admin/products/{product_id}/size-chart')
+    def remove_size_chart(product_id: int, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return delete_chart(db, product_id)
 
     return app
 

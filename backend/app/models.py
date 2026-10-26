@@ -254,5 +254,20 @@ class ReturnRequest(Base):
     updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
+class ProductSizeChart(Base):
+    """Garment measurements per size for one product: copied from a brand's published
+    chart, or measured by the shop when the brand publishes none."""
+    __tablename__ = 'shop_product_size_charts'
+    __table_args__ = (CheckConstraint("source IN ('brand', 'measured')"),
+                      CheckConstraint("kind IN ('tshirt', 'pants', 'shorts', 'skirt')"))
+    product_id: Mapped[int] = mapped_column(BigInteger().with_variant(Integer, 'sqlite'), ForeignKey('products.id'), primary_key=True)
+    source: Mapped[str] = mapped_column(Text)
+    brand_chart: Mapped[str] = mapped_column(Text, default='')
+    kind: Mapped[str] = mapped_column(Text)
+    sizes: Mapped[dict] = mapped_column(JSON)
+    note: Mapped[str] = mapped_column(Text, default='')
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
+
+
 def as_dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}

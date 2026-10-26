@@ -1,5 +1,6 @@
 import ProductDescription from '../components/ProductDescription'
 import VariantStockEditor from '../components/VariantStockEditor'
+import SizeChartEditor from '../components/SizeChartEditor'
 import { getProductDescription } from '../data/productDescriptions'
 ﻿import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
@@ -121,6 +122,7 @@ export default function InventoryDetail() {
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]"><section className="rounded-2xl border border-[#dfe3eb] bg-white p-5"><h2 className="mb-4 font-semibold">{vi ? 'Ảnh sản phẩm' : 'Product images'}</h2>{product.images.length ? <div className="grid grid-cols-2 gap-3">{product.images.map((image, i) => <img key={i} src={image} alt={`${product[lang]} — ${i + 1}`} className={`w-full rounded-lg bg-alabaster object-contain ${i === 0 ? 'col-span-2 h-96' : 'h-40'}`} />)}</div> : <p className="text-slate">{vi ? 'Chưa có ảnh.' : 'No images.'}</p>}</section>
       <section className="rounded-2xl border border-[#dfe3eb] bg-white p-5 sm:p-7"><h2 className="font-semibold">{vi ? 'Thông tin sản phẩm' : 'Product information'}</h2><dl className="mt-4 grid gap-x-8 sm:grid-cols-2">{values.map(([label, value]) => <div key={label} className="border-b border-[#e2e5ec] py-4"><dt className="text-xs text-slate">{label}</dt><dd className="mt-2 break-words text-sm font-medium">{value}</dd></div>)}</dl><h2 className="mt-6 font-semibold">{vi ? 'Mô tả' : 'Description'}</h2><ProductDescription product={product} productColors={colors} className="mt-3 !text-sm !leading-7" /></section></div>
       <VariantStockEditor product={product} colors={colors} onSave={setProduct} />
+      <div className="mt-6"><SizeChartEditor product={product} /></div>
       <StockHistory product={product} colors={colors} />
     </>}
     {editing && <Popup title={vi ? 'Chỉnh sửa sản phẩm' : 'Edit product'} busy={busy} close={() => setEditing(false)}><form onSubmit={save} className="space-y-4"><fieldset disabled={busy} className="space-y-4">
