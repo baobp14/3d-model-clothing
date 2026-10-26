@@ -492,7 +492,7 @@ export default function GarmentTestApp() {
   const [error, setError] = useState<string | null>(null);
 
   const [profileKey, setProfileKey] = useState<string>('B');
-  const [pose, setPose] = useState<PoseKey>('apose');
+  const [pose, setPose] = useState<PoseKey>('relaxed');
   const [customMode, setCustomMode] = useState(false);
   const [custom, setCustom] = useState<AvatarBodyInput>({ ...PROFILES.B });
   // Per-field: ticked = the user sets it, unticked = the app estimates it.
@@ -630,6 +630,9 @@ export default function GarmentTestApp() {
     if (outfitApplied.current || !loaded || !presets.length) return;
     outfitApplied.current = true;
     const q = new URLSearchParams(window.location.search);
+    // Opened for one garment (e.g. from a product page): show just that piece.
+    if (q.get('top') && !q.get('bottom')) setShowBottom(false);
+    if (q.get('bottom') && !q.get('top')) setShowTop(false);
     for (const slot of ['top', 'bottom'] as const) {
       const entry = presets.find((p) => p.id === q.get(slot));
       if (!entry) continue;
@@ -1017,6 +1020,14 @@ export default function GarmentTestApp() {
 
       <div className="flex min-h-0 flex-1">
         <aside className="w-64 shrink-0 space-y-4 overflow-y-auto border-r border-stone-200 bg-white p-4">
+          <section>
+            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">Xem</h2>
+            <div className="flex flex-wrap gap-1.5">
+              <Button active={showTop && showBottom} onClick={() => { setShowTop(true); setShowBottom(true); }}>Cả bộ</Button>
+              <Button active={showTop && !showBottom} onClick={() => { setShowTop(true); setShowBottom(false); }}>Chỉ áo</Button>
+              <Button active={!showTop && showBottom} onClick={() => { setShowTop(false); setShowBottom(true); }}>Chỉ quần / váy</Button>
+            </div>
+          </section>
           <section>
             <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
               Người mẫu
