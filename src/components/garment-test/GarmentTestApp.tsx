@@ -492,7 +492,7 @@ export default function GarmentTestApp() {
   const [error, setError] = useState<string | null>(null);
 
   const [profileKey, setProfileKey] = useState<string>('B');
-  const [pose, setPose] = useState<PoseKey>('relaxed');
+  const [pose, setPose] = useState<PoseKey>('apose');
   const [customMode, setCustomMode] = useState(false);
   const [custom, setCustom] = useState<AvatarBodyInput>({ ...PROFILES.B });
   // Per-field: ticked = the user sets it, unticked = the app estimates it.
