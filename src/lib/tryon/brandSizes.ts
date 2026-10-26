@@ -65,6 +65,15 @@ export const BRAND_CHARTS: BrandChart[] = [
   asBasic('ascolour_5028', 'Staple Stripe Tee 5028', 'https://ascolour.com/mens-staple-stripe-tee-5028/'),
   tee('ascolour_5052', 'AS Colour', 'Block Oversized Tee 5052', 'https://ascolour.com/block-oversized-tee-5052/', AS_LABELS,
     [22.75, 23.75, 24.75, 25.75].map(cm), [28.25, 29, 30, 30.75].map(cm)),
+  // Women's range (Wo's), same flat body width / length charts.
+  tee('ascolour_4001', 'AS Colour', "Wo's Maple Tee 4001", 'https://ascolour.com/wos-maple-tee-4001/', AS_LABELS,
+    [19, 20, 20.75, 21.75].map(cm), [25.5, 25.75, 26.25, 26.5].map(cm)),
+  tee('ascolour_4051', 'AS Colour', "Wo's Basic Tee 4051", 'https://ascolour.com/wos-basic-tee-4051/', AS_LABELS,
+    [19, 20, 20.75, 21.75].map(cm), [25, 25.5, 25.75, 26.25].map(cm)),
+  tee('ascolour_4030', 'AS Colour', "Wo's Box Tee 4030", 'https://ascolour.com/wo-s-box-tee-4030/', AS_LABELS,
+    [20, 21, 22, 23].map(cm), [23.25, 23.5, 24, 24.5].map(cm)),
+  tee('ascolour_4080', 'AS Colour', "Wo's Heavy Tee 4080", 'https://ascolour.com/wos-heavy-tee-4080/', AS_LABELS,
+    [19.75, 20.75, 21.75, 22.5].map(cm), [25, 25.5, 26, 26.5].map(cm)),
   tee('jtd_premium', 'Jump The Dark', 'Premium T-shirt 215gsm', JTD_SOURCE, JTD, [51, 55, 58, 61], [71, 75, 77, 79]),
   tee('jtd_heavy', 'Jump The Dark', 'Heavy T-shirt 245gsm', JTD_SOURCE, JTD, [50, 53, 58, 64], [71, 74, 76, 79]),
   tee('jtd_standard', 'Jump The Dark', 'Standard T-shirt 180gsm', JTD_SOURCE, JTD, [49, 53, 56, 59], [69, 73, 75, 77]),
@@ -76,6 +85,26 @@ export const BRAND_CHARTS: BrandChart[] = [
       M: { label: 'MED', waistCircCm: circ(14.75), inseamCm: cm(29) },
       L: { label: 'LRG', waistCircCm: circ(15.75), inseamCm: cm(29) },
       XL: { label: 'XLG', waistCircCm: circ(16.75), inseamCm: cm(29) },
+    },
+  },
+  {
+    id: 'ascolour_4932', brand: 'AS Colour', style: "Wo's Relax Track Pants 4932", kind: 'pants',
+    source: 'https://ascolour.com/wos-relax-track-pants-4932/', waistStretchCm: 14,
+    sizes: {
+      S: { label: 'SML', waistCircCm: circ(13.5), inseamCm: cm(29) },
+      M: { label: 'MED', waistCircCm: circ(14.5), inseamCm: cm(29) },
+      L: { label: 'LRG', waistCircCm: circ(15.5), inseamCm: cm(29) },
+      XL: { label: 'XLG', waistCircCm: circ(16.5), inseamCm: cm(29.25) },
+    },
+  },
+  {
+    id: 'ascolour_4933', brand: 'AS Colour', style: "Wo's Relax Track Shorts 4933", kind: 'shorts',
+    source: 'https://ascolour.com/wos-relax-track-shorts-4933/', waistStretchCm: 14,
+    sizes: {
+      S: { label: 'SML', waistCircCm: circ(13.75), inseamCm: cm(3.25) },
+      M: { label: 'MED', waistCircCm: circ(14.75), inseamCm: cm(3.25) },
+      L: { label: 'LRG', waistCircCm: circ(15.75), inseamCm: cm(3.25) },
+      XL: { label: 'XLG', waistCircCm: circ(16.75), inseamCm: cm(3.25) },
     },
   },
   {

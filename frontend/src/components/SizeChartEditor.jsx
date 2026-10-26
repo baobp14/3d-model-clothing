@@ -12,7 +12,7 @@ export const MEASURES = {
   shorts: [['waistCircCm', 'Vòng eo', 'Waist', true], ['inseamCm', 'Dài đáy trong', 'Inseam']],
   skirt: [['waistCircCm', 'Vòng eo', 'Waist', true], ['hipCircCm', 'Vòng hông', 'Hip']],
 }
-const kindFor = category => ({ 'm-trousers': 'pants', 'w-skirts': 'skirt' }[category] || 'tshirt')
+const kindFor = category => ({ 'm-trousers': 'pants', 'w-trousers': 'pants', 'w-skirts': 'skirt' }[category] || 'tshirt')
 const emptySizes = () => Object.fromEntries(LETTERS.map(letter => [letter, {}]))
 
 // Admin: pick one of the brand charts we have, or enter the shop's own flat measurements.

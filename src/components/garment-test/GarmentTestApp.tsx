@@ -633,6 +633,11 @@ export default function GarmentTestApp() {
     if (outfitApplied.current || !loaded || !presets.length) return;
     outfitApplied.current = true;
     const q = new URLSearchParams(window.location.search);
+    // Women's garments (AS Colour Wo's, Everlane skirts) start on a female body.
+    if ([q.get('top'), q.get('bottom')].some((id) => id && (id.includes('_wos_') || id.startsWith('everlane_')))) {
+      setCustomMode(false);
+      setProfileKey('F2');
+    }
     // Opened for one garment (e.g. from a product page): show just that piece.
     if (q.get('top') && !q.get('bottom')) setShowBottom(false);
     if (q.get('bottom') && !q.get('top')) {

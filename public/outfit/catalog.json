@@ -37,6 +37,526 @@
   "model_img": true
  },
  {
+  "id": "ascolour_4001_wos_maple_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#202020",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "slim",
+  "name_vi": "Áo thun nữ Maple ôm đen",
+  "product": "ascolour_4001_wos_maple_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4001_wos_maple_tee_pale_pink",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "pale pink",
+    "hex": "#e8bdb4",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "slim",
+  "name_vi": "Áo thun nữ Maple ôm (pale pink)",
+  "product": "ascolour_4001_wos_maple_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4001_wos_maple_tee_sage",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "sage",
+    "hex": "#63806c",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "slim",
+  "name_vi": "Áo thun nữ Maple ôm (sage)",
+  "product": "ascolour_4001_wos_maple_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4001_wos_maple_tee_white",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#efeff1",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "slim",
+  "name_vi": "Áo thun nữ Maple ôm (white)",
+  "product": "ascolour_4001_wos_maple_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4030_wos_box_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#202020",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun nữ form hộp Box đen",
+  "product": "ascolour_4030_wos_box_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4030_wos_box_tee_ecru",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "ecru",
+    "hex": "#ece8dc",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun nữ form hộp Box (ecru)",
+  "product": "ascolour_4030_wos_box_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4030_wos_box_tee_ink_blue",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "ink blue",
+    "hex": "#262430",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun nữ form hộp Box (ink blue)",
+  "product": "ascolour_4030_wos_box_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4051_wos_basic_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#212121",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun nữ Basic đen",
+  "product": "ascolour_4051_wos_basic_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4051_wos_basic_tee_tan",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "tan",
+    "hex": "#c9a980",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun nữ Basic (tan)",
+  "product": "ascolour_4051_wos_basic_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4051_wos_basic_tee_white",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#efeff1",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun nữ Basic (white)",
+  "product": "ascolour_4051_wos_basic_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4080_wos_heavy_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#161514",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "streetwear",
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "oversized",
+  "name_vi": "Áo thun nữ Heavy dáng rộng đen",
+  "product": "ascolour_4080_wos_heavy_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4080_wos_heavy_tee_butter",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "butter",
+    "hex": "#eee9d7",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "streetwear",
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "oversized",
+  "name_vi": "Áo thun nữ Heavy dáng rộng (butter)",
+  "product": "ascolour_4080_wos_heavy_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4080_wos_heavy_tee_white",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "white",
+    "hex": "#f0f0f2",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "streetwear",
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "oversized",
+  "name_vi": "Áo thun nữ Heavy dáng rộng (white)",
+  "product": "ascolour_4080_wos_heavy_tee_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4932_wos_relax_track_pants_black",
+  "category": "bottom",
+  "subtype": "pants",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#19191A",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "streetwear",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần nỉ nữ Relax đen",
+  "product": "ascolour_4932_wos_relax_track_pants_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4932_wos_relax_track_pants_bone",
+  "category": "bottom",
+  "subtype": "pants",
+  "colors": [
+   {
+    "name": "bone",
+    "hex": "#c5bbb5",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "streetwear",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần nỉ nữ Relax (bone)",
+  "product": "ascolour_4932_wos_relax_track_pants_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4932_wos_relax_track_pants_grey_marle",
+  "category": "bottom",
+  "subtype": "pants",
+  "colors": [
+   {
+    "name": "grey marle",
+    "hex": "#919191",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "streetwear",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần nỉ nữ Relax (grey marle)",
+  "product": "ascolour_4932_wos_relax_track_pants_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4932_wos_relax_track_pants_hazy_pink",
+  "category": "bottom",
+  "subtype": "pants",
+  "colors": [
+   {
+    "name": "hazy pink",
+    "hex": "#a58177",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "streetwear",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần nỉ nữ Relax (hazy pink)",
+  "product": "ascolour_4932_wos_relax_track_pants_black",
+  "model_img": false
+ },
+ {
+  "id": "ascolour_4933_wos_relax_track_shorts_bone",
+  "category": "bottom",
+  "subtype": "shorts",
+  "colors": [
+   {
+    "name": "bone",
+    "hex": "#DDD4CB",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần short nỉ nữ Relax kem",
+  "product": "ascolour_4933_wos_relax_track_shorts_bone",
+  "model_img": false
+ },
+ {
   "id": "ascolour_5027_classic_pocket_tee_black",
   "category": "top",
   "subtype": "tshirt",

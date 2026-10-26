@@ -1532,5 +1532,165 @@
   ],
   "fit": "regular",
   "name_vi": "Áo thun đen in hình bạch tuộc"
+ },
+ {
+  "id": "ascolour_4001_wos_maple_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#202020",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "slim",
+  "name_vi": "Áo thun nữ Maple ôm đen"
+ },
+ {
+  "id": "ascolour_4051_wos_basic_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#212121",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "feminine"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "regular",
+  "name_vi": "Áo thun nữ Basic đen"
+ },
+ {
+  "id": "ascolour_4030_wos_box_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#202020",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "minimal",
+   "streetwear"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Áo thun nữ form hộp Box đen"
+ },
+ {
+  "id": "ascolour_4080_wos_heavy_tee_black",
+  "category": "top",
+  "subtype": "tshirt",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#161514",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "streetwear",
+   "casual",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "fit": "oversized",
+  "name_vi": "Áo thun nữ Heavy dáng rộng đen"
+ },
+ {
+  "id": "ascolour_4932_wos_relax_track_pants_black",
+  "category": "bottom",
+  "subtype": "pants",
+  "colors": [
+   {
+    "name": "black",
+    "hex": "#19191A",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "streetwear",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "autumn",
+   "winter"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần nỉ nữ Relax đen"
+ },
+ {
+  "id": "ascolour_4933_wos_relax_track_shorts_bone",
+  "category": "bottom",
+  "subtype": "shorts",
+  "colors": [
+   {
+    "name": "bone",
+    "hex": "#DDD4CB",
+    "role": "base"
+   }
+  ],
+  "pattern": "solid",
+  "style": [
+   "casual",
+   "sporty",
+   "minimal"
+  ],
+  "formality": 2,
+  "season": [
+   "spring",
+   "summer"
+  ],
+  "fit": "relaxed",
+  "name_vi": "Quần short nỉ nữ Relax kem"
  }
 ]

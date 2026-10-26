@@ -22,7 +22,12 @@ from .models import ArchivedProduct, Category, Color, DatasetProduct, Product, S
 from .services import record_stock, color_gallery
 
 SIZES = ['S', 'M', 'XL']
-REPLACED = {'m-tshirts', 'm-shirts', 'm-trousers', 'w-skirts'}
+REPLACED = {'m-tshirts', 'm-shirts', 'm-trousers', 'w-skirts', 'w-tshirts', 'w-trousers'}
+# Categories the dataset needs; created on import when missing.
+CATEGORY_NAMES = {
+    'w-tshirts': ('Áo thun nữ', "Women's T-shirts", 'women'),
+    'w-trousers': ('Quần nữ', "Women's trousers & shorts", 'women'),
+}
 STYLE_NAMES = {
     '5027': ('Áo thun túi ngực Classic', 'Classic Pocket T-shirt', 'm-tshirts'),
     '5028': ('Áo thun sọc Staple', 'Staple Stripe T-shirt', 'm-tshirts'),
@@ -35,6 +40,12 @@ STYLE_NAMES = {
     '5422': ('Áo sơ mi Work', 'Work Shirt', 'm-shirts'),
     '5903': ('Quần short Beach', 'Beach Shorts', 'm-trousers'),
     '5932': ('Quần dài Relax', 'Relax Track Pants', 'm-trousers'),
+    '4001': ('Áo thun nữ Maple', "Women's Maple T-shirt", 'w-tshirts'),
+    '4051': ('Áo thun nữ Basic', "Women's Basic T-shirt", 'w-tshirts'),
+    '4030': ('Áo thun nữ form hộp Box', "Women's Box T-shirt", 'w-tshirts'),
+    '4080': ('Áo thun nữ Heavy dáng rộng', "Women's Heavy T-shirt", 'w-tshirts'),
+    '4932': ('Quần nỉ nữ Relax', "Women's Relax Track Pants", 'w-trousers'),
+    '4933': ('Quần short nỉ nữ Relax', "Women's Relax Track Shorts", 'w-trousers'),
 }
 # Dataset color labels remain distinct; no approximate mapping to old stock colors.
 COLOR_NAMES = {
@@ -56,6 +67,8 @@ COLOR_NAMES = {
     'warm_trench': ('Be ấm', '#b9a383'), 'dark_indigo': ('Chàm đậm', '#273850'),
     'deep_atlantic': ('Xanh Atlantic đậm', '#284454'), 'chambray': ('Xanh chambray', '#88a0b3'),
     'sand': ('Cát', '#cdbd9d'), 'original': ('Màu gốc', '#777777'),
+    'sage': ('Xanh sage', '#63806c'), 'pale_pink': ('Hồng phấn', '#e8bdb4'),
+    'tan': ('Nâu tan', '#c9a980'), 'hazy_pink': ('Hồng khói', '#a58177'),
 }
 
 
@@ -81,7 +94,9 @@ def read_dataset(archive):
                 vi, en, category = STYLE_NAMES[code]
                 color = folder.removeprefix(key + '_')
                 # Remove the garment style prefix to isolate the exact fabric color.
-                prefixes = {'5027': 'classic_pocket_tee_', '5028': 'staple_stripe_tee_', '5051': 'basic_tee_', '5052': 'block_oversized_tee_', '5401': 'oxford_shirt_', '5417': 'check_shirt_', '5419': 'cord_shirt_', '5421': 'work_ss_shirt_', '5422': 'work_shirt_', '5903': 'beach_shorts_', '5932': 'relax_track_pants_'}
+                prefixes = {'5027': 'classic_pocket_tee_', '5028': 'staple_stripe_tee_', '5051': 'basic_tee_', '5052': 'block_oversized_tee_', '5401': 'oxford_shirt_', '5417': 'check_shirt_', '5419': 'cord_shirt_', '5421': 'work_ss_shirt_', '5422': 'work_shirt_', '5903': 'beach_shorts_', '5932': 'relax_track_pants_',
+                            '4001': 'wos_maple_tee_', '4051': 'wos_basic_tee_', '4030': 'wos_box_tee_', '4080': 'wos_heavy_tee_',
+                            '4932': 'wos_relax_track_pants_', '4933': 'wos_relax_track_shorts_'}
                 color = color.removeprefix(prefixes[code])
                 vi, en = vi + ' AS Colour', en + ' AS Colour'
             elif folder.startswith('everlane_'):
@@ -131,6 +146,8 @@ PRICE_BANDS = {
     'm-shirts': (349_000, 30_000, 6),
     'm-trousers': (249_000, 50_000, 5),
     'w-skirts': (299_000, 30_000, 6),
+    'w-tshirts': (219_000, 30_000, 4),
+    'w-trousers': (279_000, 40_000, 3),
 }
 
 
@@ -169,6 +186,10 @@ def apply_catalog(db, rows):
     mappings = {row.dataset_key: row for row in db.scalars(select(DatasetProduct))}
     next_id = max(3000, max((p.id for p in existing), default=0) + 1)
     imported_ids, added = set(), 0
+    for category, (vi, en, department) in CATEGORY_NAMES.items():
+        if db.get(Category, category) is None:
+            db.add(Category(id=category, name_vi=vi, name_en=en, department=department))
+    db.flush()
     for row in rows:
         if row['key'] in mappings:
             imported_ids.add(mappings[row['key']].product_id)
