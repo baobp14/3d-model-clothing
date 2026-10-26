@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // The 3D try-on page reuses the Next.js app's code (../src) and assets (../public).
 const appRoot = resolve(__dirname, '..')
-const tryOnAssets = ['models', 'prints']
+const tryOnAssets = ['models', 'prints', 'outfit']
 const types = { '.json': 'application/json', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg' }
 
 function tryOnAssetsPlugin() {

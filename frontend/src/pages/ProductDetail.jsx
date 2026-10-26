@@ -12,14 +12,8 @@ import { AccordionItem } from '../components/ui/Accordion'
 import { Skeleton } from '../components/ui/Skeleton'
 import EmptyState from '../components/ui/EmptyState'
 import ProductReviews from '../components/ProductReviews'
-
-// The 3D fitting room loads garments by their dataset folder, which is also the image folder.
-const tryOnSlot = { 'm-tshirts': 'top', 'm-shirts': 'top', 'm-trousers': 'bottom', 'w-skirts': 'bottom' }
-export function tryOnLink(category, image) {
-  const slot = tryOnSlot[category]
-  const folder = /\/img\/clothing\/([^/]+)\//.exec(image || '')?.[1]
-  return slot && folder ? `/try-on?${slot}=${encodeURIComponent(folder)}` : null
-}
+import OutfitSuggestions from '../components/OutfitSuggestions'
+import { tryOnLink } from '../tryon/links'
 
 export const departmentPath = d => ({ men: '/men/ready-to-wear', women: '/women/ready-to-wear', bags: '/bags', watches: '/watches' }[d] || '/')
 
@@ -186,6 +180,7 @@ function Detail({ product, colors }) {
         </div>
       </form>
     </div>
+    <OutfitSuggestions product={product} color={color} />
     <ProductReviews productId={product.id} />
   </main>
 }
