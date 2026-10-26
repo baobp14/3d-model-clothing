@@ -1,6 +1,6 @@
 from datetime import date, datetime, time, timedelta, timezone
 
-from sqlalchemy import Text, func, or_, select
+from sqlalchemy import DateTime, Text, func, literal, or_, select
 
 from .errors import fail
 from .models import Color, Order, OrderPayment, OrderPricing, Product, DemoOrder
@@ -61,8 +61,8 @@ def report(db, period='day', start=None, end=None, include_test=False):
     if (end - start).days > 366:
         fail('NB_INVALID_DATE_RANGE')
     # Group in SQL; neither order items nor customer data are loaded for charts.
-    local_created = Order.created_at.op('AT TIME ZONE')('Asia/Ho_Chi_Minh') if db.bind.dialect.name == 'postgresql' else func.datetime(Order.created_at, '+7 hours')
-    local_received = OrderPayment.received_at.op('AT TIME ZONE')('Asia/Ho_Chi_Minh') if db.bind.dialect.name == 'postgresql' else func.datetime(OrderPayment.received_at, '+7 hours')
+    local_created = Order.created_at.op('AT TIME ZONE', return_type=DateTime())(literal('Asia/Ho_Chi_Minh', Text)) if db.bind.dialect.name == 'postgresql' else func.datetime(Order.created_at, '+7 hours')
+    local_received = OrderPayment.received_at.op('AT TIME ZONE', return_type=DateTime())(literal('Asia/Ho_Chi_Minh', Text)) if db.bind.dialect.name == 'postgresql' else func.datetime(OrderPayment.received_at, '+7 hours')
     fmt = 'YYYY-MM' if period == 'month' else 'YYYY-MM-DD'
     bucket = func.to_char(local_created, fmt) if db.bind.dialect.name == 'postgresql' else func.strftime('%Y-%m' if period == 'month' else '%Y-%m-%d', local_created)
     payment_bucket = func.to_char(local_received, fmt) if db.bind.dialect.name == 'postgresql' else func.strftime('%Y-%m' if period == 'month' else '%Y-%m-%d', local_received)

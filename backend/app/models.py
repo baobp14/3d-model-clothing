@@ -1,13 +1,23 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, JSON, Text, UniqueConstraint, Uuid
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, JSON, Text, TypeDecorator, UniqueConstraint, Uuid
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 def now():
     return datetime.now(timezone.utc)
+
+
+class UtcDateTime(TypeDecorator):
+    """DateTime(timezone=True) that also stays aware on SQLite, which drops the offset.
+    Values are written in UTC, so a naive value read back is UTC."""
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_result_value(self, value, dialect):
+        return value.replace(tzinfo=timezone.utc) if value is not None and value.tzinfo is None else value
 
 
 class Base(DeclarativeBase):
@@ -51,14 +61,14 @@ class Product(Base):
     is_new: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str] = mapped_column(Text, default='')
     description_en: Mapped[str] = mapped_column(Text, default='')
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class ArchivedProduct(Base):
     __tablename__ = 'shop_archived_products'
     product_id: Mapped[int] = mapped_column(ForeignKey('products.id'), primary_key=True)
     reason: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class DatasetProduct(Base):
@@ -79,7 +89,7 @@ class AddressBook(Base):
     addresses: Mapped[list] = mapped_column(json_type, default=list)
     default_address_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
     revision: Mapped[int] = mapped_column(BigInteger, default=0)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class Order(Base):
@@ -93,7 +103,7 @@ class Order(Base):
     payment: Mapped[str] = mapped_column(Text)
     total: Mapped[int] = mapped_column(BigInteger)
     status: Mapped[str] = mapped_column(Text, default='pending')
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class WishlistItem(Base):
@@ -146,14 +156,14 @@ class StockMovement(Base):
     reason: Mapped[str] = mapped_column(Text)
     actor_id: Mapped[str] = mapped_column(Uuid(as_uuid=False))
     order_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), ForeignKey('shop_orders.id'), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now, index=True)
 
 
 class NotificationRead(Base):
     __tablename__ = 'shop_notification_reads'
     user_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True)
     key: Mapped[str] = mapped_column(Text, primary_key=True)
-    read_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    read_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class DemoOrder(Base):
@@ -164,7 +174,7 @@ class DemoOrder(Base):
 class OrderPayment(Base):
     __tablename__ = 'shop_order_payments'
     order_id: Mapped[str] = mapped_column(ForeignKey('shop_orders.id'), primary_key=True)
-    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    received_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
     received_by: Mapped[str] = mapped_column(Uuid(as_uuid=False))
 
 
@@ -178,7 +188,7 @@ class OrderEvent(Base):
     to_status: Mapped[str] = mapped_column(Text, default='')
     actor_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
     actor_role: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class OrderRefund(Base):
@@ -186,9 +196,9 @@ class OrderRefund(Base):
     __tablename__ = 'shop_order_refunds'
     order_id: Mapped[str] = mapped_column(ForeignKey('shop_orders.id'), primary_key=True)
     amount: Mapped[int] = mapped_column(BigInteger)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
     created_by: Mapped[str] = mapped_column(Uuid(as_uuid=False))
-    refunded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    refunded_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
     refunded_by: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
 
 
@@ -200,7 +210,7 @@ class QrPayment(Base):
     amount: Mapped[int] = mapped_column(BigInteger)
     qr_content: Mapped[str] = mapped_column(Text)
     image_png_base64: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
     paid_reference: Mapped[str] = mapped_column(Text, default='')
 
 
@@ -209,7 +219,7 @@ class PromotionRule(Base):
     __tablename__ = 'shop_promotion_rules'
     __table_args__ = (CheckConstraint('max_uses IS NULL OR max_uses >= 1'), CheckConstraint('min_subtotal >= 0'))
     code: Mapped[str] = mapped_column(ForeignKey('shop_promotions.code'), primary_key=True)
-    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(UtcDateTime(), nullable=True)
     max_uses: Mapped[int | None] = mapped_column(Integer, nullable=True)
     min_subtotal: Mapped[int] = mapped_column(BigInteger, default=0)
 
@@ -225,7 +235,7 @@ class Review(Base):
     rating: Mapped[int] = mapped_column(Integer)
     comment: Mapped[str] = mapped_column(Text, default='')
     author: Mapped[str] = mapped_column(Text, default='')
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 class ReturnRequest(Base):
@@ -240,8 +250,8 @@ class ReturnRequest(Base):
     status: Mapped[str] = mapped_column(Text, default='pending')
     restocked: Mapped[bool] = mapped_column(Boolean, default=False)
     admin_note: Mapped[str] = mapped_column(Text, default='')
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now, index=True)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 
 def as_dict(row):
