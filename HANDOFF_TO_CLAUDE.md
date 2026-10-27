@@ -71,6 +71,9 @@
   - Bổ sung 1 màu mới cho Áo thun nữ **Maple Tee 4001** (Mineral).
   - Tổng catalog tăng lên **55 styles, 118 biến thể màu** (toàn bộ đều có ảnh trước/sau và texture 3D trong `public/prints/`).
 
+### 3.6. Slide Báo Cáo Tiến Độ Thuyết Trình (27/10/2026)
+- Đã tạo sẵn file PowerPoint chuẩn tỷ lệ 16:9 cao cấp tại: `BaoCao_TienDo_DATN_N&B_Fashion.pptx` (gồm 7 slide chuẩn: Bìa đề tài, Đặt vấn đề & Định vị, Ngăn xếp công nghệ, 4 Trụ cột tính năng, Luồng vận hành logistics GHN, Kịch bản Live Demo 3 bước, và Kết luận / Kế hoạch đến tháng 12/2026).
+
 ---
 
 ## 4. BỘ TEST BẮT BUỘC TRƯỚC KHI BÁO XONG HOẶC COMMIT
