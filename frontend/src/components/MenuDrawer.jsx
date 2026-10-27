@@ -40,7 +40,10 @@ export default function MenuDrawer({ open, onClose }) {
             : <>
               <li><Link to="/account/orders" onClick={onClose} className={item}>{t('nav.orders')}</Link></li>
               <li><Link to="/account/wishlist" onClick={onClose} className={item}>{t('nav.wishlist')}</Link></li>
-              {user && <li><Link to="/account/addresses" onClick={onClose} className={item}>{t('nav.addresses')}</Link></li>}
+              {user && <>
+                <li><Link to="/account/addresses" onClick={onClose} className={item}>{t('nav.addresses')}</Link></li>
+                <li><Link to="/account/measurements" onClick={onClose} className={item}>{t('nav.measurements')}</Link></li>
+              </>}
             </>}
         </ul>
         <div className="mt-4 flex items-center gap-1" role="group" aria-label={t('a11y.lang')}>

@@ -17,6 +17,8 @@ import SizeChart, { sizeChartFor } from '../components/SizeChart'
 import { fromSaved } from '@/lib/tryon/brandSizes'
 import { shopApi } from '../lib/api'
 import { tryOnLink } from '../tryon/links'
+import { recommendSize } from '../lib/sizeRecommendation'
+import { useMeasurements } from '../hooks/useMeasurements'
 
 export const departmentPath = d => ({ men: '/men/ready-to-wear', women: '/women/ready-to-wear', bags: '/bags', watches: '/watches' }[d] || '/')
 
@@ -70,6 +72,14 @@ function Detail({ product, colors }) {
   }, [product.id])
   // A chart saved in admin wins over the built-in brand lookup.
   const sizeChart = fromSaved(savedChart) || sizeChartFor(gallery[0] || image)
+  const { measurements } = useMeasurements()
+  const recommendation = recommendSize({
+    measurements,
+    sizeChart,
+    category: product.category,
+    availableSizes: product.sizes,
+  })
+  const recommendedSize = recommendation?.recommendedSize
   const colorName = c => colors.find(x => x.id === c)?.[lang] || product.colorNames?.[c]?.[lang] || c
   const shopper = canShop(user, authLoading, recovery)
   const needsSize = product.sizes.length > 0 && !size
@@ -149,12 +159,35 @@ function Detail({ product, colors }) {
             <div ref={sizeGroup} className="flex flex-wrap gap-2">
               {product.sizes.map(s => {
                 const soldOut = product.variants && stockFor(color, s) === 0
+                const isRec = s === recommendedSize
                 return <button type="button" key={s} onClick={() => choose(setSize)(s)} aria-pressed={size === s}
-                  className={`relative h-12 min-w-12 border px-3 text-body-sm ${size === s ? 'border-ink bg-ink text-on-ink' : sizeError ? 'border-danger' : 'border-line-strong hover:border-ink'} ${soldOut && size !== s ? 'text-ink-muted line-through' : ''}`}>
-                  {s}{soldOut && <span className="sr-only">{vi ? 'hết hàng' : 'out of stock'}</span>}
+                  className={`relative h-12 min-w-12 border px-3 text-body-sm transition-colors ${size === s ? 'border-ink bg-ink text-on-ink' : sizeError ? 'border-danger' : isRec ? 'border-ink ring-1 ring-ink font-semibold' : 'border-line-strong hover:border-ink'} ${soldOut && size !== s ? 'text-ink-muted line-through' : ''}`}>
+                  {s}
+                  {isRec && (
+                    <span className="pointer-events-none absolute -top-2.5 -right-2 z-10 whitespace-nowrap rounded bg-ink px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-on-ink shadow-xs">
+                      {t('pdp.recommended')}
+                    </span>
+                  )}
+                  {soldOut && <span className="sr-only">{vi ? 'hết hàng' : 'out of stock'}</span>}
                 </button>
               })}
             </div>
+            {recommendation ? (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-caption text-ink-muted">
+                <span>
+                  ✓ <span className="font-medium text-ink">{vi ? 'Đề xuất size ' : 'Recommended size '}{recommendedSize}</span>: {vi ? recommendation.reasonVi : recommendation.reasonEn}
+                </span>
+                <Link to="/account/measurements" className="text-link hover:underline">
+                  {vi ? 'Sửa số đo' : 'Edit measurements'}
+                </Link>
+              </div>
+            ) : user ? (
+              <div className="mt-3 text-caption text-ink-muted">
+                <Link to="/account/measurements" className="text-link hover:underline">
+                  {vi ? '💡 Nhập số đo cá nhân để nhận đề xuất size chuẩn xác' : '💡 Enter your measurements for size recommendation'}
+                </Link>
+              </div>
+            ) : null}
             {sizeError && <p id="size-error" role="alert" className="mt-3 text-body-sm text-danger">{vi ? 'Vui lòng chọn kích cỡ.' : 'Please select a size.'}</p>}
           </fieldset>}
 

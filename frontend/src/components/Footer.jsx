@@ -4,7 +4,7 @@ import { useLang } from '../i18n'
 // Chỉ liên kết tới trang có thật (audit H7). Mục chưa có trang thì không hiển thị.
 const columns = [
   ['nav.shop', [['nav.women', '/women/ready-to-wear'], ['nav.men', '/men/ready-to-wear'], ['nav.newIn', '/products?sort=new'], ['nav.all', '/products']]],
-  ['f.help', [['f.track', '/account/orders'], ['nav.addresses', '/account/addresses'], ['nav.wishlist', '/account/wishlist']]],
+  ['f.help', [['f.track', '/account/orders'], ['nav.addresses', '/account/addresses'], ['nav.wishlist', '/account/wishlist'], ['nav.measurements', '/account/measurements']]],
   ['f.legalCol', [['f.terms', '/terms'], ['f.privacyPolicy', '/privacy']]],
 ]
 

@@ -245,3 +245,13 @@ class SizeChartInput(Input):
         if not self.sizes or any(getattr(m, key) is None for m in self.sizes.values() for key in needed):
             raise ValueError('NB_INVALID_SIZE_CHART')
         return self
+
+
+class CustomerMeasurementsPayload(Input):
+    height: Annotated[float, Field(ge=50, le=250)] | None = None
+    weight: Annotated[float, Field(ge=20, le=300)] | None = None
+    chest: Annotated[float, Field(ge=40, le=200)] | None = None
+    waist: Annotated[float, Field(ge=40, le=200)] | None = None
+    hips: Annotated[float, Field(ge=40, le=200)] | None = None
+    shoulder: Annotated[float, Field(ge=20, le=100)] | None = None
+    fit_preference: Literal['slim', 'regular', 'loose'] = 'regular'

@@ -139,6 +139,7 @@ function AccountView({ t, onDone }) {
     {!isAdmin && <Link to="/account/wishlist" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Sản phẩm yêu thích' : 'Wishlist'}</Link>}
     {!isAdmin && <Link to="/account/orders" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Đơn hàng của tôi' : 'My orders'}</Link>}
     <Link to="/account/addresses" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Sổ địa chỉ của tôi' : 'My address book'}</Link>
+    {!isAdmin && <Link to="/account/measurements" onClick={onDone} className="button mt-6 w-full">{lang === 'vi' ? 'Số đo của tôi (Gợi ý size)' : 'My measurements (Size guide)'}</Link>}
     <Link to="/forgot-password" onClick={onDone} className="mt-6 inline-flex min-h-11 items-center text-body-sm text-link">{t('auth.resetTitle')}</Link>
     {error && <p role="alert" className="mt-4 text-body-sm text-danger">{error}</p>}
     <div className="mt-4"><Ghost disabled={submission.busy} onClick={submission.wrap(async () => { setError(''); await signOut(); onDone() })}>{t('auth.signOut')}</Ghost></div>

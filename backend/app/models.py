@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, JSON, Text, TypeDecorator, UniqueConstraint, Uuid
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, JSON, Text, TypeDecorator, UniqueConstraint, Uuid
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -266,6 +266,21 @@ class ProductSizeChart(Base):
     kind: Mapped[str] = mapped_column(Text)
     sizes: Mapped[dict] = mapped_column(JSON)
     note: Mapped[str] = mapped_column(Text, default='')
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
+
+
+class CustomerMeasurements(Base):
+    """Personal body measurements per customer for smart size recommendation."""
+    __tablename__ = 'shop_customer_measurements'
+    __table_args__ = (CheckConstraint("fit_preference IN ('slim', 'regular', 'loose')"),)
+    user_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True)
+    height: Mapped[float | None] = mapped_column(Float, nullable=True)
+    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    chest: Mapped[float | None] = mapped_column(Float, nullable=True)
+    waist: Mapped[float | None] = mapped_column(Float, nullable=True)
+    hips: Mapped[float | None] = mapped_column(Float, nullable=True)
+    shoulder: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fit_preference: Mapped[str] = mapped_column(Text, default='regular')
     updated_at: Mapped[datetime] = mapped_column(UtcDateTime(), default=now)
 
 

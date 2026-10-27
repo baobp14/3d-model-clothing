@@ -105,7 +105,7 @@ it('search preserves its query, applied size, sort and page through product deta
   fireEvent.click(await screen.findByRole('link', { name: '← Back to list' }))
   await screen.findAllByRole('link', { name: 'English shirt' })
   expect(screen.getByTestId('url').textContent).toBe(original)
-  expect(request.mock.calls.filter(([path]) => !path.includes('/reviews') && !path.includes('/size-chart') && path !== '/products?limit=100').every(([path]) => path.includes('page=2') && path.includes('sizes=M') && path.includes('sort=priceAsc'))).toBe(true)
+  expect(request.mock.calls.filter(([path]) => !path.includes('/reviews') && !path.includes('/size-chart') && !path.includes('/measurements') && path !== '/products?limit=100').every(([path]) => path.includes('page=2') && path.includes('sizes=M') && path.includes('sort=priceAsc'))).toBe(true)
 })
 
 it('admin navigation opens the active group after navigation without a defaultOpen warning', async () => {

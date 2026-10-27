@@ -34,6 +34,8 @@ from .schemas import DemoMark, ReadNotifications, UserLock
 from .users import list_users, set_locked
 from .sizecharts import all_charts, delete_chart, get_chart, save_chart
 from .schemas import SizeChartInput
+from .measurements import get_measurements, save_measurements
+from .schemas import CustomerMeasurementsPayload
 from datetime import date, timezone
 from typing import Literal
 from uuid import UUID
@@ -483,6 +485,14 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
     @app.delete('/api/admin/products/{product_id}/size-chart')
     def remove_size_chart(product_id: int, user: User = Depends(require_admin), db: Session = Depends(get_db)):
         return delete_chart(db, product_id)
+
+    @app.get('/api/account/measurements')
+    def account_measurements(user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        return get_measurements(db, user.id)
+
+    @app.put('/api/account/measurements')
+    def update_account_measurements(values: CustomerMeasurementsPayload, user: User = Depends(require_customer), db: Session = Depends(get_db)):
+        return save_measurements(db, user.id, values)
 
     return app
 
