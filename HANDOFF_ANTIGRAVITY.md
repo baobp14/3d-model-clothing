@@ -80,6 +80,7 @@ Viết ngày 27/10/2026 bởi Claude (Claude Code), người làm phần lớn c
 - Kiểm tra thứ tự khai báo khi dùng biến trong render của `GarmentTestApp` (biến `const` khai báo sau sẽ lỗi TDZ).
 - Chữ hiển thị phải dễ hiểu với người Việt (ví dụ "Shop tự đo" bị đọc nhầm thành "tự do" → đổi "Lựa chọn khác").
 - Số liệu bảng size phải lấy từ nguồn thật; không có thì ghi rõ "ước tính". Không bịa số đo hay dữ liệu demo rồi để lại như thật.
+- **Định vị & phong cách dự án:** Đồ án tốt nghiệp TMĐT thời trang cao cấp N&B. Dùng thuật ngữ chuyên nghiệp (chuẩn logistics/fulfillment, ví dụ "Tạo vận đơn GHN" thay vì từ nghiệp dư như "Đẩy đơn", không để chữ "sandbox/demo" lộ trên UI). Hạn chế dùng voucher/khuyến mãi tràn lan không cần thiết để giữ đúng định vị thương hiệu may sẵn cao cấp.
 
 ## 7. Quy tắc làm việc (bắt buộc)
 
@@ -100,9 +101,9 @@ Viết ngày 27/10/2026 bởi Claude (Claude Code), người làm phần lớn c
 
 ### Kiểm tra trước khi báo xong
 ```bash
-cd backend && .venv/Scripts/python -m pytest -q          # hiện 75 passed
-cd frontend && node --test --test-concurrency=1 src/lib/*.test.js supabase/*.test.mjs   # 51 pass
-cd frontend && npx vitest run --maxWorkers=1              # 59 passed
+cd backend && .venv/Scripts/python -m pytest -q          # hiện 78 passed
+cd frontend && node --test --test-concurrency=1 src/lib/*.test.js supabase/*.test.mjs   # 60 pass
+cd frontend && npx vitest run --maxWorkers=1              # 65 passed
 cd frontend && npx vite build
 ```
 - Thay đổi nhìn thấy được thì **mở trình duyệt kiểm tra** (`npm run dev` ở `frontend`, `uvicorn app.main:app --port 8000` ở `backend`). Đổi backend thì **khởi động lại uvicorn** (không có reload).

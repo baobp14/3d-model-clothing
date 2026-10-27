@@ -160,7 +160,7 @@ it('admin can push order to GHN Sandbox with one click', async () => {
     </MemoryRouter>
   )
 
-  const pushBtn = await screen.findByRole('button', { name: /Đẩy sang GHN/i })
+  const pushBtn = await screen.findByRole('button', { name: /Tạo vận đơn GHN|Đẩy sang GHN/i })
   fireEvent.click(pushBtn)
 
   await waitFor(() => {
