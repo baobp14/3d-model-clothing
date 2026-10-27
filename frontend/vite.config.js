@@ -36,6 +36,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei', '@imgly/background-removal'],
   },
   server: {
+    allowedHosts: true,
     watch: { ignored: ['**/.qa/**', '**/e2e/**'] },
     fs: { allow: [appRoot] },
     proxy: { '/api': 'http://127.0.0.1:8000' },
