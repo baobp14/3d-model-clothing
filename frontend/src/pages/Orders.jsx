@@ -148,6 +148,10 @@ export default function Orders({ admin = false }) {
       return res
     })
   }
+  function pushGhn(order) {
+    if (!window.confirm(vi ? 'Gửi thông tin đơn hàng sang cổng GHN Sandbox để tạo vận đơn chính thức?' : 'Push order to GHN Sandbox to generate official tracking code?')) return
+    return run(() => shopApi.request(`/admin/orders/${order.id}/push-ghn`, { method: 'POST', auth: true }))
+  }
   function refunded(order) {
     if (!window.confirm(vi ? `Xác nhận đã chuyển trả ${money(order.refund_amount)} cho khách?` : `Confirm ${money(order.refund_amount)} was returned to the customer?`)) return
     return run(() => shopApi.request(`/admin/orders/${order.id}/refund`, { method: 'PATCH', auth: true, body: { refunded: true } }))
@@ -223,6 +227,7 @@ export default function Orders({ admin = false }) {
         {admin && order.refund_status === 'required' && <button disabled={busy} className="button" onClick={() => refunded(order)}>{vi ? 'Xác nhận đã hoàn tiền' : 'Mark refunded'}</button>}
         {admin && <button disabled={busy || loading} className="button" onClick={() => markTest(order)}>{order.is_test ? (vi ? 'Chuyển thành đơn thật' : 'Mark as real order') : (vi ? 'Đánh dấu đơn test' : 'Mark as test order')}</button>}
         {admin && <button disabled={busy} className="button" onClick={() => toggleHistory(order)}>{history[order.id] ? (vi ? 'Ẩn lịch sử' : 'Hide history') : (vi ? 'Lịch sử' : 'History')}</button>}
+        {admin && order.status !== 'canceled' && !order.delivery?.tracking_code && <button disabled={busy} className="button" onClick={() => pushGhn(order)}>{vi ? '🚀 Đẩy sang GHN (Sandbox)' : '🚀 Push to GHN (Sandbox)'}</button>}
         {admin && (order.status === 'confirmed' || order.status === 'shipped') && <button disabled={busy} className="button" onClick={() => setShippingOrder(order)}>{vi ? 'Sửa mã vận đơn' : 'Edit tracking'}</button>}
         <button disabled={busy} className="button" onClick={() => setInvoiceOrder(order)}>{admin ? (vi ? '🖨 In phiếu giao hàng' : '🖨 Print packing slip') : (vi ? '📄 Hóa đơn điện tử' : '📄 View invoice')}</button>
       </div>

@@ -22,7 +22,7 @@ from .schemas import AddressMutation, ArchiveInput, OrderCreate, OrderStatus, Pr
 from .search import search_products
 from .aftersales import add_review, create_return, decide_return, list_returns, my_aftersales, product_reviews
 from .schemas import ReturnCreate, ReturnDecision, ReviewCreate
-from .services import add_product, edit_product, load_book, mutate_book, place_order, change_order_status, order_dict, lock_customer, product_dict, configure_variants, receive_payment, update_order_shipping
+from .services import add_product, edit_product, load_book, mutate_book, place_order, change_order_status, order_dict, lock_customer, product_dict, configure_variants, receive_payment, update_order_shipping, log_event
 from .services import check_promotion, complete_refund, order_events, promotion_dict, set_archived
 from .payments import ensure_qr, order_for_reference, sync_payment
 from .ratelimit import RateLimiter, client_ip
@@ -36,6 +36,7 @@ from .sizecharts import all_charts, delete_chart, get_chart, save_chart
 from .schemas import SizeChartInput
 from .measurements import get_measurements, save_measurements
 from .schemas import CustomerMeasurementsPayload
+from .ghn import create_ghn_shipping_order
 from datetime import date, timezone
 from typing import Literal
 from uuid import UUID
@@ -340,6 +341,34 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
     def admin_order_shipping(order_id: UUID, values: OrderShippingUpdate, user: User = Depends(require_admin), db: Session = Depends(get_db)):
         with db.begin():
             return update_order_shipping(db, order_id, values, user)
+
+    @app.post('/api/admin/orders/{order_id}/push-ghn')
+    def admin_push_order_ghn(order_id: UUID, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        order = db.get(Order, str(order_id))
+        if order is None:
+            fail('NB_ORDER_NOT_FOUND', 404)
+        if order.status == 'canceled':
+            fail('NB_ORDER_STATUS_CONFLICT', 409)
+        paid = db.get(OrderPayment, order.id)
+        if order.payment == 'qr' and not paid:
+            fail('NB_PAYMENT_REQUIRED', 409)
+
+        order_data = order_dict(db, order)
+        ghn_result = create_ghn_shipping_order(order_data)
+
+        delivery = dict(order.delivery)
+        delivery['carrier'] = ghn_result['carrier']
+        delivery['tracking_code'] = ghn_result['tracking_code']
+        order.delivery = delivery
+
+        old_status = order.status
+        if order.status in ('pending', 'confirmed'):
+            order.status = 'shipped'
+            log_event(db, order, 'status', user, from_status=old_status, to_status='shipped')
+
+        log_event(db, order, 'ghn_pushed', user)
+        db.commit()
+        return order_dict(db, order)
 
     @app.patch('/api/admin/orders/{order_id}/refund')
     def refund_done(order_id: UUID, values: RefundComplete, user: User = Depends(require_admin), db: Session = Depends(get_db)):

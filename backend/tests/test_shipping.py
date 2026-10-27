@@ -63,3 +63,21 @@ def test_order_carrier_and_tracking_workflow(shop):
         headers=headers('a'),
         json={'carrier': 'GHTK', 'tracking_code': '123'},
     ).status_code == 403
+
+
+def test_admin_push_ghn_order(shop):
+    client, _ = shop
+    address = save_address(client, token='a').json()['default_address_id']
+    placed = client.post('/api/orders', headers=headers('a'), json=order_payload(address, items=[{'product_id': 1, 'quantity': 1, 'color': 'black', 'size': 'M'}]))
+    order_id = placed.json()['id']
+
+    # Non-admin rejected
+    assert client.post(f'/api/admin/orders/{order_id}/push-ghn', headers=headers('a')).status_code == 403
+
+    # Admin pushes order to GHN Sandbox
+    res = client.post(f'/api/admin/orders/{order_id}/push-ghn', headers=headers('admin'))
+    assert res.status_code == 200
+    data = res.json()
+    assert data['status'] == 'shipped'
+    assert data['delivery']['carrier'] == 'Giao Hàng Nhanh (GHN)'
+    assert len(data['delivery']['tracking_code']) > 0

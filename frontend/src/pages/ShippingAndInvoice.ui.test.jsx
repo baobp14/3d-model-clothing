@@ -134,3 +134,36 @@ it('admin can open shipping modal, choose carrier and update tracking code', asy
     expect(currentOrder.delivery.tracking_code).toBe('VTP123456789')
   })
 })
+
+it('admin can push order to GHN Sandbox with one click', async () => {
+  localStorage.setItem('lang', 'vi')
+  vi.stubGlobal('confirm', vi.fn(() => true))
+  let currentOrder = { ...orderWithShipping, status: 'confirmed', delivery: { ...orderWithShipping.delivery, carrier: '', tracking_code: '' } }
+
+  request.mockImplementation(async (path, options) => {
+    if (path.includes('/push-ghn') && options?.method === 'POST') {
+      currentOrder = {
+        ...currentOrder,
+        status: 'shipped',
+        delivery: { ...currentOrder.delivery, carrier: 'Giao Hàng Nhanh (GHN)', tracking_code: 'LYQGKD' },
+      }
+      return currentOrder
+    }
+    return { orders: [currentOrder], total: 1, pages: 1, page: 1 }
+  })
+
+  render(
+    <MemoryRouter>
+      <LanguageProvider>
+        <Orders admin />
+      </LanguageProvider>
+    </MemoryRouter>
+  )
+
+  const pushBtn = await screen.findByRole('button', { name: /Đẩy sang GHN/i })
+  fireEvent.click(pushBtn)
+
+  await waitFor(() => {
+    expect(currentOrder.delivery.tracking_code).toBe('LYQGKD')
+  })
+})
