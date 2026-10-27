@@ -63,6 +63,14 @@
   - So khớp tự động với Bảng size thực tế của từng thương hiệu (AS Colour, Bella Canvas...) hoặc số đo thực tế của shop.
   - Tự động hiển thị huy hiệu: *"Gợi ý cho bạn: Size S/M/L"* ngay trên giao diện chọn sản phẩm.
 
+### 3.5. Mở khóa Thử đồ 3D cho Áo sơ mi & Bổ sung Dataset Quần áo (27/10/2026)
+- **Mở khóa Áo sơ mi 3D:** Trong `frontend/src/tryon/links.js` và `src/components/garment-test/GarmentTestApp.tsx`, mở khóa slot `top: ['tshirt', 'shirt']` và `'m-shirts': 'top'`. Toàn bộ 5 dòng sơ mi AS Colour (9 màu) giờ đã có nút "Thử đồ 3D" và có thể thử trực tiếp trong phòng thử 3D.
+- **Bổ sung Dataset trang phục mới:**
+  - Dòng áo thun kinh điển **AS Colour 5001 Staple Tee** (7 màu: Navy, Charcoal, Carolina Blue, Dark Chocolate, Pistachio, Pale Blue, Copper).
+  - Bổ sung 2 màu mới cho Quần dài **Relax Track Pants 5932** (Grey Marle, Butter).
+  - Bổ sung 1 màu mới cho Áo thun nữ **Maple Tee 4001** (Mineral).
+  - Tổng catalog tăng lên **55 styles, 118 biến thể màu** (toàn bộ đều có ảnh trước/sau và texture 3D trong `public/prints/`).
+
 ---
 
 ## 4. BỘ TEST BẮT BUỘC TRƯỚC KHI BÁO XONG HOẶC COMMIT

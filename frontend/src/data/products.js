@@ -94,6 +94,12 @@ export const colors = [
     "hex": "#88a0b3"
   },
   {
+    "id": "charcoal",
+    "vi": "Xám than",
+    "en": "Charcoal",
+    "hex": "#4c4e49"
+  },
+  {
     "id": "clay",
     "vi": "Đất nung",
     "en": "Clay",
@@ -106,6 +112,12 @@ export const colors = [
     "hex": "#404040"
   },
   {
+    "id": "copper",
+    "vi": "Đồng",
+    "en": "Copper",
+    "hex": "#a1522f"
+  },
+  {
     "id": "cream",
     "vi": "Kem",
     "en": "Cream",
@@ -116,6 +128,12 @@ export const colors = [
     "vi": "Xanh bách",
     "en": "Cypress",
     "hex": "#435e4d"
+  },
+  {
+    "id": "dark_chocolate",
+    "vi": "Nâu sô-cô-la",
+    "en": "Dark Chocolate",
+    "hex": "#3a2c25"
   },
   {
     "id": "dark_indigo",
@@ -208,6 +226,12 @@ export const colors = [
     "hex": "#777777"
   },
   {
+    "id": "pale_blue",
+    "vi": "Xanh da trời nhạt",
+    "en": "Pale Blue",
+    "hex": "#acc4c2"
+  },
+  {
     "id": "pale_pink",
     "vi": "Hồng phấn",
     "en": "Pale Pink",
@@ -218,6 +242,12 @@ export const colors = [
     "vi": "Xanh dầu",
     "en": "Petrol Blue",
     "hex": "#285663"
+  },
+  {
+    "id": "pistachio",
+    "vi": "Xanh hạt dẻ cười",
+    "en": "Pistachio",
+    "hex": "#afb08a"
   },
   {
     "id": "sage",
@@ -3856,7 +3886,7 @@ export const products = [
     "category": "w-tshirts",
     "vi": "Áo thun nữ Basic AS Colour",
     "en": "Women's Basic T-shirt AS Colour",
-    "price": 309000,
+    "price": 219000,
     "stock": 1342,
     "colors": [
       "black",
@@ -3947,7 +3977,7 @@ export const products = [
     "category": "w-tshirts",
     "vi": "Áo thun nữ Heavy dáng rộng AS Colour",
     "en": "Women's Heavy T-shirt AS Colour",
-    "price": 219000,
+    "price": 309000,
     "stock": 1556,
     "colors": [
       "black",
@@ -4190,6 +4220,181 @@ export const products = [
       "bone": [
         "/img/clothing/ascolour_4933_wos_relax_track_shorts_bone/front.jpg",
         "/img/clothing/ascolour_4933_wos_relax_track_shorts_bone/back.jpg"
+      ]
+    }
+  },
+  {
+    "id": 3054,
+    "department": "men",
+    "category": "m-tshirts",
+    "vi": "Áo thun Staple kinh điển AS Colour",
+    "en": "Classic Staple T-shirt AS Colour",
+    "price": 229000,
+    "stock": 1342,
+    "colors": [
+      "carolina_blue",
+      "charcoal",
+      "copper",
+      "dark_chocolate",
+      "navy",
+      "pale_blue",
+      "pistachio"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "XL"
+    ],
+    "images": [
+      "/img/clothing/ascolour_5001_staple_tee_carolina_blue/front.jpg",
+      "/img/clothing/ascolour_5001_staple_tee_charcoal/front.jpg",
+      "/img/clothing/ascolour_5001_staple_tee_copper/front.jpg",
+      "/img/clothing/ascolour_5001_staple_tee_dark_chocolate/front.jpg",
+      "/img/clothing/ascolour_5001_staple_tee_navy/front.jpg",
+      "/img/clothing/ascolour_5001_staple_tee_pale_blue/front.jpg",
+      "/img/clothing/ascolour_5001_staple_tee_pistachio/front.jpg"
+    ],
+    "isNew": true,
+    "description": "Áo thun Staple kinh điển AS Colour. Có ảnh mặt trước, mặt sau và các màu trong bộ sưu tập. Kích cỡ S, M, XL. Chọn màu và kích cỡ để xem tồn kho.",
+    "descriptionEn": "Classic Staple T-shirt AS Colour. Front and back photos are available for each color. Sizes S, M and XL. Select a color and size to check stock.",
+    "createdAt": "2026-10-27T14:48:30.740737+00:00",
+    "variants": [
+      {
+        "color": "carolina_blue",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "carolina_blue",
+        "size": "M",
+        "stock": 64
+      },
+      {
+        "color": "carolina_blue",
+        "size": "XL",
+        "stock": 64
+      },
+      {
+        "color": "charcoal",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "charcoal",
+        "size": "M",
+        "stock": 64
+      },
+      {
+        "color": "charcoal",
+        "size": "XL",
+        "stock": 64
+      },
+      {
+        "color": "copper",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "copper",
+        "size": "M",
+        "stock": 64
+      },
+      {
+        "color": "copper",
+        "size": "XL",
+        "stock": 64
+      },
+      {
+        "color": "dark_chocolate",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "dark_chocolate",
+        "size": "M",
+        "stock": 64
+      },
+      {
+        "color": "dark_chocolate",
+        "size": "XL",
+        "stock": 64
+      },
+      {
+        "color": "navy",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "navy",
+        "size": "M",
+        "stock": 64
+      },
+      {
+        "color": "navy",
+        "size": "XL",
+        "stock": 64
+      },
+      {
+        "color": "pale_blue",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "pale_blue",
+        "size": "M",
+        "stock": 64
+      },
+      {
+        "color": "pale_blue",
+        "size": "XL",
+        "stock": 64
+      },
+      {
+        "color": "pistachio",
+        "size": "S",
+        "stock": 64
+      },
+      {
+        "color": "pistachio",
+        "size": "M",
+        "stock": 63
+      },
+      {
+        "color": "pistachio",
+        "size": "XL",
+        "stock": 63
+      }
+    ],
+    "stockRevision": 0,
+    "datasetKey": "ascolour_5001",
+    "colorImages": {
+      "carolina_blue": [
+        "/img/clothing/ascolour_5001_staple_tee_carolina_blue/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_carolina_blue/back.jpg"
+      ],
+      "charcoal": [
+        "/img/clothing/ascolour_5001_staple_tee_charcoal/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_charcoal/back.jpg"
+      ],
+      "copper": [
+        "/img/clothing/ascolour_5001_staple_tee_copper/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_copper/back.jpg"
+      ],
+      "dark_chocolate": [
+        "/img/clothing/ascolour_5001_staple_tee_dark_chocolate/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_dark_chocolate/back.jpg"
+      ],
+      "navy": [
+        "/img/clothing/ascolour_5001_staple_tee_navy/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_navy/back.jpg"
+      ],
+      "pale_blue": [
+        "/img/clothing/ascolour_5001_staple_tee_pale_blue/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_pale_blue/back.jpg"
+      ],
+      "pistachio": [
+        "/img/clothing/ascolour_5001_staple_tee_pistachio/front.jpg",
+        "/img/clothing/ascolour_5001_staple_tee_pistachio/back.jpg"
       ]
     }
   }

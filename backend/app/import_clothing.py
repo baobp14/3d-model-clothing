@@ -29,6 +29,7 @@ CATEGORY_NAMES = {
     'w-trousers': ('Quần nữ', "Women's trousers & shorts", 'women'),
 }
 STYLE_NAMES = {
+    '5001': ('Áo thun Staple kinh điển', 'Classic Staple T-shirt', 'm-tshirts'),
     '5027': ('Áo thun túi ngực Classic', 'Classic Pocket T-shirt', 'm-tshirts'),
     '5028': ('Áo thun sọc Staple', 'Staple Stripe T-shirt', 'm-tshirts'),
     '5051': ('Áo thun Basic', 'Basic T-shirt', 'm-tshirts'),
@@ -49,6 +50,9 @@ STYLE_NAMES = {
 }
 # Dataset color labels remain distinct; no approximate mapping to old stock colors.
 COLOR_NAMES = {
+    'charcoal': ('Xám than', '#4c4e49'), 'dark_chocolate': ('Nâu sô-cô-la', '#3a2c25'),
+    'pistachio': ('Xanh hạt dẻ cười', '#afb08a'), 'pale_blue': ('Xanh da trời nhạt', '#acc4c2'),
+    'copper': ('Đồng', '#a1522f'),
     'black': ('Đen', '#171717'), 'white': ('Trắng', '#f2f0ec'),
     'navy': ('Xanh navy', '#1f2a44'), 'grey': ('Xám', '#8f8f8f'),
     'brown': ('Nâu', '#6b4b32'), 'cream': ('Kem', '#eee5d0'),
@@ -94,7 +98,7 @@ def read_dataset(archive):
                 vi, en, category = STYLE_NAMES[code]
                 color = folder.removeprefix(key + '_')
                 # Remove the garment style prefix to isolate the exact fabric color.
-                prefixes = {'5027': 'classic_pocket_tee_', '5028': 'staple_stripe_tee_', '5051': 'basic_tee_', '5052': 'block_oversized_tee_', '5401': 'oxford_shirt_', '5417': 'check_shirt_', '5419': 'cord_shirt_', '5421': 'work_ss_shirt_', '5422': 'work_shirt_', '5903': 'beach_shorts_', '5932': 'relax_track_pants_',
+                prefixes = {'5001': 'staple_tee_', '5027': 'classic_pocket_tee_', '5028': 'staple_stripe_tee_', '5051': 'basic_tee_', '5052': 'block_oversized_tee_', '5401': 'oxford_shirt_', '5417': 'check_shirt_', '5419': 'cord_shirt_', '5421': 'work_ss_shirt_', '5422': 'work_shirt_', '5903': 'beach_shorts_', '5932': 'relax_track_pants_',
                             '4001': 'wos_maple_tee_', '4051': 'wos_basic_tee_', '4030': 'wos_box_tee_', '4080': 'wos_heavy_tee_',
                             '4932': 'wos_relax_track_pants_', '4933': 'wos_relax_track_shorts_'}
                 color = color.removeprefix(prefixes[code])

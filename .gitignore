@@ -14,3 +14,9 @@ tools/avatar-pipeline/mh-data/
 # NOTE: public/models/*.glb and avatar-metadata.json are intentionally NOT
 # ignored — they are deterministic build output and the handoff spec says
 # to keep them so a fresh clone runs without Python.
+
+scratch/
+*.zip
+*.db
+*.db-journal
+*.db.bak

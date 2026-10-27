@@ -24,8 +24,8 @@ def dataset_rows():
 
 def test_complete_dataset_photos_and_exact_stock_totals():
     rows = dataset_rows()
-    assert len(rows) == 54
-    assert sum(len(p['colors']) for p in rows) == 108
+    assert len(rows) == 55
+    assert sum(len(p['colors']) for p in rows) == 118
     assert {p['category'] for p in rows} == REPLACED
     for p in rows:
         assert p['sizes'] == ['S', 'M', 'XL']
@@ -48,13 +48,13 @@ def test_import_preserves_history_other_categories_and_repeat_stock(shop):
             if not db.get(Category, c):
                 db.add(Category(id=c, name_vi=c, name_en=c, department='women' if c.startswith('w-') else 'men'))
         db.flush()
-        assert apply_catalog(db, dataset_rows()) == {'added': 54, 'archived': 1, 'dataset_products': 54}
+        assert apply_catalog(db, dataset_rows()) == {'added': 55, 'archived': 1, 'dataset_products': 55}
         product_id = db.scalar(select(DatasetProduct).where(DatasetProduct.dataset_key == 'ascolour_5051')).product_id
     assert [p['id'] for p in client.get('/api/products/by-ids?ids=1,2').json()['products']] == [2]
-    assert client.get('/api/product-page').json()['total'] == 55
+    assert client.get('/api/product-page').json()['total'] == 56
     assert client.get('/api/products/1').json()['product']['archived'] is True
     assert client.get('/api/products/2').json()['product']['archived'] is False
-    assert client.get('/api/admin/overview', headers=headers('admin')).json()['products'] == 55
+    assert client.get('/api/admin/overview', headers=headers('admin')).json()['products'] == 56
     assert client.post('/api/orders', headers=headers(), json=order_payload(address)).json()['code'] == 'NB_PRODUCT_NOT_FOUND'
     assert client.post('/api/orders', headers=headers(), json=payload).json()['id'] == old_order['id']
     assert client.patch('/api/orders/' + old_order['id'], headers=headers(), json={'status': 'canceled', 'expected_status': 'pending'}).status_code == 200
@@ -70,9 +70,9 @@ def test_import_preserves_history_other_categories_and_repeat_stock(shop):
     assert 'id' in new_order
     with Session(engine) as db, db.begin():
         assert db.get(Product, product_id).stock == before - 2
-        assert apply_catalog(db, dataset_rows()) == {'added': 0, 'archived': 0, 'dataset_products': 54}
+        assert apply_catalog(db, dataset_rows()) == {'added': 0, 'archived': 0, 'dataset_products': 55}
         assert db.get(Product, product_id).stock == before - 2
-        assert len(db.scalars(select(DatasetProduct)).all()) == 54
+        assert len(db.scalars(select(DatasetProduct)).all()) == 55
         assert sum(v['stock'] for v in db.get(VariantInventory, product_id).variants) == before - 2
         assert len(db.scalars(select(StockMovement).where(StockMovement.product_id == product_id, StockMovement.kind == 'create')).all()) == 1
     assert client.patch('/api/orders/' + new_order['id'], headers=headers(), json={'status': 'canceled', 'expected_status': 'pending'}).status_code == 200

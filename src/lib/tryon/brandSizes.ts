@@ -61,6 +61,7 @@ const JTD_SOURCE = 'https://jumpthedark.co.uk/pages/size-guide-charts';
 const JTD = ['S', 'M', 'L', 'XL'];
 
 export const BRAND_CHARTS: BrandChart[] = [
+  asBasic('ascolour_5001', 'Staple Tee 5001', 'https://ascolour.com/mens-staple-tee-5001/'),
   asBasic('ascolour_5051', 'Basic Tee 5051', 'https://ascolour.com/mens-basic-tee-5051/'),
   asBasic('ascolour_5028', 'Staple Stripe Tee 5028', 'https://ascolour.com/mens-staple-stripe-tee-5028/'),
   tee('ascolour_5052', 'AS Colour', 'Block Oversized Tee 5052', 'https://ascolour.com/block-oversized-tee-5052/', AS_LABELS,
