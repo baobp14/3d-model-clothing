@@ -407,7 +407,27 @@ def change_order_status(db, order_id, values, user, admin=False):
     if values.status == 'canceled':
         restock_order(db, order, user, 'cancel')
     log_event(db, order, 'status', user, from_status=order.status, to_status=values.status)
+    if getattr(values, 'carrier', None) or getattr(values, 'tracking_code', None):
+        delivery = dict(order.delivery)
+        if values.carrier:
+            delivery['carrier'] = values.carrier
+        if values.tracking_code:
+            delivery['tracking_code'] = values.tracking_code
+        order.delivery = delivery
     order.status = values.status
+    db.flush()
+    return order_dict(db, order)
+
+
+def update_order_shipping(db, order_id, values, user):
+    order = db.get(Order, str(order_id))
+    if order is None:
+        fail('NB_ORDER_NOT_FOUND', 404)
+    delivery = dict(order.delivery)
+    delivery['carrier'] = values.carrier
+    delivery['tracking_code'] = values.tracking_code
+    order.delivery = delivery
+    log_event(db, order, 'shipping_updated', user)
     db.flush()
     return order_dict(db, order)
 

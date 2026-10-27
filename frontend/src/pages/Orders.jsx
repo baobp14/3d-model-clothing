@@ -6,6 +6,9 @@ import { useAuth } from '../hooks/useAuth'
 import ExportButton from '../components/ExportButton'
 import QrPayment from '../components/QrPayment'
 import OrderAftersales from '../components/OrderAftersales'
+import OrderInvoiceModal from '../components/OrderInvoiceModal'
+import ShippingModal from '../components/ShippingModal'
+import { getTrackingUrl } from '../lib/shipping'
 
 const words = {
   vi: { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipped: 'Đang giao', delivered: 'Đã giao', canceled: 'Đã hủy' },
@@ -48,6 +51,8 @@ export default function Orders({ admin = false }) {
   const [payingId, setPayingId] = useState(null)
   const [history, setHistory] = useState({})
   const [aftersales, setAftersales] = useState({ reviewed: new Set(), returns: {} })
+  const [invoiceOrder, setInvoiceOrder] = useState(null)
+  const [shippingOrder, setShippingOrder] = useState(null)
   const lock = useRef(false)
   const endpoint = admin ? '/admin/orders' : '/orders'
   const money = value => new Intl.NumberFormat(vi ? 'vi-VN' : 'en-US', { style: 'currency', currency: 'VND' }).format(value)
@@ -118,16 +123,30 @@ export default function Orders({ admin = false }) {
     }
     finally { lock.current = false; setBusy(false) }
   }
-  function update(order, status, payment = false) {
+  function update(order, status, payment = false, shippingInfo = null) {
     if (lock.current || loading) return
+      setShippingOrder(order)
     const paidCancel = admin && status === 'canceled' && order.payment_status === 'received'
     if (status === 'canceled' && !window.confirm(paidCancel
       ? (vi ? 'Đơn này ĐÃ THU TIỀN. Hủy sẽ hoàn tồn kho và tạo yêu cầu hoàn tiền cho khách. Tiếp tục?' : 'This order IS PAID. Canceling restores stock and opens a refund for the customer. Continue?')
       : (vi ? 'Bạn muốn hủy đơn hàng này?' : 'Cancel this order?'))) return
     if (payment && !window.confirm(vi ? 'Xác nhận bạn đã thực nhận đủ tiền của đơn này? Thao tác này chỉ ghi nhận, không tự thu tiền.' : 'Confirm you have actually received the full order amount? This records receipt; it does not collect money.')) return
-    return run(() => shopApi.request(`${endpoint}/${order.id}${payment ? '/payment' : ''}`, {
-      method: 'PATCH', auth: true, body: payment ? { received: true } : { status, expected_status: order.status },
-    }))
+    return run(async () => {
+      const res = await shopApi.request(`${endpoint}/${order.id}${payment ? '/payment' : ''}`, {
+        method: 'PATCH', auth: true, body: payment ? { received: true } : { status, expected_status: order.status, ...(shippingInfo || {}) },
+      })
+      setShippingOrder(null)
+      return res
+    })
+  }
+  function updateShippingDirect(order, shippingInfo) {
+    return run(async () => {
+      const res = await shopApi.request(`/admin/orders/${order.id}/shipping`, {
+        method: 'PATCH', auth: true, body: shippingInfo,
+      })
+      setShippingOrder(null)
+      return res
+    })
   }
   function refunded(order) {
     if (!window.confirm(vi ? `Xác nhận đã chuyển trả ${money(order.refund_amount)} cho khách?` : `Confirm ${money(order.refund_amount)} was returned to the customer?`)) return
@@ -171,6 +190,26 @@ export default function Orders({ admin = false }) {
       {order.discount > 0 && <p className="mb-3 text-sm">{vi ? 'Giảm giá' : 'Discount'} ({order.promotion_code}): −{money(order.discount)}</p>}
       <p className="font-semibold">{vi ? 'Tổng tiền' : 'Total'}: {money(order.total)}</p><p className="mt-4 text-sm">{order.delivery.name} · {order.delivery.phone}</p><p className="mt-2 text-sm">{order.delivery.address}, {order.delivery.city}</p>
       {order.delivery.notes && <p className="mt-2 whitespace-pre-wrap text-sm">{order.delivery.notes}</p>}
+      {order.delivery?.tracking_code && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded border border-line bg-surface/40 p-3 text-xs">
+          <div>
+            <span className="font-semibold text-ink">
+              🚚 {order.delivery.carrier || (vi ? 'Đơn vị vận chuyển' : 'Carrier')}:
+            </span>{' '}
+            <span className="font-mono font-bold">{order.delivery.tracking_code}</span>
+          </div>
+          {getTrackingUrl(order.delivery.carrier, order.delivery.tracking_code) && (
+            <a
+              href={getTrackingUrl(order.delivery.carrier, order.delivery.tracking_code)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-link underline hover:text-accent"
+            >
+              {vi ? 'Tra cứu hành trình ↗' : 'Track shipment ↗'}
+            </a>
+          )}
+        </div>
+      )}
       {payingId === order.id && <QrPayment orderId={order.id} onPaid={() => setRevision(x => x + 1)} />}
       <div className="mt-5 flex flex-wrap gap-3">{(admin ? transitions[order.status] || [] : order.status === 'pending' ? ['canceled'] : [])
         // Customers cannot cancel a paid order; admins can, which opens a refund.
@@ -184,10 +223,14 @@ export default function Orders({ admin = false }) {
         {admin && order.refund_status === 'required' && <button disabled={busy} className="button" onClick={() => refunded(order)}>{vi ? 'Xác nhận đã hoàn tiền' : 'Mark refunded'}</button>}
         {admin && <button disabled={busy || loading} className="button" onClick={() => markTest(order)}>{order.is_test ? (vi ? 'Chuyển thành đơn thật' : 'Mark as real order') : (vi ? 'Đánh dấu đơn test' : 'Mark as test order')}</button>}
         {admin && <button disabled={busy} className="button" onClick={() => toggleHistory(order)}>{history[order.id] ? (vi ? 'Ẩn lịch sử' : 'Hide history') : (vi ? 'Lịch sử' : 'History')}</button>}
+        {admin && (order.status === 'confirmed' || order.status === 'shipped') && <button disabled={busy} className="button" onClick={() => setShippingOrder(order)}>{vi ? 'Sửa mã vận đơn' : 'Edit tracking'}</button>}
+        <button disabled={busy} className="button" onClick={() => setInvoiceOrder(order)}>{admin ? (vi ? '🖨 In phiếu giao hàng' : '🖨 Print packing slip') : (vi ? '📄 Hóa đơn điện tử' : '📄 View invoice')}</button>
       </div>
       {!admin && order.status === 'delivered' && <OrderAftersales order={order} reviewed={aftersales.reviewed} returnRequest={aftersales.returns[order.id]} onChanged={() => setRevision(x => x + 1)} />}
       {history[order.id] && <ol className="mt-4 space-y-1 border-t border-line pt-4 text-xs">{history[order.id].map(event => <li key={event.id}>{new Date(event.created_at).toLocaleString(vi ? 'vi-VN' : 'en-US', { timeZone: 'Asia/Ho_Chi_Minh' })} · {eventWords[lang][event.kind] || event.kind}{event.to_status && `: ${words[lang][event.from_status] || '—'} → ${words[lang][event.to_status]}`} · {roleWords[lang][event.actor_role] || event.actor_role}</li>)}{!history[order.id].length && <li>{vi ? 'Đơn cũ chưa có lịch sử.' : 'No history recorded for this older order.'}</li>}</ol>}
     </article>)}</div>
     {!error && <nav aria-label={vi ? 'Phân trang đơn hàng' : 'Order pagination'} className="mt-8 flex items-center justify-center gap-5"><button disabled={loading || busy || result.page <= 1} className="button" onClick={() => page(result.page - 1)}>{vi ? 'Trang trước' : 'Previous page'}</button><span>{result.page}/{result.pages}</span><button disabled={loading || busy || result.page >= result.pages} className="button" onClick={() => page(result.page + 1)}>{vi ? 'Trang sau' : 'Next page'}</button></nav>}
+      {invoiceOrder && <OrderInvoiceModal order={invoiceOrder} onClose={() => setInvoiceOrder(null)} />}
+    {shippingOrder && <ShippingModal order={shippingOrder} busy={busy} onClose={() => setShippingOrder(null)} onConfirm={info => shippingOrder.status === 'shipped' ? updateShippingDirect(shippingOrder, info) : update(shippingOrder, 'shipped', false, info)} />}
   </main>
 }

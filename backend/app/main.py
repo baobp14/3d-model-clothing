@@ -18,11 +18,11 @@ from .config import Settings
 from .db import get_db, make_engine
 from .errors import fail
 from .models import Category, Color, Order, Product, Promotion, PromotionRule, QrPayment, WishlistItem, VariantInventory, OrderPayment, as_dict, active_products, ArchivedProduct
-from .schemas import AddressMutation, ArchiveInput, OrderCreate, OrderStatus, ProductCreate, ProductUpdate, PromotionInput, WishlistInput, VariantConfigure, PaymentReceive, RefundComplete
+from .schemas import AddressMutation, ArchiveInput, OrderCreate, OrderStatus, ProductCreate, ProductUpdate, PromotionInput, WishlistInput, VariantConfigure, PaymentReceive, RefundComplete, OrderShippingUpdate
 from .search import search_products
 from .aftersales import add_review, create_return, decide_return, list_returns, my_aftersales, product_reviews
 from .schemas import ReturnCreate, ReturnDecision, ReviewCreate
-from .services import add_product, edit_product, load_book, mutate_book, place_order, change_order_status, order_dict, lock_customer, product_dict, configure_variants, receive_payment
+from .services import add_product, edit_product, load_book, mutate_book, place_order, change_order_status, order_dict, lock_customer, product_dict, configure_variants, receive_payment, update_order_shipping
 from .services import check_promotion, complete_refund, order_events, promotion_dict, set_archived
 from .payments import ensure_qr, order_for_reference, sync_payment
 from .ratelimit import RateLimiter, client_ip
@@ -335,6 +335,11 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
         settle_qr_before_cancel(db, order_id, values, user, admin=True)
         with db.begin():
             return change_order_status(db, order_id, values, user, admin=True)
+
+    @app.patch('/api/admin/orders/{order_id}/shipping')
+    def admin_order_shipping(order_id: UUID, values: OrderShippingUpdate, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        with db.begin():
+            return update_order_shipping(db, order_id, values, user)
 
     @app.patch('/api/admin/orders/{order_id}/refund')
     def refund_done(order_id: UUID, values: RefundComplete, user: User = Depends(require_admin), db: Session = Depends(get_db)):

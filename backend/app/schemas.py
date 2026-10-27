@@ -132,6 +132,13 @@ class OrderCreate(Input):
 class OrderStatus(Input):
     status: Literal['confirmed', 'shipped', 'delivered', 'canceled']
     expected_status: Literal['pending', 'confirmed', 'shipped', 'delivered', 'canceled']
+    carrier: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=100)] | None = None
+    tracking_code: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, max_length=100)] | None = None
+
+
+class OrderShippingUpdate(Input):
+    carrier: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=100)]
+    tracking_code: Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=100)]
 
 
 class PromotionInput(Input):
