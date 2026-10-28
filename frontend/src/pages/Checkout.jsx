@@ -197,7 +197,17 @@ export default function Checkout() {
           </form>
         </div>
         <OrderSummary discount={discount} discountCode={pending?.payload.promotion_code || promotion?.code || ''}>
-          <ul className="mt-6 space-y-2 border-t border-line-strong/40 pt-5">{items.map(i => <li key={i.key} className="text-caption text-ink-muted">{i.product[lang]} · {colorName(i.product, i.color, lang)}{i.size && ` / ${i.size}`} × {i.quantity}</li>)}</ul>
+          <ul className="mt-6 space-y-2 border-t border-line-strong/40 pt-5">{items.map(i => (
+            <li key={i.key} className="text-caption text-ink-muted flex flex-wrap items-center justify-between gap-2">
+              <span>{i.product[lang]} · {colorName(i.product, i.color, lang)}{i.size && ` / ${i.size}`} × {i.quantity}</span>
+              {i.tried3D && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">
+                  <span className="size-1 rounded-full bg-emerald-500" />
+                  {vi ? 'Đã thử 3D' : '3D Verified'}
+                </span>
+              )}
+            </li>
+          ))}</ul>
           <section className="mt-6">
             <label className="block text-body-sm font-medium" htmlFor="promotion-code">{vi ? 'Mã giảm giá' : 'Promotion code'}</label>
             <div className="mt-2 flex gap-2">

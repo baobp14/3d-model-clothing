@@ -74,7 +74,7 @@ export function CartProvider({ children }) {
     setCart(next)
     return true
   }
-  const add = (product, color, size, quantity = 1) => {
+  const add = (product, color, size, quantity = 1, extra = {}) => {
     const requested = Number(quantity)
     if (!Number.isInteger(requested) || requested < 1 || requested > 99 || product.stock == null) return false
     const key = lineKey(product, color, size)
@@ -85,8 +85,8 @@ export function CartProvider({ children }) {
       const existing = current.filter(i => i.product.id === product.id).reduce((n, i) => n + i.quantity, 0)
       if (existing + requested > product.stock || (current.find(i => i.key === key)?.quantity || 0) + requested > 99) return null
       return current.some(i => i.key === key)
-        ? current.map(i => i.key === key ? { ...i, quantity: i.quantity + requested } : i)
-        : [...current, { key, product, color, size, quantity: requested }]
+        ? current.map(i => i.key === key ? { ...i, quantity: i.quantity + requested, ...extra } : i)
+        : [...current, { key, product, color, size, quantity: requested, ...extra }]
     })
   }
   const update = (key, quantity) => setItems(current => updateCartQuantity(current, key, quantity))

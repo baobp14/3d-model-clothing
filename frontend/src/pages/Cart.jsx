@@ -47,6 +47,14 @@ function CartLine({ item, items, pending, checking, update, remove, lang, vi }) 
         <div className="min-w-0">
           <Link to={`/product/${item.product.id}`} className="inline-flex min-h-6 items-center text-body-sm font-medium hover:underline hover:underline-offset-4">{name}</Link>
           <p className="mt-1 text-caption text-ink-muted">{colorName(item.product, item.color, lang)}{item.size && ` / ${item.size}`}</p>
+          {item.tried3D && (
+            <p className="mt-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 border border-emerald-200/80">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                {vi ? 'Đã thử 3D · Rất vừa vặn' : '3D Verified · Perfect fit'}
+              </span>
+            </p>
+          )}
           <p className="mt-1 text-caption text-ink-muted tabular-nums"><span className="sr-only">{vi ? 'Đơn giá' : 'Unit price'}: </span>{formatPrice(item.product.price)}</p>
         </div>
         <p className="shrink-0 text-body-sm font-medium tabular-nums"><span className="sr-only">{vi ? 'Thành tiền' : 'Line total'}: </span>{formatPrice(item.product.price * item.quantity)}</p>

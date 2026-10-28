@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import GarmentTestApp from '@/components/garment-test/GarmentTestApp'
 import { registerSavedCharts } from '@/lib/tryon/brandSizes'
 import { shopApi } from '../lib/api'
 import { useAuth } from '../hooks/useAuth'
+import { useCart } from '../hooks/useCart'
 import { useLang } from '../i18n'
+import { canShop, loginPath } from '../lib/customerSession'
 
 const MAX_GUEST_TRIES = 3
 const STORAGE_KEY = 'nb_guest_tryon_count'
@@ -16,6 +18,43 @@ export default function TryOn() {
   const location = useLocation()
   const [chartsReady, setChartsReady] = useState(false)
   const lastInteractionRef = useRef(0)
+  const [catalog, setCatalog] = useState([])
+  const [toast, setToast] = useState(null)
+  const { add } = useCart()
+  const navigate = useNavigate()
+
+  // Tải danh mục sản phẩm để kết nối giỏ hàng trực tiếp từ 3D
+  useEffect(() => {
+    shopApi.request('/catalog')
+      .then(data => setCatalog(data.products || []))
+      .catch(() => {})
+  }, [])
+
+  function handleAddToCart({ items, buyNow }) {
+    if (!canShop(user)) {
+      navigate(loginPath(location.pathname + location.search), { state: { returnTo: location.pathname + location.search } })
+      return
+    }
+    if (!items || !items.length) return
+    let count = 0
+    for (const item of items) {
+      if (item.product && item.size) {
+        const ok = add(item.product, item.color || item.product.colors?.[0] || '', item.size, 1, {
+          tried3D: true,
+          fitStatus: item.fitStatus || 'vua',
+        })
+        if (ok) count++
+      }
+    }
+    if (count > 0) {
+      if (buyNow) {
+        navigate('/checkout')
+      } else {
+        setToast(vi ? `✓ Đã thêm ${count} món vào giỏ hàng (Đã xác nhận vừa vặn 3D)!` : `✓ Added ${count} item(s) to bag with 3D Verified fit!`)
+        setTimeout(() => setToast(null), 4000)
+      }
+    }
+  }
 
   // Đọc số lượt dùng thử của khách vãng lai từ localStorage
   const [guestTries, setGuestTries] = useState(() => {
@@ -122,7 +161,7 @@ export default function TryOn() {
       {/* Vùng canvas 3D với bộ lắng nghe tương tác đổi đồ */}
       <div className="relative" onClickCapture={handleTryInteraction}>
         {chartsReady ? (
-          <GarmentTestApp />
+          <GarmentTestApp catalog={catalog} onAddToCart={handleAddToCart} />
         ) : (
           <p className="p-6 text-body-sm text-ink-muted">
             {vi ? 'Đang tải bảng size…' : 'Loading size charts…'}
@@ -168,6 +207,18 @@ export default function TryOn() {
           </div>
         )}
       </div>
+      {/* Toast thông báo thêm giỏ hàng thành công */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl bg-stone-900 text-white px-5 py-3.5 shadow-2xl border border-stone-700/80 transition-all">
+          <div className="flex size-6 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <span className="text-xs font-medium tracking-wide">{toast}</span>
+          <Link to="/cart" className="ml-2 text-xs font-semibold text-emerald-400 underline underline-offset-4 hover:text-emerald-300">
+            {vi ? 'Xem giỏ' : 'View bag'}
+          </Link>
+        </div>
+      )}
     </main>
   )
 }

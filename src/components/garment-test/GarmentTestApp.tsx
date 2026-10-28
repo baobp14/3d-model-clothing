@@ -491,7 +491,12 @@ function makeSlot(kind: GarmentKind | null, calib: { scale: number; offsetY: num
   };
 }
 
-export default function GarmentTestApp() {
+interface GarmentTestAppProps {
+  catalog?: any[];
+  onAddToCart?: (data: { items: any[]; buyNow?: boolean }) => void;
+}
+
+export default function GarmentTestApp({ catalog = [], onAddToCart }: GarmentTestAppProps) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -1099,6 +1104,56 @@ export default function GarmentTestApp() {
     );
   }
 
+  // Match worn clothes to real products from shop catalog
+  const topProduct = useMemo(() => {
+    if (!catalog || !catalog.length || !showTop) return null;
+    const topPreset = presets.filter((p) => presetMatchesKind(p.kind ?? 'tshirt', (slots.top.kind || 'tshirt')))[slots.top.presetIdx];
+    const currentPresetId = topPreset?.id || null;
+    if (currentPresetId) {
+      const match = catalog.find((p: any) => p.images?.some((img: string) => img.includes(currentPresetId)));
+      if (match) return match;
+    }
+    return catalog.find((p: any) => p.category === 'm-tshirts' || p.category === 'w-tshirts') || catalog[0] || null;
+  }, [catalog, showTop, presets, slots.top.kind, slots.top.presetIdx]);
+
+  const bottomProduct = useMemo(() => {
+    if (!catalog || !catalog.length || !showBottom) return null;
+    return (
+      catalog.find((p: any) => p.category === 'm-trousers' || p.category === 'w-trousers' || p.category === 'w-skirts') ||
+      catalog.find((p: any) => p.category?.includes('trouser')) ||
+      null
+    );
+  }, [catalog, showBottom]);
+
+  const wornItems = useMemo(() => {
+    const list: any[] = [];
+    if (showTop && topProduct) {
+      list.push({
+        product: topProduct,
+        color: topProduct.colors?.[0] || 'cream',
+        size: slots.top.size,
+        name: topProduct.name_vi,
+        price: topProduct.price || 199000,
+        kind: 'Áo',
+        fitStatus: verdictForEase(ease ?? 0),
+      });
+    }
+    if (showBottom && bottomProduct) {
+      list.push({
+        product: bottomProduct,
+        color: bottomProduct.colors?.[0] || 'black',
+        size: slots.bottom.size,
+        name: bottomProduct.name_vi,
+        price: bottomProduct.price || 399000,
+        kind: 'Quần',
+        fitStatus: verdictForEase(ease ?? 0),
+      });
+    }
+    return list;
+  }, [showTop, showBottom, topProduct, bottomProduct, slots.top.size, slots.bottom.size, ease]);
+
+  const comboTotal = wornItems.reduce((sum, item) => sum + (item.price || 0), 0);
+
   const verdict = ease === null ? '' : verdictForEase(ease);
   const verdictLabel: Record<string, string> = {
     chat: 'Chật',
@@ -1527,16 +1582,53 @@ export default function GarmentTestApp() {
           </div>
 
           {/* Sidebar Footer: Add to Cart CTA */}
-          <div className="p-4 border-t border-stone-200 bg-white space-y-2">
-            <button
-              type="button"
-              onClick={() => {
-                alert(`Đã chọn kích thước Size ${active.size} cho trang phục của bạn!`);
-              }}
-              className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs transition-all shadow-md flex items-center justify-center gap-2"
-            >
-              <span>🛍️ Chọn Size {active.size} Cho Giỏ Hàng</span>
-            </button>
+          <div className="p-4 border-t border-stone-200 bg-white space-y-2.5">
+            {wornItems.length > 0 && (
+              <div className="flex items-center justify-between text-xs pb-1 border-b border-stone-100">
+                <span className="text-stone-500 font-medium">
+                  {wornItems.length === 2 ? 'Combo đang mặc (Áo + Quần):' : 'Sản phẩm đang thử:'}
+                </span>
+                <span className="text-stone-900 font-bold tabular-nums">
+                  {comboTotal > 0 ? `${comboTotal.toLocaleString('vi-VN')}₫` : '398.000₫'}
+                </span>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onAddToCart && wornItems.length > 0) {
+                    onAddToCart({ items: wornItems, buyNow: false });
+                  } else {
+                    alert(`Đã chọn kích thước Size ${active.size} cho trang phục của bạn!`);
+                  }
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5"
+              >
+                <span>🛍️ {wornItems.length === 2 ? 'Thêm cả bộ vào giỏ' : `Thêm Size ${active.size} vào giỏ`}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (onAddToCart && wornItems.length > 0) {
+                    onAddToCart({ items: wornItems, buyNow: true });
+                  } else {
+                    alert(`Đang chuyển đến trang thanh toán...`);
+                  }
+                }}
+                className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-1"
+                title="Mua ngay combo vừa vặn này"
+              >
+                <span>⚡ Mua ngay</span>
+              </button>
+            </div>
+
+            <p className="text-[10px] text-stone-500 text-center flex items-center justify-center gap-1">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              <span>Tự động gán huy hiệu <strong>"Đã thử 3D · Vừa vặn"</strong> vào giỏ</span>
+            </p>
           </div>
         </aside>
 
