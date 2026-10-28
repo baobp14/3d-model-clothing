@@ -31,6 +31,7 @@ export default function MenuDrawer({ open, onClose }) {
           </li>)}
           <li className="border-b border-line"><Link to="/products?sort=new" onClick={onClose} className="flex min-h-12 items-center font-display text-lead">{t('nav.newIn')}</Link></li>
           <li className="border-b border-line"><NavLink to="/products" end onClick={onClose} className="flex min-h-12 items-center font-display text-lead">{t('nav.all')}</NavLink></li>
+          <li className="border-b border-line"><NavLink to="/try-on" onClick={onClose} className="flex min-h-12 items-center font-display text-lead">{t('nav.tryOn')}</NavLink></li>
         </ul>
       </nav>
       <div className="border-t border-line px-(--gutter) py-5 sm:px-8">
