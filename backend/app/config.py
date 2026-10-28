@@ -35,6 +35,7 @@ class Settings:
     tconnect_service_code: str = os.getenv('TCONNECT_SERVICE_CODE', '')
     tconnect_bincode: str = os.getenv('TCONNECT_BINCODE', '')
     tconnect_va: str = os.getenv('TCONNECT_VA', '')
+    gemini_api_key: str = os.getenv('GEMINI_API_KEY', '')
 
     @property
     def tconnect_ready(self):

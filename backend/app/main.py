@@ -38,6 +38,7 @@ from .schemas import SizeChartInput
 from .measurements import get_measurements, save_measurements
 from .schemas import CustomerMeasurementsPayload
 from .ghn import create_ghn_shipping_order
+from .stylist import StylistPayload, ask_stylist
 from datetime import date, timezone
 from typing import Literal
 from uuid import UUID
@@ -545,6 +546,11 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
     @app.put('/api/account/measurements')
     def update_account_measurements(values: CustomerMeasurementsPayload, user: User = Depends(require_customer), db: Session = Depends(get_db)):
         return save_measurements(db, user.id, values)
+
+    @app.post('/api/chat/stylist')
+    def chat_stylist(payload: StylistPayload):
+        settings: Settings = app.state.settings
+        return ask_stylist(settings.gemini_api_key, payload)
 
     return app
 

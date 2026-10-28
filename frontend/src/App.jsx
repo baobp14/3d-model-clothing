@@ -7,6 +7,7 @@ import { WishlistProvider } from './hooks/useWishlist'
 import RequireCustomer from './components/RequireCustomer'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import AIStylistChat from './components/AIStylistChat' 
 import Admin from './pages/Admin'
 import { ForgotPassword, Login, Register, ResetPassword } from './pages/Auth'
 import { AuthProvider } from './hooks/useAuth'
@@ -95,6 +96,7 @@ function AppContent() {
     </Routes></Suspense>
     </div>
     {!admin && <Footer />}
+    {!admin && <AIStylistChat />}
   </div>
 }
 

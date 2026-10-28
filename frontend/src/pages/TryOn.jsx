@@ -23,6 +23,11 @@ export default function TryOn() {
   const { add } = useCart()
   const navigate = useNavigate()
 
+  const searchParams = new URLSearchParams(location.search)
+  const initialTop = searchParams.get('top')
+  const initialBottom = searchParams.get('bottom')
+  const initialSize = searchParams.get('size')
+
   // Tải danh mục sản phẩm để kết nối giỏ hàng trực tiếp từ 3D
   useEffect(() => {
     shopApi.request('/catalog')
@@ -161,7 +166,7 @@ export default function TryOn() {
       {/* Vùng canvas 3D với bộ lắng nghe tương tác đổi đồ */}
       <div className="relative" onClickCapture={handleTryInteraction}>
         {chartsReady ? (
-          <GarmentTestApp catalog={catalog} onAddToCart={handleAddToCart} />
+          <GarmentTestApp catalog={catalog} onAddToCart={handleAddToCart} initialTop={initialTop} initialBottom={initialBottom} initialSize={initialSize} />
         ) : (
           <p className="p-6 text-body-sm text-ink-muted">
             {vi ? 'Đang tải bảng size…' : 'Loading size charts…'}

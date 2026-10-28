@@ -494,9 +494,18 @@ function makeSlot(kind: GarmentKind | null, calib: { scale: number; offsetY: num
 interface GarmentTestAppProps {
   catalog?: any[];
   onAddToCart?: (data: { items: any[]; buyNow?: boolean }) => void;
+  initialTop?: string | null;
+  initialBottom?: string | null;
+  initialSize?: string | null;
 }
 
-export default function GarmentTestApp({ catalog = [], onAddToCart }: GarmentTestAppProps) {
+export default function GarmentTestApp({
+  catalog = [],
+  onAddToCart,
+  initialTop,
+  initialBottom,
+  initialSize,
+}: GarmentTestAppProps) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -771,6 +780,37 @@ export default function GarmentTestApp({ catalog = [], onAddToCart }: GarmentTes
       setPrintBusy(null);
     }
   }
+
+  // Load initial outfit requested by AI Stylist or query params
+  useEffect(() => {
+    if (initialSize) {
+      updateSlot('top', { size: initialSize });
+      updateSlot('bottom', { size: initialSize });
+    }
+  }, [initialSize]);
+
+  useEffect(() => {
+    if (!initialBottom) return;
+    if (initialBottom === 'pants' || initialBottom === 'shorts' || initialBottom === 'skirt') {
+      updateSlot('bottom', { kind: initialBottom as GarmentKind });
+    }
+  }, [initialBottom]);
+
+  useEffect(() => {
+    if (!initialTop) return;
+    const isShirt = initialTop === 'shirt' || initialTop.includes('oxford');
+    const targetKind: GarmentKind = isShirt ? 'shirt' : 'tshirt';
+    updateSlot('top', { kind: targetKind });
+
+    if (presets.length > 0) {
+      const idx = presets.findIndex(
+        (p) => p.id === initialTop || p.name?.toLowerCase().includes(initialTop.toLowerCase())
+      );
+      if (idx !== -1) {
+        loadPreset('top', presets, idx);
+      }
+    }
+  }, [initialTop, presets]);
 
   useEffect(() => {
     let cancelled = false;
