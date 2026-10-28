@@ -42,6 +42,9 @@ QUY TẮC TƯ VẤN CỦA N&B AI STYLIST:
 6. Độ dài & Định dạng: Trả lời súc tích, ngắn gọn (khoảng 100-180 từ), thanh lịch, không lan man. Dùng gạch đầu dòng rõ ràng.
    BẮT BUỘC ở cuối mỗi combo đề xuất, bạn PHẢI chèn đúng một liên kết combo dạng markdown:
    [✨ Thêm Combo này vào giỏ hàng](/try-on?top=<mã_áo>&bottom=<mã_quần>&size=<S/M/L>)
+7. CÁ NHÂN HÓA THEO LỊCH SỬ TÌM KIẾM & MUA HÀNG (RẤT QUAN TRỌNG):
+   - Nếu có 'Lịch sử tìm kiếm gần đây': Khéo léo nhận diện phong cách khách đang quan tâm để ưu tiên gợi ý đúng gu.
+   - Nếu có 'Sản phẩm đã từng đặt mua': Khen ngợi món đồ khách đã có, chỉ ra cách combo mới có thể phối chéo (layering / mix & match) với món đồ khách đã sở hữu trong tủ đồ.
 """
 
 class StylistMessage(BaseModel):
@@ -52,6 +55,9 @@ class StylistPayload(BaseModel):
     message: str
     history: Optional[List[StylistMessage]] = None
     measurements: Optional[Dict[str, Any]] = None
+    search_history: Optional[List[str]] = None
+    order_history: Optional[List[str]] = None
+    cart_items: Optional[List[str]] = None
 
 def ask_stylist(api_key: str, payload: StylistPayload) -> Dict[str, Any]:
     # Try gemini models in order
@@ -82,6 +88,26 @@ def ask_stylist(api_key: str, payload: StylistPayload) -> Dict[str, Any]:
         if weight: extra_ctx.append(f"Cân nặng: {weight}kg")
         if extra_ctx:
             user_text += f"\n\n[Thông tin số đo của tôi: {', '.join(extra_ctx)}]"
+
+    # Append shopping behavior signals (Search history, Purchased orders, Current Cart)
+    behavior_ctx = []
+    if payload.search_history:
+        s_list = [s.strip() for s in payload.search_history if s.strip()][:5]
+        if s_list:
+            behavior_ctx.append(f"Lịch sử tìm kiếm gần đây: {', '.join(s_list)}")
+
+    if payload.order_history:
+        o_list = [o.strip() for o in payload.order_history if o.strip()][:5]
+        if o_list:
+            behavior_ctx.append(f"Sản phẩm đã từng đặt mua trước đây: {', '.join(o_list)}")
+
+    if payload.cart_items:
+        c_list = [c.strip() for c in payload.cart_items if c.strip()][:3]
+        if c_list:
+            behavior_ctx.append(f"Sản phẩm đang có trong giỏ hàng: {', '.join(c_list)}")
+
+    if behavior_ctx:
+        user_text += f"\n\n[Hồ sơ hành vi & Sở thích của tôi:\n" + "\n".join(f"- {b}" for b in behavior_ctx) + "\n]"
 
     contents.append({
         "role": "user",

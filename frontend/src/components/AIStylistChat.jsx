@@ -6,6 +6,7 @@ import { useCart } from '../hooks/useCart'
 import { formatVnd } from '../lib/format'
 import { shopApi } from '../lib/api'
 import { canShop, loginPath } from '../lib/customerSession'
+import useSearchHistory from '../hooks/useSearchHistory'
 
 const QUICK_PROMPTS = [
   { label: '👔 Set công sở lịch sự', prompt: 'Gợi ý cho mình set đồ đi làm công sở thanh lịch, lịch sự và chuyên nghiệp.' },
@@ -32,7 +33,27 @@ export default function AIStylistChat() {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const { user } = useAuth()
-  const { add } = useCart()
+  const { add, items: cartItems } = useCart()
+  const searchHistory = useSearchHistory()
+  const recentSearches = (searchHistory?.items || []).map(i => i.q).slice(0, 5)
+  const [orderHistory, setOrderHistory] = useState([])
+
+  // Tải lịch sử sản phẩm đã đặt mua nếu đã đăng nhập
+  useEffect(() => {
+    if (!user) return
+    shopApi.request('/orders')
+      .then(data => {
+        const prods = []
+        for (const order of (data.orders || [])) {
+          for (const it of (order.items || [])) {
+            const name = it.name_vi || it.product_name || it.name
+            if (name && !prods.includes(name)) prods.push(name)
+          }
+        }
+        setOrderHistory(prods.slice(0, 5))
+      })
+      .catch(() => {})
+  }, [user])
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -113,6 +134,9 @@ export default function AIStylistChat() {
           message: text,
           history: updatedHistory.slice(-6).map(m => ({ role: m.role, content: m.content })),
           measurements: measurements || undefined,
+          search_history: recentSearches.length ? recentSearches : undefined,
+          order_history: orderHistory.length ? orderHistory : undefined,
+          cart_items: (cartItems || []).map(it => it.product?.name_vi || it.product?.name).filter(Boolean),
         }),
       })
 
@@ -305,34 +329,44 @@ export default function AIStylistChat() {
             </div>
           </div>
 
-          {/* Banner thông tin số đo */}
-          <div className="border-b border-line bg-surface/60 px-4 py-2 text-[11px] text-ink-muted flex items-center justify-between">
-            {measurements ? (
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-                <span>
-                  Đã kết nối số đo: <strong className="text-ink">{measurements.height}cm</strong> · <strong className="text-ink">{measurements.weight}kg</strong>
-                  {measurements.gender === 'female' ? ' (Nữ)' : ' (Nam)'}
+          {/* Banner thông tin số đo & lịch sử hành vi */}
+          <div className="border-b border-line bg-surface/60 px-4 py-2 text-[11px] text-ink-muted flex flex-wrap items-center justify-between gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              {measurements ? (
+                <span className="flex items-center gap-1 text-emerald-800 font-medium">
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                  <span>{measurements.height}cm · {measurements.weight}kg</span>
                 </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="text-ink-muted">💡 Chưa có số đo:</span>
+              ) : (
                 <Link
                   to="/account/measurements"
                   onClick={() => setOpen(false)}
-                  className="font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+                  className="text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
                 >
-                  Nhập số đo để chuẩn size
+                  💡 Nhập số đo
                 </Link>
-              </div>
-            )}
+              )}
+
+              {recentSearches.length > 0 && (
+                <span className="rounded bg-white px-1.5 py-0.5 border border-line text-ink-muted flex items-center gap-1">
+                  🔍 <span className="text-ink font-medium">{recentSearches[0]}</span>
+                  {recentSearches.length > 1 && <span className="text-[10px] text-ink-muted">(+{recentSearches.length - 1})</span>}
+                </span>
+              )}
+
+              {orderHistory.length > 0 && (
+                <span className="rounded bg-white px-1.5 py-0.5 border border-line text-ink-muted flex items-center gap-1">
+                  📦 <span className="text-emerald-700 font-semibold">{orderHistory.length} món đã mua</span>
+                </span>
+              )}
+            </div>
+
             <Link
               to="/cart"
               onClick={() => setOpen(false)}
-              className="font-medium text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1"
+              className="font-medium text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1 shrink-0 ml-auto"
             >
-              <span>Xem giỏ hàng</span> →
+              <span>Xem giỏ</span> →
             </Link>
           </div>
 
