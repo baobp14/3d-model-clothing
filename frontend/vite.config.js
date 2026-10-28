@@ -18,7 +18,10 @@ function tryOnAssetsPlugin() {
         const root = tryOnAssets.find(dir => path.startsWith(`/${dir}/`))
         const file = root && resolve(appRoot, 'public', path.slice(1))
         if (!file || !file.startsWith(resolve(appRoot, 'public') + sep) || !existsSync(file) || !statSync(file).isFile()) return next()
+        const stat = statSync(file)
         res.setHeader('Content-Type', types[extname(file)] || 'application/octet-stream')
+        res.setHeader('Content-Length', stat.size)
+        res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800')
         createReadStream(file).pipe(res)
       })
     },

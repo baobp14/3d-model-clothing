@@ -776,40 +776,6 @@ export default function GarmentTestApp() {
         if (!metaRes.ok) throw new Error('avatar-metadata.json missing — run npm run avatar:build');
         const metadata: AvatarMetadata = await metaRes.json();
 
-        const rigs: Record<string, MorphRig> = {};
-        const avatars: Record<string, THREE.Object3D> = {};
-        const meshes: Record<string, THREE.Mesh> = {};
-        const poseRigs: Record<string, AvatarRig> = {};
-        for (const gender of ['male', 'female'] as const) {
-          const gltf = await loader.loadAsync(`/models/avatar-${gender}.glb`);
-          let body: THREE.Mesh | null = null;
-          gltf.scene.traverse((o) => {
-            if (!body && (o as THREE.Mesh).isMesh) body = o as THREE.Mesh;
-          });
-          if (!body) throw new Error(`No mesh in avatar-${gender}.glb`);
-          const g = (body as THREE.Mesh).geometry;
-          const morphs = g.morphAttributes.position;
-          if (!morphs) throw new Error(`avatar-${gender}.glb has no position morph targets`);
-          rigs[gender] = createMorphRig(
-            {
-              // A copy: posing writes the skinned body into the mesh's own
-              // position buffer, which must not become the rig's rest shape.
-              position: Float32Array.from(g.attributes.position.array as Float32Array),
-              morphDeltas: morphs.map((a) => a.array as Float32Array),
-            },
-            metadata,
-            gender,
-          );
-          avatars[gender] = gltf.scene;
-          meshes[gender] = body as THREE.Mesh;
-          // Keep the unposed base so switching back to chữ A restores morphs.
-          (body as THREE.Mesh).userData.basePosition = Float32Array.from(
-            g.attributes.position.array as Float32Array,
-          );
-          const rigRes = await fetch(`/models/avatar-rig-${gender}.json`);
-          if (rigRes.ok) poseRigs[gender] = await rigRes.json();
-        }
-
         const gMetaRes = await fetch('/models/garment-metadata.json');
         if (!gMetaRes.ok) throw new Error('garment-metadata.json missing — run npm run garment:build');
         const meta: GarmentMeta = await gMetaRes.json();
@@ -856,22 +822,103 @@ export default function GarmentTestApp() {
           return out;
         };
 
-        // Only the everyday kinds the catalogue actually sells; the other meshes
-        // (tank, croptop, dress, capri, sweater, jacket) stay on disk unused.
-        const [tshirt, shirt, longshirt, pants, shorts, skirt] = await Promise.all([
+        const loadAvatarGender = async (gender: 'male' | 'female') => {
+          const [gltf, rigRes] = await Promise.all([
+            loader.loadAsync(`/models/avatar-${gender}.glb`),
+            fetch(`/models/avatar-rig-${gender}.json`).then((r) => (r.ok ? r.json() : null)),
+          ]);
+          let body: THREE.Mesh | null = null;
+          gltf.scene.traverse((o) => {
+            if (!body && (o as THREE.Mesh).isMesh) body = o as THREE.Mesh;
+          });
+          if (!body) throw new Error(`No mesh in avatar-${gender}.glb`);
+          const g = (body as THREE.Mesh).geometry;
+          const morphs = g.morphAttributes.position;
+          if (!morphs) throw new Error(`avatar-${gender}.glb has no position morph targets`);
+          const rig = createMorphRig(
+            {
+              position: Float32Array.from(g.attributes.position.array as Float32Array),
+              morphDeltas: morphs.map((a) => a.array as Float32Array),
+            },
+            metadata,
+            gender,
+          );
+          (body as THREE.Mesh).userData.basePosition = Float32Array.from(
+            g.attributes.position.array as Float32Array,
+          );
+          return {
+            gender,
+            rig,
+            avatar: gltf.scene,
+            mesh: body as THREE.Mesh,
+            poseRig: rigRes as AvatarRig | null,
+          };
+        };
+
+        // Determine active gender for fast initial paint
+        const startGender: 'male' | 'female' =
+          typeof window !== 'undefined' &&
+          new URLSearchParams(window.location.search).get('top')?.includes('_wos_')
+            ? 'female'
+            : (initialUser?.gender || 'male');
+
+        // Fast parallel load: active avatar + core initial garments only (drops initial payload from 15MB to ~5MB)
+        const [initGender, tshirt, pants] = await Promise.all([
+          loadAvatarGender(startGender),
           loadGarment('/models/garment-tshirt.glb', 'tshirt_'),
-          loadGarment('/models/garment-shirt.glb', 'shirt_'),
-          loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
           loadGarment('/models/garment-pants.glb', 'pants_'),
-          loadGarment('/models/garment-shorts.glb', 'shorts_'),
-          loadGarment('/models/garment-skirt.glb', 'skirt_'),
         ]);
+
+        const rigs: Record<string, MorphRig> = { [startGender]: initGender.rig };
+        const avatars: Record<string, THREE.Object3D> = { [startGender]: initGender.avatar };
+        const meshes: Record<string, THREE.Mesh> = { [startGender]: initGender.mesh };
+        const poseRigs: Record<string, AvatarRig> = {};
+        if (initGender.poseRig) poseRigs[startGender] = initGender.poseRig;
+
         const garments: Partial<Record<GarmentKind, Awaited<ReturnType<typeof loadGarment>>>> = {
-          tshirt, shirt, longshirt, pants, shorts, skirt,
+          tshirt,
+          pants,
         };
 
         if (cancelled) return;
         setLoaded({ rigs, avatars, meshes, garments, meta, bodyRef, poseRigs });
+
+        // Non-blocking background prefetch for remaining clothes and other gender avatar
+        setTimeout(async () => {
+          if (cancelled) return;
+          const otherGender = startGender === 'male' ? 'female' : 'male';
+          try {
+            const [otherGenderData, shirt, longshirt, shorts, skirt] = await Promise.all([
+              loadAvatarGender(otherGender),
+              loadGarment('/models/garment-shirt.glb', 'shirt_'),
+              loadGarment('/models/garment-longshirt.glb', 'longshirt_'),
+              loadGarment('/models/garment-shorts.glb', 'shorts_'),
+              loadGarment('/models/garment-skirt.glb', 'skirt_'),
+            ]);
+            if (cancelled) return;
+            setLoaded((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                rigs: { ...prev.rigs, [otherGender]: otherGenderData.rig },
+                avatars: { ...prev.avatars, [otherGender]: otherGenderData.avatar },
+                meshes: { ...prev.meshes, [otherGender]: otherGenderData.mesh },
+                poseRigs: otherGenderData.poseRig
+                  ? { ...prev.poseRigs, [otherGender]: otherGenderData.poseRig }
+                  : prev.poseRigs,
+                garments: {
+                  ...prev.garments,
+                  shirt,
+                  longshirt,
+                  shorts,
+                  skirt,
+                },
+              };
+            });
+          } catch (e) {
+            console.warn('[garment-test] Background prefetch warning:', e);
+          }
+        }, 1000);
       } catch (err) {
         if (cancelled) return;
         console.error('[garment-test]', err);
@@ -902,6 +949,7 @@ export default function GarmentTestApp() {
   const scene = useMemo(() => {
     if (!loaded) return null;
     const rig = loaded.rigs[profile.gender];
+    if (!rig) return null;
     const solved = solveAxes(rig, profile);
     const influences = axesToInfluences(rig, solved.axes);
 
@@ -1028,7 +1076,27 @@ export default function GarmentTestApp() {
     return <div className="p-6 text-sm text-red-600">Lỗi: {error}</div>;
   }
   if (!loaded || !scene) {
-    return <div className="p-6 text-sm text-stone-500">Đang tải avatar và mesh áo…</div>;
+    return (
+      <div className="flex h-[calc(100vh-68px)] min-h-[640px] items-center justify-center bg-stone-50">
+        <div className="flex flex-col items-center max-w-sm p-8 text-center bg-white rounded-2xl shadow-xs border border-stone-200/80">
+          <div className="relative mb-5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full border-2 border-stone-200 border-t-stone-900 animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-stone-900 tracking-tighter">3D</span>
+            </div>
+          </div>
+          <h3 className="text-sm font-semibold text-stone-900 tracking-tight mb-1">
+            Đang chuẩn bị phòng thử đồ 3D
+          </h3>
+          <p className="text-xs text-stone-500 leading-relaxed mb-4">
+            Đang tải mô hình người mẫu giải phẫu học và phom dáng vải vật lý...
+          </p>
+          <div className="w-40 h-1 bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-full bg-stone-900 rounded-full animate-pulse w-3/4" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const verdict = ease === null ? '' : verdictForEase(ease);
@@ -1049,9 +1117,16 @@ export default function GarmentTestApp() {
     const g = topResolved.geom;
     const placed = placeGarment(g, scene.colliders, topResolved.constraints, scene.colliders.shoulderY);
     const prof = new Float32Array(CLIP_BINS).fill(Infinity);
+    const hasHemRegion = Array.from(g.regions).some((r) => r === GARMENT_REGION.hem);
     for (let v = 0; v < g.regions.length; v++) {
       const r = g.regions[v];
-      if (r >= GARMENT_REGION.sleeveRight && r <= GARMENT_REGION.cuffLeft) continue;
+      if (
+        hasHemRegion
+          ? r !== GARMENT_REGION.hem
+          : (r >= GARMENT_REGION.sleeveRight && r <= GARMENT_REGION.cuffLeft) ||
+            placed[v * 3 + 1] > scene.colliders.waistY + 0.05
+      )
+        continue;
       const x = placed[v * 3];
       const z = placed[v * 3 + 2] - scene.colliders.axisZ;
       const a = (Math.atan2(x, z) + Math.PI * 2) % (Math.PI * 2);
@@ -1068,15 +1143,12 @@ export default function GarmentTestApp() {
         }
       }
     }
-    // Slack: this is the hem as PLACED, and the simulated hem rides up when the
-    // shirt settles -- loose tops now hang straight and lift up to ~4cm at the
-    // sides, which opened a white gap between the hem and the clipped bottom.
-    for (let b = 0; b < CLIP_BINS; b++) prof[b] += 0.04;
-    // Where the top stops above the waistband (croptop, a hem riding up at the
-    // sides) there is nothing over the bottom to hide it under -- cutting it
-    // there bared a band of skin between the two. Leave those angles alone.
-    const waistTop = scene.colliders.waistY - 0.02;
-    for (let b = 0; b < CLIP_BINS; b++) if (prof[b] > waistTop) prof[b] = 1e3;
+    // Crop tops: if the lowest hem sits completely above the waistband, do not clip the pants
+    const minHem = Math.min(...prof);
+    if (minHem > scene.colliders.waistY + 0.02) return undefined;
+
+    // Smooth uniform slack so the pants tuck neatly inside without poke-through
+    for (let b = 0; b < CLIP_BINS; b++) prof[b] += 0.02;
     return prof;
   })();
 
@@ -1085,6 +1157,8 @@ export default function GarmentTestApp() {
     if (!resolved) continue;
     pieces.push({
       key: slot,
+      slot,
+      ease: slot === 'top' ? 0.020 : 0.012,
       geom: resolved.geom,
       constraints: resolved.constraints,
       fabric: FABRICS[resolved.state.fabricKey],

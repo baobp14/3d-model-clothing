@@ -69,6 +69,10 @@ export interface GarmentPieceInput {
    * show the thigh through them past ~1cm.
    */
   clipPull?: number;
+  /** Ease offset from body collider in metres (e.g. 0.020 for top, 0.012 for bottom). */
+  ease?: number;
+  /** Garment slot layer ('top' or 'bottom') to control render order & polygon offset. */
+  slot?: 'top' | 'bottom';
 }
 
 export interface ClothViewProps {
@@ -217,6 +221,8 @@ function GarmentPiece({
   colliders,
   pinRegion,
   anchorY,
+  ease = 0.014,
+  slot,
   placket = false,
   pattern = 'plain',
   color2 = '#ffffff',
@@ -678,7 +684,8 @@ varying float vLocalY;
       if (k == i0 - (i0 / CLIP_BINS_N) * CLIP_BINS_N) y0 = uClipProf[k];
       if (k == (i0 + 1) - ((i0 + 1) / CLIP_BINS_N) * CLIP_BINS_N) y1 = uClipProf[k];
     }
-    if (vWorldY > mix(y0, y1, t)) discard;
+    // Discard only well inside the top shirt (+0.035m safety margin) to avoid any exposed cut gap
+    if (vWorldY > mix(y0, y1, t) + 0.035) discard;
   }
   // Ribbed elastic waistband: horizontal bands running around the waist,
   // since the weave bump map is a generic fabric grain that doesn't read as
@@ -787,6 +794,7 @@ varying float vLocalY;
         const thorough = settling.current <= CAP_FINISH_STEPS;
         stepGarmentSim(sim, constraints, live.current, {
           fabric,
+          ease,
           ...(thorough ? { capSweeps: 10 } : null),
         });
         settling.current--;
@@ -805,10 +813,10 @@ varying float vLocalY;
     // through the hips during a fast turn. Paying for it while the model
     // stands still doubled the cost of the most common frame for nothing.
     if (turningRef.current) {
-      stepGarmentSim(sim, constraints, live.current, { fabric, dt: dt / 2 });
-      stepGarmentSim(sim, constraints, live.current, { fabric, dt: dt / 2 });
+      stepGarmentSim(sim, constraints, live.current, { fabric, ease, dt: dt / 2 });
+      stepGarmentSim(sim, constraints, live.current, { fabric, ease, dt: dt / 2 });
     } else {
-      stepGarmentSim(sim, constraints, live.current, { fabric, dt });
+      stepGarmentSim(sim, constraints, live.current, { fabric, ease, dt });
     }
 
     pushToGeometry();
@@ -828,8 +836,15 @@ varying float vLocalY;
     }
   });
 
+  const isTop = slot === 'top';
   return (
-    <mesh geometry={geometry} castShadow visible={showGarment} frustumCulled={false}>
+    <mesh
+      geometry={geometry}
+      castShadow
+      visible={showGarment}
+      frustumCulled={false}
+      renderOrder={isTop ? 2 : 1}
+    >
       <meshPhysicalMaterial
         side={THREE.DoubleSide}
         color={showStretch ? '#ffffff' : baseColor}
@@ -844,10 +859,13 @@ varying float vLocalY;
         bumpMap={wireframe || showStretch || showFaces ? null : weave}
         bumpScale={0.35}
         wireframe={wireframe}
+        polygonOffset={isTop}
+        polygonOffsetFactor={isTop ? -2 : 0}
+        polygonOffsetUnits={isTop ? -2 : 0}
         onBeforeCompile={onBeforeCompile}
         // Must change when vertexColors flips, or three reuses the compiled
         // program without the USE_COLOR define.
-        customProgramCacheKey={() => `garment-print-v2-${showStretch ? 'vc' : 'plain'}`}
+        customProgramCacheKey={() => `garment-print-v2-${showStretch ? 'vc' : 'plain'}-${isTop ? 'top' : 'bot'}`}
       />
     </mesh>
   );
@@ -911,6 +929,7 @@ function Rig({
       {pieces.map(({ key, ...p }) => (
         <GarmentPiece
           key={key}
+          slot={key as any}
           {...p}
           colliders={colliders}
           wireframe={wireframe}
