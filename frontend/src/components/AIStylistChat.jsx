@@ -466,15 +466,10 @@ export default function AIStylistChat() {
                               </button>
                             </div>
 
-                            {/* Link phụ tùy chọn xem 3D */}
-                            <div className="mt-2 text-center">
-                              <Link
-                                to={of.url || `/try-on?top=${of.top}&bottom=${of.bottom}&size=${size}`}
-                                onClick={() => setOpen(false)}
-                                className="text-[11px] text-ink-muted hover:text-ink underline underline-offset-2 transition-colors"
-                              >
-                                👁️ Hoặc xem trên người mẫu 3D
-                              </Link>
+                            {/* Huy hiệu cam kết chất lượng */}
+                            <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-ink-muted">
+                              <Icon name="checkCircle" size={13} className="text-emerald-600" />
+                              <span>Cam kết chuẩn phom dáng theo số đo · Đổi trả 7 ngày</span>
                             </div>
                           </div>
                         )

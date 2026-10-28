@@ -404,8 +404,8 @@ const SHIRT_TEXTURES: TextureOpt[] = [
   { key: 'chambray', label: 'Chambray (jean mỏng)', pattern: 'denim', color: '#5b7fae', color2: '#ffffff', fabric: 'woven' },
 ];
 const BOTTOM_TEXTURES: TextureOpt[] = [
+  { key: 'denimBlack', label: 'Tây đen / Jean đen', pattern: 'denim', color: '#1e2025', color2: '#ffffff', fabric: 'denim' },
   { key: 'denim', label: 'Jean xanh', pattern: 'denim', color: '#2b4a7a', color2: '#ffffff', fabric: 'denim' },
-  { key: 'denimBlack', label: 'Jean đen', pattern: 'denim', color: '#2a2c33', color2: '#ffffff', fabric: 'denim' },
   { key: 'khaki', label: 'Kaki be', pattern: 'twill', color: '#c8b48f', color2: '#ffffff', fabric: 'woven' },
   { key: 'khakiOlive', label: 'Kaki rêu', pattern: 'twill', color: '#5e6645', color2: '#ffffff', fabric: 'woven' },
   { key: 'fleece', label: 'Nỉ xám', pattern: 'heather', color: '#8d9097', color2: '#ffffff', fabric: 'knit' },
