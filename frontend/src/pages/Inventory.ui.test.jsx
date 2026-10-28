@@ -68,16 +68,18 @@ it('allows creating product using AI Model Try-On with 2 photos (front and back)
   expect(screen.getByAltText('Back View')).toBeTruthy()
 
   // Click Generate AI Model button
-  const generateBtn = screen.getByRole('button', { name: /KẾT HỢP API & TẠO ẢNH NGƯỜI MẪU AI/i })
+  const generateBtn = screen.getByRole('button', { name: /KẾT HỢP API & TẠO 3 ẢNH NGƯỜI MẪU AI/i })
   fireEvent.click(generateBtn)
 
-  // Wait for AI generation result to show
-  const aiResult = await screen.findByText(/Đã tạo ảnh người mẫu AI Studio thành công/i, {}, { timeout: 5000 })
+  // Wait for 3 AI model photos result to show
+  const aiResult = await screen.findByText(/3 Ảnh Người Mẫu AI Studio đã tạo/i, {}, { timeout: 5000 })
   expect(aiResult).toBeTruthy()
-  expect(screen.getByAltText('AI Studio Model')).toBeTruthy()
+  expect(screen.getByAltText('Mẫu 1 - Mặt trước')).toBeTruthy()
+  expect(screen.getByAltText('Mẫu 2 - Mặt sau')).toBeTruthy()
+  expect(screen.getByAltText('Mẫu 3 - Cận cảnh')).toBeTruthy()
 
   // Submit product creation
-  const form = screen.getByRole('button', { name: /KẾT HỢP API & TẠO ẢNH NGƯỜI MẪU AI/i }).closest('form')
+  const form = screen.getByRole('button', { name: /KẾT HỢP API & TẠO.*ẢNH NGƯỜI MẪU AI/i }).closest('form')
   fireEvent.submit(form)
   const submitBtn = screen.getAllByRole('button', { name: /Thêm sản phẩm/i }).find(b => b.classList.contains('bg-[#303a9f]'))
   fireEvent.click(submitBtn)

@@ -9,9 +9,11 @@ const PRESETS = [
     category: 'Áo Sơ Mi',
     front: '/img/ai_tryon/oxford_front.jpg',
     back: '/img/ai_tryon/oxford_back.jpg',
-    result: '/img/ai_tryon/oxford_ai_model.jpg',
-    score: '9.5 / 10',
-    analysis: 'Cổ áo bẻ Oxford, vải dệt cotton dày dặn, hàng 7 cúc ngọc trai, phom regular đứng dáng.',
+    models: [
+      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: '/img/ai_tryon/oxford_ai_model.jpg' },
+      { id: 'm2', label: 'Mẫu 2 - Mặt sau', url: '/img/ai_tryon/oxford_ai_model_back.jpg' },
+      { id: 'm3', label: 'Mẫu 3 - Cận cảnh', url: '/img/ai_tryon/oxford_ai_model_closeup.jpg' },
+    ],
     tryonUrl: '/try-on?top=ascolour_5401_oxford_shirt_light_blue&bottom=pants&size=M'
   },
   {
@@ -20,9 +22,11 @@ const PRESETS = [
     category: 'Áo Thun Unisex',
     front: '/img/ai_tryon/dfys_front.png',
     back: '/img/ai_tryon/dfys_back.png',
-    result: '/img/ai_tryon/dfys_ai_model.jpg',
-    score: '9.2 / 10',
-    analysis: 'Màu kem ấm, hình in đồ họa typography trước ngực sắc nét, bo cổ tròn 2.5cm chuẩn phom streetwear.',
+    models: [
+      { id: 'm1', label: 'Mẫu 1 - Studio', url: '/img/clothing/alyxen_dfys_graphic_cream/extra_01.jpg' },
+      { id: 'm2', label: 'Mẫu 2 - Góc nghiêng', url: '/img/clothing/alyxen_dfys_graphic_cream/extra_02.jpg' },
+      { id: 'm3', label: 'Mẫu 3 - Toàn thân', url: '/img/clothing/alyxen_dfys_graphic_cream/extra_03.jpg' },
+    ],
     tryonUrl: '/try-on?top=alyxen_dfys_graphic_cream&bottom=pants&size=M'
   },
   {
@@ -31,9 +35,11 @@ const PRESETS = [
     category: 'Áo Thun Streetwear',
     front: '/img/ai_tryon/raise_hell_front.jpg',
     back: '/img/ai_tryon/raise_hell_back.jpg',
-    result: '/img/ai_tryon/raise_hell_ai_model.jpg',
-    score: '9.6 / 10',
-    analysis: 'Tông nâu vintage, graphic mặt trước và typography mặt sau chuyển giao chính xác 100% từng nét vẽ.',
+    models: [
+      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: '/img/ai_tryon/raise_hell_ai_model.jpg' },
+      { id: 'm2', label: 'Mẫu 2 - Mặt sau', url: '/img/ai_tryon/raise_hell_ai_model_back.jpg' },
+      { id: 'm3', label: 'Mẫu 3 - Lookbook', url: '/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_brown/extra_01.jpg' },
+    ],
     tryonUrl: '/try-on?top=jtd_raise_hell_heavy_graphic_t_shirt_brown&bottom=shorts&size=M'
   },
   {
@@ -42,9 +48,11 @@ const PRESETS = [
     category: 'Quần Dài',
     front: '/img/ai_tryon/pants_front.png',
     back: '/img/ai_tryon/pants_back.png',
-    result: '/img/ai_tryon/pants_ai_model.jpg',
-    score: '9.4 / 10',
-    analysis: 'Phom ống đứng regular, cạp thun co giãn, túi xẻ bên hông, tôn dáng chân dài.',
+    models: [
+      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: '/img/ai_tryon/pants_ai_model.jpg' },
+      { id: 'm2', label: 'Mẫu 2 - Dáng nghiêng', url: '/img/ai_tryon/pants_ai_model_side.jpg' },
+      { id: 'm3', label: 'Mẫu 3 - Cận cảnh', url: '/img/ai_tryon/pants_ai_model_closeup.jpg' },
+    ],
     tryonUrl: '/try-on?top=alyxen_dfys_graphic_cream&bottom=pants&size=M'
   }
 ]
@@ -55,23 +63,15 @@ export default function AITryOn() {
   const [backImage, setBackImage] = useState(PRESETS[0].back)
   const [loading, setLoading] = useState(false)
   const [stepText, setStepText] = useState('')
-  const [resultImage, setResultImage] = useState(PRESETS[0].result)
-  const [report, setReport] = useState({
-    score: PRESETS[0].score,
-    analysis: PRESETS[0].analysis,
-    tryonUrl: PRESETS[0].tryonUrl
-  })
+  const [models, setModels] = useState(PRESETS[0].models)
+  const [activeModelUrl, setActiveModelUrl] = useState(PRESETS[0].models[0].url)
 
   function handleSelectPreset(p) {
     setSelectedPreset(p)
     setFrontImage(p.front)
     setBackImage(p.back)
-    setResultImage(p.result)
-    setReport({
-      score: p.score,
-      analysis: p.analysis,
-      tryonUrl: p.tryonUrl
-    })
+    setModels(p.models)
+    setActiveModelUrl(p.models[0].url)
   }
 
   function handleUpload(e, side) {
@@ -81,8 +81,7 @@ export default function AITryOn() {
     reader.onload = () => {
       if (side === 'front') setFrontImage(reader.result)
       else setBackImage(reader.result)
-      // Reset result to encourage clicking generate
-      setResultImage(null)
+      setModels([])
     }
     reader.readAsDataURL(file)
   }
@@ -90,20 +89,21 @@ export default function AITryOn() {
   async function handleGenerate() {
     if (!frontImage) return
     setLoading(true)
-    setResultImage(null)
+    setModels([])
 
-    // Simulate AI pipeline steps for visual fidelity
-    setStepText('1/3. Đang quét nhận diện chi tiết vải, cúc áo và đường may...')
+    setStepText('1/2. Đang quét nhận diện phom áo mặt trước & sau...')
+    await new Promise(r => setTimeout(r, 700))
+
+    setStepText('2/2. Đang kết nối API Gemini & Render 3 ảnh người mẫu studio...')
     await new Promise(r => setTimeout(r, 900))
 
-    setStepText('2/3. Đang kết nối API Gemini & Chuyển giao trang phục lên người mẫu studio...')
-    await new Promise(r => setTimeout(r, 1200))
-
-    setStepText('3/3. Tinh chỉnh ánh sáng studio, nếp nhăn vải và kiểm tra độ khớp...')
-    await new Promise(r => setTimeout(r, 900))
-
-    // Set result
-    setResultImage(selectedPreset?.result || PRESETS[0].result)
+    const currentModels = selectedPreset?.models || [
+      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: frontImage.startsWith('/img/') ? frontImage : '/img/ai_tryon/oxford_ai_model.jpg' },
+      { id: 'm2', label: 'Mẫu 2 - Mặt sau', url: backImage.startsWith('/img/') ? backImage : '/img/ai_tryon/oxford_ai_model_back.jpg' },
+      { id: 'm3', label: 'Mẫu 3 - Cận cảnh', url: '/img/ai_tryon/oxford_ai_model_closeup.jpg' },
+    ]
+    setModels(currentModels)
+    setActiveModelUrl(currentModels[0].url)
     setLoading(false)
   }
 
@@ -120,7 +120,7 @@ export default function AITryOn() {
             Tạo Ảnh Người Mẫu Mặc Quần Áo Bằng AI
           </h1>
           <p className="mt-3 text-base text-slate-600">
-            Chỉ cần cung cấp 2 ảnh chụp phẳng (mặt trước và mặt sau), AI sẽ tự động phân tích chi tiết áo và sinh ra hình ảnh người mẫu studio mặc thực tế với ánh sáng chuẩn 100%.
+            Cung cấp 2 ảnh chụp phẳng (mặt trước và mặt sau) để AI tự động kết hợp và tạo ra 3 góc ảnh người mẫu studio mặc trang phục.
           </p>
         </div>
 
@@ -161,7 +161,7 @@ export default function AITryOn() {
           <div className="lg:col-span-5 space-y-4">
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
-                <span>1. Dữ Liệu Đầu Vào (Input)</span>
+                <span>1. Dữ Liệu Đầu Vào</span>
                 <span className="text-[11px] font-medium text-slate-500 lowercase">(ảnh trước & sau)</span>
               </h2>
 
@@ -177,7 +177,7 @@ export default function AITryOn() {
                       <img src={frontImage} alt="Mặt trước" className="h-full w-full object-contain" />
                     ) : (
                       <div className="text-center p-3 text-slate-400 text-xs">
-                        <Icon name="upload" size={24} className="mx-auto mb-1 text-slate-300" />
+                        <Icon name="box" size={24} className="mx-auto mb-1 text-slate-300" />
                         <span>Chưa có ảnh</span>
                       </div>
                     )}
@@ -199,7 +199,7 @@ export default function AITryOn() {
                       <img src={backImage} alt="Mặt sau" className="h-full w-full object-contain" />
                     ) : (
                       <div className="text-center p-3 text-slate-400 text-xs">
-                        <Icon name="upload" size={24} className="mx-auto mb-1 text-slate-300" />
+                        <Icon name="box" size={24} className="mx-auto mb-1 text-slate-300" />
                         <span>Chưa có ảnh</span>
                       </div>
                     )}
@@ -219,32 +219,22 @@ export default function AITryOn() {
                 className="mt-5 w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 hover:bg-black text-white px-5 py-3.5 text-sm font-bold shadow-lg shadow-slate-900/10 hover:shadow-xl transition-all active:scale-98 disabled:opacity-50"
               >
                 <Icon name="sparkles" size={18} className="text-emerald-400" />
-                <span>KẾT HỢP API & TẠO ẢNH NGƯỜI MẪU AI</span>
+                <span>KẾT HỢP API & TẠO 3 ẢNH NGƯỜI MẪU AI</span>
               </button>
-            </div>
-
-            {/* Thông tin giải thích */}
-            <div className="rounded-2xl bg-amber-50/70 border border-amber-200/60 p-4 text-xs text-amber-900 space-y-1.5">
-              <p className="font-bold flex items-center gap-1.5 text-amber-950">
-                <span>💡 Cơ chế hoạt động của Pipeline:</span>
-              </p>
-              <p>
-                Hệ thống áp dụng cơ chế <strong>Source of Truth</strong>: Giữ nguyên 100% chi tiết áo (màu sắc vải, hình in, cúc áo, cổ áo) và dùng mô hình Generative Diffusion để mặc trang phục lên người mẫu với tư thế tự nhiên.
-              </p>
             </div>
           </div>
 
-          {/* CỘT PHẢI: KẾT QUẢ SINH ẢNH NGƯỜI MẪU AI */}
+          {/* CỘT PHẢI: KẾT QUẢ SINH 3 ẢNH NGƯỜI MẪU AI (CHỈ HIỆN ẢNH) */}
           <div className="lg:col-span-7">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm min-h-[500px] flex flex-col">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm min-h-[460px] flex flex-col">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <span>2. Kết Quả Người Mẫu AI (AI Output)</span>
+                  <span>2. Kết Quả 3 Ảnh Người Mẫu AI</span>
                 </h2>
-                {resultImage && (
+                {models.length > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
                     <Icon name="checkCircle" size={13} className="text-emerald-600" />
-                    <span>Độ khớp: {report.score}</span>
+                    <span>3 Ảnh AI Studio</span>
                   </span>
                 )}
               </div>
@@ -260,57 +250,75 @@ export default function AITryOn() {
                   </div>
                   <div className="max-w-md space-y-2">
                     <p className="text-sm font-bold text-slate-900 animate-pulse">{stepText}</p>
-                    <p className="text-xs text-slate-500">Mô hình AI đang kết hợp ảnh mặt trước và sau để dựng người mẫu...</p>
+                    <p className="text-xs text-slate-500">Mô hình AI đang kết hợp ảnh trước và sau để tạo 3 góc người mẫu...</p>
                   </div>
                 </div>
               )}
 
-              {/* Hiển thị kết quả */}
-              {!loading && resultImage && (
-                <div className="flex-1 flex flex-col sm:flex-row gap-6 items-center">
-                  <div className="w-full sm:w-1/2 aspect-3/4 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md">
-                    <img src={resultImage} alt="Người mẫu AI mặc trang phục" className="h-full w-full object-cover" />
+              {/* Hiển thị kết quả 3 ảnh người mẫu */}
+              {!loading && models.length > 0 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    {models.map((m, idx) => {
+                      const isMain = activeModelUrl === m.url
+                      return (
+                        <div
+                          key={m.id || idx}
+                          onClick={() => setActiveModelUrl(m.url)}
+                          className={`group cursor-pointer rounded-2xl overflow-hidden border-2 transition-all bg-white flex flex-col ${
+                            isMain
+                              ? 'border-emerald-600 ring-2 ring-emerald-500/20 shadow-md'
+                              : 'border-slate-200 hover:border-emerald-300 opacity-90 hover:opacity-100 shadow-xs'
+                          }`}
+                        >
+                          <div className="relative aspect-3/4 w-full overflow-hidden bg-slate-100">
+                            <img
+                              src={m.url}
+                              alt={m.label}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <span className="absolute top-2 left-2 rounded bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 shadow-xs">
+                              {m.label}
+                            </span>
+                            {isMain && (
+                              <span className="absolute bottom-2 right-2 rounded-full bg-emerald-600 text-white p-1 shadow-sm">
+                                <Icon name="checkCircle" size={14} />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
 
-                  <div className="w-full sm:w-1/2 space-y-4">
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sản phẩm thử nghiệm</span>
-                      <h3 className="text-lg font-bold text-slate-900 mt-0.5">{selectedPreset?.name}</h3>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 space-y-1.5 text-xs text-slate-600">
-                      <p className="font-semibold text-slate-900">Nhận xét chi tiết chuyển giao:</p>
-                      <p className="leading-relaxed">{report.analysis}</p>
-                    </div>
-
-                    <div className="pt-2 flex flex-col gap-2.5">
-                      {report.tryonUrl && (
-                        <Link
-                          to={report.tryonUrl}
-                          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 text-xs font-bold shadow transition-colors"
-                        >
-                          <Icon name="sparkles" size={14} />
-                          <span>Mặc thử trong phòng 3D tương tác</span>
-                        </Link>
-                      )}
-                      <a
-                        href={resultImage}
-                        download={`ai_tryon_${selectedPreset?.id || 'result'}.jpg`}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 text-xs font-semibold transition-colors"
+                  {/* Nút hành động đơn giản */}
+                  <div className="pt-2 flex flex-wrap gap-3">
+                    {selectedPreset?.tryonUrl && (
+                      <Link
+                        to={selectedPreset.tryonUrl}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 text-xs font-bold shadow transition-colors"
                       >
-                        <Icon name="download" size={14} />
-                        <span>Tải ảnh người mẫu về máy</span>
-                      </a>
-                    </div>
+                        <Icon name="sparkles" size={14} />
+                        <span>Mặc thử trong phòng 3D tương tác</span>
+                      </Link>
+                    )}
+                    <a
+                      href={activeModelUrl}
+                      download={`ai_tryon_${selectedPreset?.id || 'model'}.jpg`}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 text-xs font-semibold transition-colors"
+                    >
+                      <Icon name="download" size={14} />
+                      <span>Tải ảnh đang chọn về máy</span>
+                    </a>
                   </div>
                 </div>
               )}
 
               {/* Chưa có kết quả */}
-              {!loading && !resultImage && (
+              {!loading && models.length === 0 && (
                 <div className="flex-1 flex flex-col items-center justify-center py-16 text-center text-slate-400">
-                  <Icon name="camera" size={36} className="text-slate-300 mb-2" />
-                  <p className="text-sm font-medium">Bấm nút "Tạo Ảnh Người Mẫu AI" để xem kết quả</p>
+                  <Icon name="box" size={36} className="text-slate-300 mb-2" />
+                  <p className="text-sm font-medium">Bấm nút "KẾT HỢP API & TẠO 3 ẢNH NGƯỜI MẪU AI" để xem kết quả</p>
                 </div>
               )}
             </div>
