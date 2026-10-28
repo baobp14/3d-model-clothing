@@ -26,7 +26,7 @@ export function createApiClient({ baseUrl = '/api', getSession, fetchImpl = glob
       }
       if (signal.aborted) throw new Error('NB_API_CANCELED')
       const response = await fetchImpl(`${base}${path}`, {
-        method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal,
+        method, headers, body: body === undefined ? undefined : (typeof body === "string" ? body : JSON.stringify(body)), signal,
       })
       let result
       try { result = await response.json() } catch { throw new Error('NB_API_UNAVAILABLE') }
