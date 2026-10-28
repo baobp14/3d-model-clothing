@@ -1665,7 +1665,110 @@ export default function GarmentTestApp() {
           )}
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main className="relative min-w-0 flex-1 h-[680px] lg:h-full overflow-hidden bg-gradient-to-b from-[#faf8f5] to-[#eae6df]">
+          {/* Top-Left: Studio Runway HUD */}
+          <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-col gap-1.5 text-xs">
+            <div className="flex items-center gap-2 rounded-full border border-stone-300/80 bg-white/90 px-3.5 py-1.5 text-stone-800 shadow-sm backdrop-blur-md">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-semibold tracking-wide uppercase text-[11px] text-stone-900">Studio Runway 3D</span>
+              <span className="text-stone-300">|</span>
+              <span className="text-stone-600 font-medium">{profile.gender === 'female' ? 'Mẫu nữ' : 'Mẫu nam'} {profile.heightCm}cm · {profile.weightKg}kg</span>
+              {active && (
+                <>
+                  <span className="text-stone-300">|</span>
+                  <span className="text-stone-700 font-semibold">Size: {active.size}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Top-Right: Quick Studio Actions */}
+          <div className="absolute right-4 top-4 z-10 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSpinning((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm transition-all backdrop-blur-md ${
+                spinning
+                  ? 'bg-stone-900 text-white ring-2 ring-stone-900/30 shadow-md'
+                  : 'bg-white/90 text-stone-700 hover:bg-white border border-stone-300/80 hover:border-stone-400'
+              }`}
+            >
+              <span>{spinning ? '⏸ Dừng xoay' : '⟳ Xoay 360°'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowStretch((v) => !v);
+                setShowFaces(false);
+              }}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm transition-all backdrop-blur-md ${
+                showStretch
+                  ? 'bg-amber-600 text-white ring-2 ring-amber-400/50 shadow-md'
+                  : 'bg-white/90 text-stone-700 hover:bg-white border border-stone-300/80 hover:border-stone-400'
+              }`}
+            >
+              <span>{showStretch ? '✓ Đang soi độ căng' : '🔍 Soi độ vừa vặn'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTurnNonce((n) => n + 1)}
+              className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-white border border-stone-300/80 shadow-sm backdrop-blur-md"
+              title="Xoay người mẫu 180 độ để ngắm mặt sau"
+            >
+              ↺ 180°
+            </button>
+          </div>
+
+          {/* Bottom-Left: Fit & Tension Heatmap Legend (When showStretch is active) */}
+          {showStretch && (
+            <div className="absolute bottom-4 left-4 z-10 rounded-2xl border border-stone-200/90 bg-white/95 p-3.5 shadow-xl backdrop-blur-md text-xs animate-in fade-in duration-300">
+              <p className="font-semibold text-stone-800 mb-2 flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-amber-500" />
+                <span>Bản đồ độ vừa vặn & căng vải ({SLOT_LABEL[activeSlot]})</span>
+              </p>
+              <div className="flex items-center gap-4 text-[11px] text-stone-600">
+                <span className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full bg-[#38bdf8] shadow-xs" />
+                  Rộng / Thoải mái
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full bg-[#10b981] shadow-xs" />
+                  Chuẩn phom vừa in
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full bg-[#ef4444] shadow-xs" />
+                  Căng bó theo số đo
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom-Right: Quick Camera Framing Views */}
+          <div className="absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-full border border-stone-200/90 bg-white/90 p-1 shadow-md backdrop-blur-md">
+            {(
+              [
+                ['full', 'Toàn thân'],
+                ['neck', 'Thân trên'],
+                ['legs', 'Thân dưới'],
+              ] as const
+            ).map(([v, label]) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                  view === v
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <GarmentClothCanvas
             avatar={scene.avatar}
             colliders={scene.colliders}

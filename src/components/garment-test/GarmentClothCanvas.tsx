@@ -1,7 +1,7 @@
 'use client';
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, ContactShadows } from '@react-three/drei';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { CLIP_BINS } from './clipProfile';
@@ -156,9 +156,18 @@ export type FabricPatternKey = keyof typeof FABRIC_PATTERNS;
 /** Milliseconds of settling a single frame may spend before yielding. */
 const SETTLE_BUDGET_MS = 14;
 
-// Stretch ratio mapped to colour: 1.0 slack -> 1.2 at the knit limit.
-const COLD = new THREE.Color('#8fb6e8');
-const HOT = new THREE.Color('#e8503f');
+// Stretch ratio mapped to colour: 3-tier tension gradient (Slack -> Tailored Fit -> Tight Tension)
+const COLOR_SLACK = new THREE.Color('#38bdf8'); // Rộng / Thoải mái (Xanh)
+const COLOR_IDEAL = new THREE.Color('#10b981'); // Vừa vặn chuẩn phom (Xanh lá)
+const COLOR_TIGHT = new THREE.Color('#ef4444'); // Căng bó sát theo số đo (Đỏ)
+
+function getStretchColor(t: number, out: THREE.Color): THREE.Color {
+  if (t <= 0.45) {
+    return out.copy(COLOR_SLACK).lerp(COLOR_IDEAL, t / 0.45);
+  } else {
+    return out.copy(COLOR_IDEAL).lerp(COLOR_TIGHT, (t - 0.45) / 0.55);
+  }
+}
 
 /**
  * A woven-thread bump map, drawn once at load.
@@ -809,7 +818,7 @@ varying float vLocalY;
       const c = new THREE.Color();
       for (let v = 0; v < sim.stretch.length; v++) {
         const t = Math.max(0, Math.min(1, (sim.stretch[v] - 1) / (fabric.maxStretch - 1)));
-        c.copy(COLD).lerp(HOT, t);
+        getStretchColor(t, c);
         arr[v * 3] = c.r;
         arr[v * 3 + 1] = c.g;
         arr[v * 3 + 2] = c.b;
@@ -909,19 +918,72 @@ export default function GarmentClothCanvas(props: ClothViewProps) {
   return (
     <Canvas
       dpr={[1, 2]}
-      gl={{ alpha: true, antialias: true }}
+      gl={{
+        alpha: true,
+        antialias: true,
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 1.05,
+      }}
       camera={{ position: [0.9, 1.35, 2.3], fov: 35, near: 0.02, far: 60 }}
     >
-      <ambientLight intensity={0.6} />
-      <hemisphereLight args={['#ffffff', '#b9b2aa', 0.5]} />
-      <directionalLight position={[2.4, 3.6, 2.6]} intensity={1.3} />
-      <directionalLight position={[-2.6, 1.8, -1.6]} intensity={0.45} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, groundY, 0]}>
-        <circleGeometry args={[6, 64]} />
-        <meshStandardMaterial color="#e9e6e2" roughness={1} />
-      </mesh>
+      {/* Studio Editorial Lighting Setup */}
+      <ambientLight intensity={0.45} />
+      <hemisphereLight args={['#ffffff', '#ded9d0', 0.65]} />
+
+      {/* Key Light (Front-Right Warm Studio Light) */}
+      <directionalLight position={[2.8, 4.0, 2.6]} intensity={1.5} color="#fffcf7" />
+
+      {/* Fill Light (Front-Left Cool Soft Tone) */}
+      <directionalLight position={[-2.8, 2.4, 2.0]} intensity={0.75} color="#f0f5ff" />
+
+      {/* Rim / Silhouette Light (Highlights shoulder and drape contours) */}
+      <directionalLight position={[0.2, 3.2, -3.2]} intensity={1.35} color="#e6f0fa" />
+
+      {/* Ground Bounce Uplight */}
+      <directionalLight position={[0, -0.6, 1.8]} intensity={0.25} color="#fcf8f2" />
+
+      {/* Fashion Runway Stage Podium */}
+      <group position={[0, groundY, 0]}>
+        {/* Outer ambient studio floor */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 0]}>
+          <circleGeometry args={[7.5, 64]} />
+          <meshStandardMaterial color="#f4f1ea" roughness={0.95} />
+        </mesh>
+
+        {/* Central Runway Podium Base */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.002, 0]}>
+          <circleGeometry args={[1.35, 64]} />
+          <meshStandardMaterial color="#eae5dc" roughness={0.7} metalness={0.08} />
+        </mesh>
+
+        {/* Delicate Runway Accent Ring */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
+          <ringGeometry args={[1.34, 1.365, 64]} />
+          <meshBasicMaterial color="#8a8178" opacity={0.35} transparent />
+        </mesh>
+      </group>
+
+      {/* Soft Contact Shadows anchoring avatar & cloth to podium */}
+      <ContactShadows
+        position={[0, groundY + 0.001, 0]}
+        opacity={0.68}
+        scale={2.6}
+        blur={2.2}
+        far={1.8}
+        resolution={512}
+        color="#1f1c19"
+      />
+
       <Rig {...props} />
-      <OrbitControls makeDefault enableDamping dampingFactor={0.08} target={[0, 1.0, 0]} />
+      <OrbitControls
+        makeDefault
+        enableDamping
+        dampingFactor={0.08}
+        minDistance={0.8}
+        maxDistance={4.2}
+        maxPolarAngle={Math.PI / 2 + 0.05}
+        target={[0, 1.0, 0]}
+      />
       <CameraFraming view={props.view ?? 'full'} colliders={props.colliders} />
     </Canvas>
   );
