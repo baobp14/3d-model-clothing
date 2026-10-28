@@ -30,6 +30,7 @@ const Promotions = lazy(() => import('./pages/Promotions'))
 const StockAlerts = lazy(() => import('./pages/StockAlerts'))
 const Returns = lazy(() => import('./pages/Returns'))
 const TryOn = lazy(() => import('./pages/TryOn'))
+const AITryOn = lazy(() => import('./pages/AITryOn'))
 const Users = lazy(() => import('./pages/Users'))
 const Measurements = lazy(() => import('./pages/Measurements'))
 const Terms = lazy(() => import('./pages/Legal').then(module => ({ default: module.Terms })))
@@ -69,6 +70,8 @@ function AppContent() {
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/try-on" element={<TryOn />} />
       <Route path="/tryon" element={<TryOn />} />
+      <Route path="/ai-try-on" element={<AITryOn />} />
+      <Route path="/ai-tryon" element={<AITryOn />} />
       <Route path="/cart" element={<RequireCustomer><Cart /></RequireCustomer>} />
       <Route path="/checkout" element={<RequireCustomer><Checkout /></RequireCustomer>} />
       <Route path="/account/addresses" element={<RequireCustomer><Addresses /></RequireCustomer>} />

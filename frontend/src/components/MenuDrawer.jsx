@@ -32,6 +32,12 @@ export default function MenuDrawer({ open, onClose }) {
           <li className="border-b border-line"><Link to="/products?sort=new" onClick={onClose} className="flex min-h-12 items-center font-display text-lead">{t('nav.newIn')}</Link></li>
           <li className="border-b border-line"><NavLink to="/products" end onClick={onClose} className="flex min-h-12 items-center font-display text-lead">{t('nav.all')}</NavLink></li>
           <li className="border-b border-line"><NavLink to="/try-on" onClick={onClose} className="flex min-h-12 items-center font-display text-lead">{t('nav.tryOn')}</NavLink></li>
+          <li className="border-b border-line">
+            <NavLink to="/ai-try-on" onClick={onClose} className="flex min-h-12 items-center justify-between font-display text-lead text-emerald-800">
+              <span className="flex items-center gap-2">✨ AI Thử Đồ (Model Try-On)</span>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Mới</span>
+            </NavLink>
+          </li>
         </ul>
       </nav>
       <div className="border-t border-line px-(--gutter) py-5 sm:px-8">
