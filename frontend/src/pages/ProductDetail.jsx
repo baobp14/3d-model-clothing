@@ -58,6 +58,15 @@ function Detail({ product, colors }) {
   const [added, setAdded] = useState(false)
   const [imageIndex, setImageIndex] = useState(0)
   useEffect(() => { setImageIndex(0) }, [color])
+  useEffect(() => {
+    if (!product?.id) return
+    try {
+      const raw = localStorage.getItem('nb_viewed_products')
+      const list = raw ? JSON.parse(raw) : []
+      const next = [product.id, ...list.filter(id => id !== product.id)].slice(0, 16)
+      localStorage.setItem('nb_viewed_products', JSON.stringify(next))
+    } catch {}
+  }, [product?.id])
   const stockFor = (c, s) => product.variants ? (product.variants.find(row => row.color === c && row.size === s)?.stock ?? 0) : product.stock
   const selectedStock = stockFor(color, size)
   useEffect(() => { if (selectedStock > 0) setQuantity(current => Math.min(current, selectedStock, 99)) }, [selectedStock])

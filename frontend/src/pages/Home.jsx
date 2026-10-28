@@ -1,8 +1,15 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Hero from '../components/Hero'
 import ProductGrid from '../components/ProductGrid'
+import Price from '../components/Price'
+import { useAuth } from '../hooks/useAuth'
 import { useCatalog } from '../hooks/useCatalog'
+import { useMeasurements } from '../hooks/useMeasurements'
+import { useWishlist } from '../hooks/useWishlist'
 import { useLang } from '../i18n'
+import { shopApi } from '../lib/api'
+import { tryOnLink } from '../tryon/links'
 
 const WOMAN = '/img/home/24144889-4574-4e08-9cbb-f2b91276276f.jpg'
 const MAN = '/img/home/93716292-f67d-436f-9944-76792d2d518a.jpg'
@@ -98,73 +105,273 @@ function SeasonalPromotion() {
   )
 }
 
-/** Danh mục sản phẩm chủ đạo */
-function CategoryHighlights() {
+/** Đề xuất sản phẩm thông minh cá nhân hóa theo gu khách hàng (dựa trên lịch sử mua, đã xem, wishlist, số đo) */
+function PersonalizedTasteRecommendations() {
   const { lang } = useLang()
   const vi = lang === 'vi'
+  const { user } = useAuth()
+  const { wishlist } = useWishlist()
+  const { measurements } = useMeasurements()
+  const { products, loading } = useCatalog()
 
-  const categories = [
-    {
-      title: vi ? 'Áo thun' : 'T-Shirts',
-      subtitle: vi ? 'Từ 199.000₫' : 'From 199,000₫',
-      link: '/products?category=m-tshirts',
-      image: '/img/clothing/ascolour_5027_classic_pocket_tee_bone/front.jpg',
-    },
-    {
-      title: vi ? 'Áo sơ mi' : 'Oxford Shirts',
-      subtitle: vi ? 'Từ 229.000₫' : 'From 229,000₫',
-      link: '/products?category=m-shirts',
-      image: '/img/clothing/ascolour_5401_oxford_shirt_light_blue/front.jpg',
-    },
-    {
-      title: vi ? 'Quần & Chân váy' : 'Trousers',
-      subtitle: vi ? 'Từ 259.000₫' : 'From 259,000₫',
-      link: '/products?category=m-trousers',
-      image: '/img/clothing/ascolour_5932_relax_track_pants_black/front.jpg',
-    },
-    {
-      title: vi ? 'Phòng thử đồ 3D' : '3D Fitting',
-      subtitle: vi ? 'Trải nghiệm trực quan' : 'Interactive avatar',
-      link: '/try-on',
-      image: LOOKBOOK,
-    },
-  ]
+  const [orders, setOrders] = useState([])
+  const [viewedIds, setViewedIds] = useState([])
+  const [activeTaste, setActiveTaste] = useState('auto') // 'auto' | 'minimal' | 'smart-casual' | 'casual'
+
+  // 1. Tải lịch sử mua hàng khi đã đăng nhập
+  useEffect(() => {
+    if (!user) {
+      setOrders([])
+      return
+    }
+    let live = true
+    shopApi.request('/orders?limit=10', { auth: true })
+      .then(data => {
+        if (live && data?.orders) setOrders(data.orders)
+      })
+      .catch(() => {})
+    return () => { live = false }
+  }, [user])
+
+  // 2. Tải danh sách sản phẩm vừa xem từ localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('nb_viewed_products')
+      if (raw) setViewedIds(JSON.parse(raw))
+    } catch {}
+  }, [])
+
+  // Phân tích "Hồ sơ gu thẩm mỹ" của khách hàng
+  const boughtItems = useMemo(() => orders.flatMap(o => o.items || []), [orders])
+  const boughtProductIds = useMemo(() => new Set(boughtItems.map(i => i.product_id)), [boughtItems])
+  const boughtSampleName = boughtItems[0]?.product_name || null
+
+  const wishlistSet = useMemo(() => new Set(wishlist || []), [wishlist])
+  const viewedSet = useMemo(() => new Set(viewedIds || []), [viewedIds])
+
+  // Tính toán đề xuất
+  const recommendations = useMemo(() => {
+    if (!products || products.length === 0) return { list: [], sourceNote: '' }
+
+    // Tập hợp các sản phẩm khách đã tương tác
+    const interacted = products.filter(p => boughtProductIds.has(p.id) || wishlistSet.has(p.id) || viewedSet.has(p.id))
+
+    // Phân tích danh mục và giới tính ưu chuộng
+    let topCount = 0
+    let bottomCount = 0
+    let preferredDepartment = measurements?.gender === 'female' ? 'women' : measurements?.gender === 'male' ? 'men' : null
+
+    interacted.forEach(p => {
+      if (p.category?.includes('tshirt') || p.category?.includes('shirt')) topCount++
+      if (p.category?.includes('trouser') || p.category?.includes('skirt')) bottomCount++
+      if (p.department) preferredDepartment = p.department
+    })
+
+    // Xác định nguồn đề xuất (để hiển thị lời dẫn cá nhân hóa)
+    let sourceNote = ''
+    if (boughtItems.length > 0) {
+      sourceNote = vi
+        ? `Được gợi ý riêng từ lịch sử đơn hàng của bạn${boughtSampleName ? ` (đã chọn: ${boughtSampleName})` : ''}`
+        : `Personalized from your purchase history${boughtSampleName ? ` (includes: ${boughtSampleName})` : ''}`
+    } else if (interacted.length > 0) {
+      sourceNote = vi
+        ? 'Dựa trên các thiết kế bạn quan tâm và phong cách bạn vừa xem'
+        : 'Curated based on styles you recently explored'
+    } else {
+      sourceNote = vi
+        ? 'Tuyển chọn các thiết kế chuẩn phom, dễ phối hợp hằng ngày'
+        : 'Signature versatile essentials tailored for effortless styling'
+    }
+
+    // Lọc và chấm điểm từng sản phẩm trong catalog
+    const scored = products
+      .filter(p => !p.archived)
+      .map(p => {
+        let score = 0
+        let reasonVi = ''
+        let reasonEn = ''
+
+        const isTop = p.category?.includes('tshirt') || p.category?.includes('shirt')
+        const isBottom = p.category?.includes('trouser') || p.category?.includes('skirt')
+
+        // 1. Phối set đối ứng (Ngoại suy: Đã mua/xem áo -> ưu tiên gợi ý quần/váy phối cùng và ngược lại)
+        if (topCount > bottomCount && isBottom) {
+          score += 10
+          reasonVi = 'Gợi ý phối set chuẩn cùng áo bạn quan tâm'
+          reasonEn = 'Pairs seamlessly with your selected tops'
+        } else if (bottomCount > 0 && isTop) {
+          score += 10
+          reasonVi = 'Phối hoàn hảo cùng phom quần bạn thích'
+          reasonEn = 'Complements your preferred trousers'
+        } else if (interacted.some(item => item.category === p.category)) {
+          score += 7
+          reasonVi = 'Cùng dòng phom dáng bạn ưa chuộng'
+          reasonEn = 'Matches your favorite silhouette'
+        }
+
+        // 2. Khớp giới tính/department
+        if (preferredDepartment && p.department === preferredDepartment) {
+          score += 4
+        }
+
+        // 3. Khớp gu thủ công (khi bấm tab bộ lọc gu)
+        if (activeTaste === 'minimal') {
+          // Các màu trung tính đanh mịn
+          const hasNeutral = p.colors?.some(c => ['black', 'white', 'bone', 'ecru', 'grey_marle'].includes(c))
+          if (hasNeutral) {
+            score += 8
+            if (!reasonVi) {
+              reasonVi = 'Tone màu tối giản & đanh mịn kinh điển'
+              reasonEn = 'Classic neutral minimalist tone'
+            }
+          }
+        } else if (activeTaste === 'smart-casual') {
+          // Áo sơ mi Oxford hoặc quần suông
+          if (p.category?.includes('shirt') || p.category?.includes('trouser')) {
+            score += 8
+            if (!reasonVi) {
+              reasonVi = 'Lịch lãm, chuẩn phom công sở & dạo phố'
+              reasonEn = 'Refined modern smart-casual staple'
+            }
+          }
+        } else if (activeTaste === 'casual') {
+          // Áo thun
+          if (p.category?.includes('tshirt')) {
+            score += 8
+            if (!reasonVi) {
+              reasonVi = 'Thoải mái, phóng khoáng hằng ngày'
+              reasonEn = 'Effortless relaxed everyday essential'
+            }
+          }
+        }
+
+        // Món đã mua rồi thì hạ điểm để ưu tiên khám phá món mới
+        if (boughtProductIds.has(p.id)) {
+          score -= 6
+        }
+
+        if (!reasonVi) {
+          reasonVi = 'Thiết kế chủ đạo được ưa chuộng'
+          reasonEn = 'Boutique core essential'
+        }
+
+        return { product: p, score, reasonVi, reasonEn }
+      })
+
+    // Sắp xếp theo điểm giảm dần và lấy top 4
+    scored.sort((a, b) => b.score - a.score)
+    return { list: scored.slice(0, 4), sourceNote }
+  }, [products, boughtItems, boughtProductIds, wishlistSet, viewedSet, measurements, activeTaste, vi, boughtSampleName])
 
   return (
-    <section className="shell py-(--section-y)" aria-labelledby="category-highlights-heading">
+    <section className="shell py-(--section-y)" aria-labelledby="personal-recommendations-heading">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div>
-          <p className="eyebrow text-ink-muted">{vi ? 'Danh mục' : 'Categories'}</p>
-          <h2 id="category-highlights-heading" className="mt-2 font-display text-title">
-            {vi ? 'Thiết kế chủ đạo' : 'Core Collections'}
+          <div className="flex items-center gap-2">
+            <p className="eyebrow text-ink-muted">
+              {vi ? 'Gợi ý cá nhân hóa' : 'Personalized for you'}
+            </p>
+            {user && (
+              <span className="rounded-full bg-cream px-2 py-0.5 text-micro font-medium text-ink-muted border border-line">
+                {vi ? 'Theo gu của bạn' : 'Based on your taste'}
+              </span>
+            )}
+          </div>
+          <h2 id="personal-recommendations-heading" className="mt-2 font-display text-title">
+            {vi ? 'Đề Xuất Theo Gu Của Bạn' : 'Curated For Your Style'}
           </h2>
+          <p className="mt-1 text-micro text-ink-muted">
+            {recommendations.sourceNote}
+          </p>
         </div>
-        <Link to="/products" className="text-body-sm text-ink text-link">
-          {vi ? 'Xem tất cả sản phẩm' : 'View all'}
-        </Link>
+
+        {/* Nút lọc gu thẩm mỹ nhanh */}
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={vi ? 'Chọn gu thẩm mỹ' : 'Choose style'}>
+          {[
+            { id: 'auto', labelVi: 'Tự động theo gu', labelEn: 'Auto match' },
+            { id: 'minimal', labelVi: 'Tối giản', labelEn: 'Minimalist' },
+            { id: 'smart-casual', labelVi: 'Lịch lãm', labelEn: 'Smart Casual' },
+            { id: 'casual', labelVi: 'Hằng ngày', labelEn: 'Casual' },
+          ].map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTaste(t.id)}
+              className={`min-h-8 px-3 text-caption transition-colors ${
+                activeTaste === t.id
+                  ? 'border border-ink bg-ink text-on-ink font-medium'
+                  : 'border border-line bg-transparent text-ink-muted hover:border-ink hover:text-ink'
+              }`}
+            >
+              {vi ? t.labelVi : t.labelEn}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
-        {categories.map((c, i) => (
-          <Link
-            key={i}
-            to={c.link}
-            className="group block"
-          >
-            <div className="aspect-4/5 overflow-hidden bg-cream product-image-surface">
-              <img
-                src={c.image}
-                alt={c.title}
-                className="h-full w-full object-cover object-top transition-transform duration-[700ms] ease-soft group-hover:scale-[1.03]"
-                loading="lazy"
-              />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="aspect-4/5 bg-cream" />
+              <div className="mt-3 h-4 w-3/4 bg-cream" />
+              <div className="mt-1 h-3 w-1/2 bg-cream" />
             </div>
-            <div className="mt-3">
-              <h3 className="font-display text-body font-semibold text-ink group-hover:underline underline-offset-4">{c.title}</h3>
-              <p className="mt-0.5 text-micro text-ink-muted">{c.subtitle}</p>
-            </div>
-          </Link>
-        ))}
+          ))
+        ) : (
+          recommendations.list?.map(({ product, reasonVi, reasonEn }) => {
+            const front = product.images?.[0]
+            const tryOn = tryOnLink(product.category, front)
+            return (
+              <div key={product.id} className="group flex flex-col justify-between">
+                <Link to={`/product/${product.id}`} className="block">
+                  <div className="aspect-4/5 overflow-hidden bg-cream product-image-surface relative">
+                    <img
+                      src={front}
+                      alt={product[lang]}
+                      className="h-full w-full object-contain product-image-blend transition-transform duration-[700ms] ease-soft group-hover:scale-[1.03]"
+                      loading="lazy"
+                    />
+                    {tryOn && (
+                      <span className="absolute left-2 top-2 rounded bg-paper/90 px-1.5 py-0.5 text-micro font-medium text-ink shadow-xs backdrop-blur-xs">
+                        ✦ 3D
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="font-display text-body font-semibold text-ink group-hover:underline underline-offset-4 line-clamp-1">
+                      {product[lang]}
+                    </h3>
+                    <p className="mt-0.5 text-body-sm font-semibold text-ink">
+                      <Price value={product.price} />
+                    </p>
+                    <p className="mt-1 text-micro text-ink-muted">
+                      ✦ {vi ? reasonVi : reasonEn}
+                    </p>
+                  </div>
+                </Link>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <Link
+                    to={`/product/${product.id}`}
+                    className="button button--sm flex-1 text-micro"
+                  >
+                    {vi ? 'Xem chi tiết' : 'Details'}
+                  </Link>
+                  {tryOn && (
+                    <Link
+                      to={tryOn}
+                      className="button button--sm text-micro px-2 border-line hover:border-ink"
+                      title={vi ? 'Mặc thử trên người mẫu 3D' : 'Try on in 3D'}
+                    >
+                      {vi ? 'Thử 3D' : '3D'}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
     </section>
   )
@@ -382,7 +589,7 @@ export default function Home() {
       <Hero />
       <ServiceStrip />
       <SeasonalPromotion />
-      <CategoryHighlights />
+      <PersonalizedTasteRecommendations />
       <VirtualTryOnSpotlight />
       <FeaturedProducts />
       <WomenEditorial />
