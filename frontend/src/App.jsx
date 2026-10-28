@@ -67,6 +67,7 @@ function AppContent() {
       <Route path="/women/ready-to-wear" element={<ProductList department="women" />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/try-on" element={<TryOn />} />
+      <Route path="/tryon" element={<TryOn />} />
       <Route path="/cart" element={<RequireCustomer><Cart /></RequireCustomer>} />
       <Route path="/checkout" element={<RequireCustomer><Checkout /></RequireCustomer>} />
       <Route path="/account/addresses" element={<RequireCustomer><Addresses /></RequireCustomer>} />
