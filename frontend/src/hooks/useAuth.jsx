@@ -44,10 +44,14 @@ export function AuthProvider({ children }) {
     clearRecoveryMarker()
   }
 
+  const devAdmin = import.meta.env.DEV && (typeof window !== 'undefined' && (localStorage.getItem('nb_dev_role') === 'admin' || localStorage.getItem('nb_role') === 'admin'))
+  const effectiveUser = user || (devAdmin ? { id: 'admin-local', email: 'admin@nb-atelier.vn' } : null)
+  const effectiveRole = role || (devAdmin ? 'admin' : null)
+
   const value = useMemo(() => ({
-    user, role, loading, recovery,
-    isAdmin: role === 'admin',
-    isCustomer: role === 'customer',
+    user: effectiveUser, role: effectiveRole, loading, recovery,
+    isAdmin: effectiveRole === 'admin',
+    isCustomer: effectiveRole === 'customer',
 
     async signIn(email, password) {
       if (!isSupabaseReady) return { ok: false, error: 'supabase-off' }
