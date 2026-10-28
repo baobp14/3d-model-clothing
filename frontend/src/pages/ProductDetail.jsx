@@ -72,7 +72,6 @@ function Detail({ product, colors }) {
   useEffect(() => { if (selectedStock > 0) setQuantity(current => Math.min(current, selectedStock, 99)) }, [selectedStock])
   const gallery = product.colorImages?.[color] || []
   const image = gallery[imageIndex] || product.images[product.colors.indexOf(color)] || product.images[0]
-  const tryOn = tryOnLink(product.category, gallery[0] || image)
   const [savedChart, setSavedChart] = useState(undefined)
   useEffect(() => {
     let live = true
@@ -89,6 +88,11 @@ function Detail({ product, colors }) {
     availableSizes: product.sizes,
   })
   const recommendedSize = recommendation?.recommendedSize
+  const tryOnBase = tryOnLink(product.category, gallery[0] || image)
+  const targetSize = size || recommendedSize
+  const tryOn = tryOnBase
+    ? `${tryOnBase}${targetSize ? `&size=${encodeURIComponent(targetSize)}` : ''}`
+    : null
   const colorName = c => colors.find(x => x.id === c)?.[lang] || product.colorNames?.[c]?.[lang] || c
   const shopper = canShop(user, authLoading, recovery)
   const needsSize = product.sizes.length > 0 && !size

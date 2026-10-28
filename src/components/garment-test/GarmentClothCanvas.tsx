@@ -761,6 +761,7 @@ varying float vLocalY;
     (pos.array as Float32Array).set(sim.positions);
     pos.needsUpdate = true;
     geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
   };
 
   useFrame((_, delta) => {
@@ -828,7 +829,7 @@ varying float vLocalY;
   });
 
   return (
-    <mesh geometry={geometry} castShadow visible={showGarment}>
+    <mesh geometry={geometry} castShadow visible={showGarment} frustumCulled={false}>
       <meshPhysicalMaterial
         side={THREE.DoubleSide}
         color={showStretch ? '#ffffff' : baseColor}
@@ -879,6 +880,14 @@ function Rig({
     targetYaw.current += Math.PI;
   }, [turnNonce]);
 
+  useEffect(() => {
+    avatar.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.frustumCulled = false;
+      }
+    });
+  }, [avatar]);
+
   useFrame((_, delta) => {
     const dt = Math.min(delta, 1 / 30);
     if (spinning) targetYaw.current += spinSpeed * dt;
@@ -924,7 +933,7 @@ export default function GarmentClothCanvas(props: ClothViewProps) {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 1.05,
       }}
-      camera={{ position: [0.9, 1.35, 2.3], fov: 35, near: 0.02, far: 60 }}
+      camera={{ position: [0.9, 1.35, 2.3], fov: 35, near: 0.01, far: 60 }}
     >
       {/* Studio Editorial Lighting Setup */}
       <ambientLight intensity={0.45} />

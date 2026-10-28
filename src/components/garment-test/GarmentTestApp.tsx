@@ -494,15 +494,56 @@ export default function GarmentTestApp() {
 
   const [profileKey, setProfileKey] = useState<string>('B');
   const [pose, setPose] = useState<PoseKey>('apose');
-  const [customMode, setCustomMode] = useState(false);
-  const [custom, setCustom] = useState<AvatarBodyInput>({ ...PROFILES.B });
-  // Per-field: ticked = the user sets it, unticked = the app estimates it.
-  const [manual, setManual] = useState<Record<(typeof DERIVED_FIELDS)[number], boolean>>(
-    () => Object.fromEntries(DERIVED_FIELDS.map((f) => [f, false])) as Record<
-      (typeof DERIVED_FIELDS)[number],
-      boolean
-    >,
-  );
+
+  // Seed initial avatar body from customer's saved measurements if available
+  const [initialUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('nb_measurements');
+      if (!raw) return null;
+      const m = JSON.parse(raw);
+      if (m && (m.height || m.weight)) {
+        return {
+          gender: (m.gender || 'male') as 'male' | 'female',
+          height: Number(m.height) || 172,
+          weight: Number(m.weight) || 55,
+          chest: m.chest ? Number(m.chest) : undefined,
+          waist: m.waist ? Number(m.waist) : undefined,
+          hip: (m.hips || m.hip) ? Number(m.hips || m.hip) : undefined,
+          shoulderWidth: m.shoulder ? Number(m.shoulder) : undefined,
+        };
+      }
+    } catch {}
+    return null;
+  });
+
+  const [customMode, setCustomMode] = useState<boolean>(() => Boolean(initialUser));
+  const [custom, setCustom] = useState<AvatarBodyInput>(() => {
+    if (initialUser) {
+      return {
+        ...PROFILES.B,
+        gender: initialUser.gender,
+        height: initialUser.height,
+        weight: initialUser.weight,
+        chest: initialUser.chest ?? PROFILES.B.chest,
+        waist: initialUser.waist ?? PROFILES.B.waist,
+        hip: initialUser.hip ?? PROFILES.B.hip,
+        shoulderWidth: initialUser.shoulderWidth ?? PROFILES.B.shoulderWidth,
+      };
+    }
+    return { ...PROFILES.B };
+  });
+
+  const [manual, setManual] = useState<Record<(typeof DERIVED_FIELDS)[number], boolean>>(() => {
+    const base = Object.fromEntries(DERIVED_FIELDS.map((f) => [f, false])) as Record<(typeof DERIVED_FIELDS)[number], boolean>;
+    if (initialUser) {
+      if (initialUser.chest) base.chest = true;
+      if (initialUser.waist) base.waist = true;
+      if (initialUser.hip) base.hip = true;
+      if (initialUser.shoulderWidth) base.shoulderWidth = true;
+    }
+    return base;
+  });
   const clearManual = () =>
     setManual(
       Object.fromEntries(DERIVED_FIELDS.map((f) => [f, false])) as Record<
@@ -633,6 +674,11 @@ export default function GarmentTestApp() {
     if (outfitApplied.current || !loaded || !presets.length) return;
     outfitApplied.current = true;
     const q = new URLSearchParams(window.location.search);
+    const urlSize = q.get('size');
+    if (urlSize && loaded.meta.sizeOrder.includes(urlSize as any)) {
+      updateSlot('top', { size: urlSize as any });
+      updateSlot('bottom', { size: urlSize as any });
+    }
     // Women's garments (AS Colour Wo's, Everlane skirts) start on a female body.
     if ([q.get('top'), q.get('bottom')].some((id) => id && (id.includes('_wos_') || id.startsWith('everlane_')))) {
       setCustomMode(false);
@@ -1180,17 +1226,20 @@ export default function GarmentTestApp() {
                 {/* Fit Assessment Card */}
                 {activeResolved && (
                   <div className={`rounded-xl p-3 border text-xs transition-all ${
-                    verdict === 'vua'
+                    ease !== null && ease >= 4 && ease <= 14
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-                      : verdict === 'chat'
-                        ? 'bg-rose-50 border-rose-200 text-rose-950'
-                        : 'bg-amber-50 border-amber-200 text-amber-950'
+                      : ease !== null && ease >= 0 && ease < 4
+                        ? 'bg-amber-50 border-amber-200 text-amber-950'
+                        : ease !== null && ease > 14
+                          ? 'bg-sky-50 border-sky-200 text-sky-950'
+                          : 'bg-rose-50 border-rose-200 text-rose-950'
                   }`}>
                     <div className="flex items-center justify-between font-semibold">
                       <span className="flex items-center gap-1.5">
-                        {verdict === 'vua' && '✓ Vừa vặn hoàn hảo'}
-                        {verdict === 'chat' && '⚠ Hơi ôm sát / chật'}
-                        {verdict === 'rong' && 'ℹ Rộng rãi / Oversize'}
+                        {ease !== null && ease >= 4 && ease <= 14 && '✓ Vừa vặn hoàn hảo'}
+                        {ease !== null && ease >= 0 && ease < 4 && 'ℹ Dáng ôm sát (Slim Fit)'}
+                        {ease !== null && ease > 14 && 'ℹ Rộng rãi / Oversize'}
+                        {ease !== null && ease < 0 && '⚠ Quá chật (Áo nhỏ hơn người)'}
                       </span>
                       <span className="font-mono text-[11px] font-bold">
                         {ease !== null && ease >= 0 ? `+${ease.toFixed(1)}` : ease?.toFixed(1)} cm
@@ -1198,9 +1247,10 @@ export default function GarmentTestApp() {
                     </div>
 
                     <p className="mt-1 text-[11px] text-stone-600 leading-snug">
-                      {verdict === 'vua' && 'Kích thước này vừa in với cơ thể của bạn, cử động tự nhiên không bị gò bó.'}
-                      {verdict === 'chat' && 'Kích thước này sẽ ôm sát người. Nếu thích mặc thoải mái, bạn nên chọn tăng 1 size.'}
-                      {verdict === 'rong' && 'Dáng suông rộng thoáng mát, tạo phong cách trẻ trung năng động.'}
+                      {ease !== null && ease >= 4 && ease <= 14 && 'Kích thước này vừa in với cơ thể của bạn, cử động tự nhiên không bị gò bó.'}
+                      {ease !== null && ease >= 0 && ease < 4 && 'Áo ôm nhẹ theo số đo cơ thể. Nếu bạn muốn mặc rộng rãi thoải mái hơn, hãy cân nhắc chọn tăng 1 size.'}
+                      {ease !== null && ease > 14 && 'Dáng suông rộng thoáng mát, tạo phong cách trẻ trung năng động.'}
+                      {ease !== null && ease < 0 && 'Kích thước này nhỏ hơn số đo cơ thể, sẽ bị bó chật. Bạn nên tăng size.'}
                     </p>
 
                     <div className="mt-2 pt-2 border-t border-stone-200/60 flex items-center justify-between text-[11px] text-stone-500">
