@@ -5,6 +5,7 @@ from sqlalchemy import Text, case, exists, func, literal, or_, select
 
 from .models import ArchivedProduct, Category, Color, Product, VariantInventory, WishlistItem, as_dict, active_products
 from .search import normalize
+from .inventory_layers import get_active_reserved_counts
 
 # T-shirts and shirts in the clothing dataset are unisex: list them under both men and women.
 UNISEX_CATEGORIES = ('m-tshirts', 'm-shirts')
@@ -94,9 +95,36 @@ def product_page(db, page=1, limit=20, q='', department=None, categories='', col
     if department:
         color_query = color_query.where(in_department(department))
     used_colors = set(db.scalars(color_query))
-    return {'products': [{**as_dict(p), 'variants': inventory[p.id].variants if p.id in inventory else None,
-                          'stock_revision': inventory[p.id].revision if p.id in inventory else None} for p in rows],
-            'total': total, 'stock_units': stock_units, 'page': page, 'limit': limit, 'pages': max(1, (total + limit - 1) // limit),
+    by_product, by_variant, open_orders_count = get_active_reserved_counts(db)
+    products_out = []
+    for p in rows:
+        inv = inventory.get(p.id)
+        res_p = by_product.get(p.id, 0)
+        on_hand_p = p.stock + res_p
+        v_list = None
+        if inv and inv.variants:
+            v_list = [
+                {
+                    **v,
+                    'reserved': by_variant.get((p.id, v.get('color') or '', v.get('size') or ''), 0),
+                    'on_hand': int(v.get('stock', 0)) + by_variant.get((p.id, v.get('color') or '', v.get('size') or ''), 0)
+                }
+                for v in inv.variants
+            ]
+        products_out.append({
+            **as_dict(p),
+            'variants': v_list if inv else None,
+            'stock_revision': inv.revision if inv else None,
+            'reserved_stock': res_p,
+            'on_hand_stock': on_hand_p
+        })
+    total_reserved = sum(by_product.values())
+    return {'products': products_out,
+            'total': total, 'stock_units': stock_units,
+            'reserved_units': total_reserved,
+            'on_hand_units': stock_units + total_reserved,
+            'open_orders_count': open_orders_count,
+            'page': page, 'limit': limit, 'pages': max(1, (total + limit - 1) // limit),
             'categories': [as_dict(c) for c in category_rows if not department or c.department == department
                            or (department in ('men', 'women') and c.id in UNISEX_CATEGORIES)],
             'colors': [as_dict(c) for c in color_rows], 'color_options': sorted(used_colors), 'sizes': sorted(available_sizes)}

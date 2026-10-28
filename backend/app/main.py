@@ -1,3 +1,4 @@
+from .inventory_layers import get_store_inventory_overview, get_product_inventory_layers, check_pos_availability
 from contextlib import asynccontextmanager
 import json
 import logging
@@ -308,6 +309,23 @@ def create_app(settings=None, engine=None, auth_http=None, gateway=None):
                       paid: Literal['received', 'unpaid'] | None = None, start: date | None = None, end: date | None = None,
                       user: User = Depends(require_admin), db: Session = Depends(get_db)):
         return export_data(db, 'orders', dict(q=q, scope=scope, status=status, paid=paid, start=start, end=end))
+
+
+    @app.get('/api/admin/inventory/summary')
+    def inventory_summary(user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return get_store_inventory_overview(db)
+
+    @app.get('/api/admin/inventory/layers/{product_id}')
+    def product_layers(product_id: int, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        res = get_product_inventory_layers(db, product_id)
+        if not res:
+            fail('NB_PRODUCT_NOT_FOUND', 404)
+        return res
+
+    @app.get('/api/admin/inventory/check-availability')
+    def check_availability(product_id: int, color: str = '', size: str = '', quantity: int = 1,
+                           user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        return check_pos_availability(db, product_id, color, size, quantity)
 
     @app.get('/api/admin/inventory/export')
     def export_inventory(q: str = Query('', max_length=120), categories: str = Query('', max_length=1000),

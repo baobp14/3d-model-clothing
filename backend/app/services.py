@@ -6,6 +6,7 @@ from sqlalchemy import exists, func, literal, or_, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from .errors import fail
+from .inventory_layers import get_active_reserved_counts
 from .models import StockMovement, ArchivedProduct, DatasetProduct, OrderEvent, OrderRefund, PromotionRule, QrPayment
 from .models import AddressBook, Category, Color, Order, Product, Promotion, OrderPricing, ProductCreation, VariantInventory, OrderPayment, as_dict, now
 
@@ -118,10 +119,35 @@ def color_gallery(product, dataset):
 def product_dict(db, product):
     inventory = db.get(VariantInventory, product.id)
     dataset = db.get(DatasetProduct, product.id)
+    by_product, by_variant, _ = get_active_reserved_counts(db)
+    res_p = by_product.get(product.id, 0)
+    on_hand_p = product.stock + res_p
+    v_layers = []
+    if inventory and inventory.variants:
+        for v in inventory.variants:
+            c = v.get('color') or ''
+            s = v.get('size') or ''
+            stk = int(v.get('stock', 0))
+            res_v = by_variant.get((product.id, c, s), 0)
+            v_layers.append({
+                'color': c,
+                'size': s,
+                'available': stk,
+                'reserved': res_v,
+                'on_hand': stk + res_v
+            })
     return {**as_dict(product), 'variants': inventory.variants if inventory else None,
             'stock_revision': inventory.revision if inventory else None,
             'archived': db.get(ArchivedProduct, product.id) is not None,
-            'color_images': color_gallery(product, dataset)}
+            'color_images': color_gallery(product, dataset),
+            'reserved_stock': res_p,
+            'on_hand_stock': on_hand_p,
+            'inventory_layers': {
+                'available': product.stock,
+                'reserved': res_p,
+                'on_hand': on_hand_p,
+                'variants': v_layers
+            }}
 
 
 def stock_snapshot(db, product):
