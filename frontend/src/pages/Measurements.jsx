@@ -106,7 +106,7 @@ export default function Measurements() {
                   <input
                     id="m-height"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="50"
                     max="250"
                     placeholder="vd: 175"
@@ -122,7 +122,7 @@ export default function Measurements() {
                   <input
                     id="m-weight"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="20"
                     max="300"
                     placeholder="vd: 68"
@@ -161,7 +161,7 @@ export default function Measurements() {
                   <input
                     id="m-chest"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="40"
                     max="200"
                     placeholder="vd: 96"
@@ -181,7 +181,7 @@ export default function Measurements() {
                   <input
                     id="m-waist"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="40"
                     max="200"
                     placeholder="vd: 78"
@@ -201,7 +201,7 @@ export default function Measurements() {
                   <input
                     id="m-hips"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="40"
                     max="200"
                     placeholder="vd: 94"
@@ -221,7 +221,7 @@ export default function Measurements() {
                   <input
                     id="m-shoulder"
                     type="number"
-                    step="0.5"
+                    step="any"
                     min="20"
                     max="100"
                     placeholder="vd: 44"

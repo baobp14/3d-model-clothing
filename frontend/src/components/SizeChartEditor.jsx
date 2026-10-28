@@ -102,7 +102,7 @@ export default function SizeChartEditor({ product }) {
           <td className="py-2 pr-3 font-semibold">{letter}{source === 'brand' && picked?.sizes[letter]?.label && picked.sizes[letter].label !== letter && <span className="font-normal text-slate"> ({picked.sizes[letter].label})</span>}</td>
           {columns.map(([key, labelVi]) => <td key={key} className="py-2 pr-3">{source === 'brand'
             ? (picked?.sizes[letter]?.[key] ? Math.round(picked.sizes[letter][key] * 10) / 10 : '—')
-            : <input type="number" min="1" max="299" step="0.5" aria-label={`${labelVi} ${letter}`} value={sizes[letter]?.[key] ?? ''} onChange={e => setMeasure(letter, key, e.target.value)} className="shop-input w-24" />}</td>)}
+            : <input type="number" min="1" max="299" step="any" aria-label={`${labelVi} ${letter}`} value={sizes[letter]?.[key] ?? ''} onChange={e => setMeasure(letter, key, e.target.value)} className="shop-input w-24" />}</td>)}
         </tr>)}</tbody>
       </table>
       {source === 'measured' && <p className="mt-2 text-xs text-slate">{vi ? 'Đo phẳng: ngang ngực từ nách sang nách rồi nhân đôi; vòng eo đo phẳng nhân đôi. Size nào không bán thì để trống.' : 'Measure flat: armpit to armpit ×2 for chest; flat waist ×2. Leave sizes you do not sell empty.'}</p>}
