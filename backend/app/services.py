@@ -182,8 +182,9 @@ def add_product(db, values, user=None):
     category = db.get(Category, values.category)
     if category is None:
         fail('NB_INVALID_PRODUCT')
+    product_images = values.images if values.images else [values.image]
     product = Product(name_vi=values.name, name_en=values.name_en or values.name, category=category.id,
-                      department=category.department, price=values.price, stock=values.stock, images=[values.image])
+                      department=category.department, price=values.price, stock=values.stock, images=product_images)
     db.add(product)
     db.flush()
     if user:

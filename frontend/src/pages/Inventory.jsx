@@ -187,7 +187,7 @@ export default function Inventory({ pricing = false }) {
     setFrontImage(preset.front)
     setBackImage(preset.back)
     setAiModels([])
-    setImage('')
+    setImage(preset.front)
   }
 
   function handleUploadSide(e, side) {
@@ -201,11 +201,11 @@ export default function Inventory({ pricing = false }) {
     reader.onload = () => {
       if (side === 'front') {
         setFrontImage(reader.result)
+        setImage(reader.result)
       } else {
         setBackImage(reader.result)
       }
       setAiModels([])
-      setImage('')
     }
     reader.readAsDataURL(file)
   }
@@ -236,8 +236,8 @@ export default function Inventory({ pricing = false }) {
     }
 
     setAiModels(modelsList)
-    if (modelsList.length > 0) {
-      setImage(modelsList[0].url)
+    if (frontImage) {
+      setImage(frontImage)
     }
     setAiLoading(false)
   }
@@ -282,7 +282,12 @@ export default function Inventory({ pricing = false }) {
   }
 
   async function saveValues(values) {
-    const finalImage = image || (aiModels[0]?.url)
+    const finalImage = frontImage || image
+    const allImages = [
+      finalImage,
+      ...(backImage ? [backImage] : []),
+      ...aiModels.map(m => m.url)
+    ]
     const nameVal = values.get('name')?.trim() || formFields.name.trim()
     const nameEnVal = values.get('name_en')?.trim() || formFields.name_en.trim()
     const categoryVal = values.get('category') || formFields.category
@@ -303,6 +308,7 @@ export default function Inventory({ pricing = false }) {
         price: priceVal,
         stock: stockVal,
         image: finalImage,
+        images: allImages,
       })
       setPendingCreate(request)
       await sendProduct(request)
@@ -526,10 +532,10 @@ export default function Inventory({ pricing = false }) {
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
                     <Icon name="checkCircle" size={15} className="text-emerald-600" />
-                    <span>{vi ? '3 Ảnh Người Mẫu AI Studio đã tạo:' : '3 AI Studio Model Photos Generated:'}</span>
+                    <span>{vi ? '3 Ảnh Người Mẫu AI Xem Trước:' : '3 AI Studio Model Photos Preview:'}</span>
                   </span>
                   <span className="text-[11px] text-slate-500 font-medium">
-                    {vi ? 'Click vào ảnh để chọn làm ảnh đại diện' : 'Click photo to select primary image'}
+                    {vi ? 'Mặc thử thực tế trước khi thêm vào kho' : 'Virtual try-on preview before adding'}
                   </span>
                 </div>
 
@@ -677,7 +683,7 @@ export default function Inventory({ pricing = false }) {
         <div className="flex items-center justify-between border-t border-slate-200 pt-4">
           <div className="text-xs text-slate-500">
             {image ? (
-              <span className="text-emerald-700 font-semibold">✓ {vi ? 'Đã có ảnh sản phẩm (AI Studio Model)' : 'Product image ready'}</span>
+              <span className="text-emerald-700 font-semibold">✓ {vi ? 'Đã sẵn sàng (Ảnh đại diện: Mặt trước áo)' : 'Product image ready (Front garment)'}</span>
             ) : (
               <span className="text-amber-700 font-medium">⚠️ {vi ? 'Chưa tạo hoặc chọn ảnh sản phẩm' : 'No product image yet'}</span>
             )}

@@ -64,12 +64,22 @@ class ProductCreate(Input):
     price: Price
     stock: Stock
     image: Annotated[str, StringConstraints(strict=True, max_length=3000000)]
+    images: list[Annotated[str, StringConstraints(strict=True, max_length=3000000)]] | None = None
 
     @field_validator('image')
     @classmethod
     def validate_image(cls, value):
         if not re.match(r'^(https?://|/img/|data:image/(png|jpeg|webp);base64,)', value):
             raise ValueError('NB_INVALID_PRODUCT')
+        return value
+
+    @field_validator('images')
+    @classmethod
+    def validate_images(cls, value):
+        if value is not None:
+            for item in value:
+                if not re.match(r'^(https?://|/img/|data:image/(png|jpeg|webp);base64,)', item):
+                    raise ValueError('NB_INVALID_PRODUCT')
         return value
 
 
