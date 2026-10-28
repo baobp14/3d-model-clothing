@@ -1047,26 +1047,8 @@ export default function GarmentTestApp() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-stone-50">
-      <header className="border-b border-stone-200 bg-white px-5 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-semibold text-stone-900 flex items-center gap-2">
-            Phòng Thử Đồ 3D Trực Tuyến
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
-              Form Dáng Chuẩn
-            </span>
-          </h1>
-          <p className="text-xs text-stone-500">
-            Mô phỏng độ vừa vặn và rơi của vải trên cơ thể thực tế theo bảng size chuẩn.
-          </p>
-        </div>
-        <a
-          href="/shop"
-          className="text-xs text-stone-600 hover:text-stone-900 border border-stone-200 hover:border-stone-400 rounded-lg px-3 py-1.5 transition-colors font-medium flex items-center gap-1.5"
-        >
-          <span>← Quay lại cửa hàng</span>
-        </a>
-      </header>
+    <div className="flex h-[calc(100vh-68px)] min-h-[640px] flex-col bg-stone-50">
+
 
       <div className="flex min-h-0 flex-1">
         <aside className="w-80 shrink-0 flex flex-col border-r border-stone-200 bg-white overflow-hidden shadow-xs">
