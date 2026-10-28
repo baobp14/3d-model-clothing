@@ -496,6 +496,9 @@ export default function GarmentTestApp() {
   const [pose, setPose] = useState<PoseKey>('apose');
 
   // Seed initial avatar body from customer's saved measurements if available
+  // Only height & weight drive the body model; secondary circumferences are computed
+  // via anthropometric models (deriveSecondary) to maintain valid 3D mesh manifold topology
+  // and prevent collider self-intersection / mesh pinching.
   const [initialUser] = useState(() => {
     if (typeof window === 'undefined') return null;
     try {
@@ -507,10 +510,6 @@ export default function GarmentTestApp() {
           gender: (m.gender || 'male') as 'male' | 'female',
           height: Number(m.height) || 172,
           weight: Number(m.weight) || 55,
-          chest: m.chest ? Number(m.chest) : undefined,
-          waist: m.waist ? Number(m.waist) : undefined,
-          hip: (m.hips || m.hip) ? Number(m.hips || m.hip) : undefined,
-          shoulderWidth: m.shoulder ? Number(m.shoulder) : undefined,
         };
       }
     } catch {}
@@ -525,25 +524,19 @@ export default function GarmentTestApp() {
         gender: initialUser.gender,
         height: initialUser.height,
         weight: initialUser.weight,
-        chest: initialUser.chest ?? PROFILES.B.chest,
-        waist: initialUser.waist ?? PROFILES.B.waist,
-        hip: initialUser.hip ?? PROFILES.B.hip,
-        shoulderWidth: initialUser.shoulderWidth ?? PROFILES.B.shoulderWidth,
       };
     }
     return { ...PROFILES.B };
   });
 
-  const [manual, setManual] = useState<Record<(typeof DERIVED_FIELDS)[number], boolean>>(() => {
-    const base = Object.fromEntries(DERIVED_FIELDS.map((f) => [f, false])) as Record<(typeof DERIVED_FIELDS)[number], boolean>;
-    if (initialUser) {
-      if (initialUser.chest) base.chest = true;
-      if (initialUser.waist) base.waist = true;
-      if (initialUser.hip) base.hip = true;
-      if (initialUser.shoulderWidth) base.shoulderWidth = true;
-    }
-    return base;
-  });
+  // Keep manual overrides false by default so deriveSecondary generates anatomically
+  // balanced, non-collapsed 3D avatar morphs.
+  const [manual, setManual] = useState<Record<(typeof DERIVED_FIELDS)[number], boolean>>(
+    () => Object.fromEntries(DERIVED_FIELDS.map((f) => [f, false])) as Record<
+      (typeof DERIVED_FIELDS)[number],
+      boolean
+    >,
+  );
   const clearManual = () =>
     setManual(
       Object.fromEntries(DERIVED_FIELDS.map((f) => [f, false])) as Record<
