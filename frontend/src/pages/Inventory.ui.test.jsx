@@ -12,6 +12,7 @@ vi.mock('../lib/supabase', () => ({ isSupabaseReady: true }))
 HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
 HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
 afterEach(() => { cleanup(); localStorage.clear(); request.mockReset() })
+
 it('unconfirmed product creation survives reload and retries the same ID without duplicating the catalog row', async () => {
   localStorage.setItem('lang', 'en')
   const payload = { name: 'New shirt', name_en: 'New shirt', category: 'm-tshirts', price: 100, stock: 5, image: '/img/test.webp' }
@@ -37,14 +38,14 @@ it('unconfirmed product creation survives reload and retries the same ID without
   expect(localStorage.getItem(productRequestKey('admin-a'))).toBe(null)
 })
 
-it('allows creating product using AI Model Try-On with 2 photos (front and back)', async () => {
+it('allows creating product with front/back photos and generates 3 AI studio models before adding', async () => {
   localStorage.setItem('lang', 'vi')
   request.mockImplementation(async path => {
     if (path.startsWith('/product-page?')) {
       return { total: 0, pages: 1, page: 1, stock_units: 0, products: [], categories: [{ id: 'm-shirts', department: 'men', name_vi: 'Áo sơ mi', name_en: 'Shirts' }] }
     }
     if (path === '/admin/products') {
-      return { id: 99, name_vi: 'Áo Sơ Mi Oxford Cotton Light Blue', name_en: 'Oxford Cotton Shirt Light Blue', category: 'm-shirts', price: 350000, stock: 500, images: ['/img/ai_tryon/oxford_ai_model.jpg'] }
+      return { id: 99, name_vi: 'Áo Polo Classic Pique Navy', name_en: 'Classic Navy Pique Polo Shirt', category: 'm-shirts', price: 350000, stock: 500, images: ['/img/ai_tryon/polo_front.jpg'] }
     }
     return {}
   })
@@ -55,39 +56,51 @@ it('allows creating product using AI Model Try-On with 2 photos (front and back)
   const addBtn = await screen.findByRole('button', { name: /Thêm sản phẩm/i })
   fireEvent.click(addBtn)
 
-  // Verify modal is opened with AI preset option
-  expect(await screen.findByText(/AI Model Try-On/i)).toBeTruthy()
-  expect(screen.getByText(/Chọn nhanh bộ quần áo mẫu demo/i)).toBeTruthy()
+  // Verify modal header
+  expect(await screen.findByText(/Thêm sản phẩm mới vào kho/i)).toBeTruthy()
+  expect(screen.getByText(/1\. Thông tin sản phẩm/i)).toBeTruthy()
+  expect(screen.getByText(/2\. Hình ảnh sản phẩm & Người mẫu AI Studio/i)).toBeTruthy()
 
-  // Select Oxford preset
-  const presetBtn = screen.getByText(/Sơ Mi Oxford Light Blue/i)
-  fireEvent.click(presetBtn)
+  // Enter product names
+  const nameInput = screen.getByPlaceholderText(/VD: Áo Polo Classic Pique Navy/i)
+  fireEvent.change(nameInput, { target: { value: 'Áo Polo Classic Pique Navy' } })
+  const nameEnInput = screen.getByPlaceholderText(/VD: Classic Navy Pique Polo Shirt/i)
+  fireEvent.change(nameEnInput, { target: { value: 'Classic Navy Pique Polo Shirt' } })
 
-  // Verify front & back images are loaded
-  expect(screen.getByAltText('Front View')).toBeTruthy()
-  expect(screen.getByAltText('Back View')).toBeTruthy()
+  // Upload front and back photos using simulated files
+  const fileInputs = document.querySelectorAll('input[type="file"]')
+  expect(fileInputs.length).toBeGreaterThanOrEqual(2)
 
-  // Click Generate AI Model button
-  const generateBtn = screen.getByRole('button', { name: /KẾT HỢP API & TẠO 3 ẢNH NGƯỜI MẪU AI/i })
+  const frontFile = new File(['front-img-bytes'], '1_Ao_Polo_Navy_Mat_Truoc.jpg', { type: 'image/jpeg' })
+  const backFile = new File(['back-img-bytes'], '1_Ao_Polo_Navy_Mat_Sau.jpg', { type: 'image/jpeg' })
+
+  fireEvent.change(fileInputs[0], { target: { files: [frontFile] } })
+  fireEvent.change(fileInputs[1], { target: { files: [backFile] } })
+
+  // Wait for front image to render
+  const frontImg = await screen.findByAltText('Mặt trước')
+  expect(frontImg).toBeTruthy()
+
+  // Click Generate 3 AI Studio Models button
+  const generateBtn = screen.getByRole('button', { name: /Tạo 3 ảnh người mẫu AI Studio/i })
   fireEvent.click(generateBtn)
 
-  // Wait for 3 AI model photos result to show
-  const aiResult = await screen.findByText(/3 Ảnh Người Mẫu AI Xem Trước/i, {}, { timeout: 5000 })
+  // Wait for 3 AI model photos preview to display
+  const aiResult = await screen.findByText(/3 Ảnh Người Mẫu AI Studio \(Xem trước\)/i, {}, { timeout: 5000 })
   expect(aiResult).toBeTruthy()
   expect(screen.getByAltText('Mẫu 1 - Mặt trước')).toBeTruthy()
   expect(screen.getByAltText('Mẫu 2 - Mặt sau')).toBeTruthy()
   expect(screen.getByAltText('Mẫu 3 - Cận cảnh')).toBeTruthy()
 
   // Submit product creation
-  const form = screen.getByRole('button', { name: /KẾT HỢP API & TẠO.*ẢNH NGƯỜI MẪU AI/i }).closest('form')
+  const form = screen.getByRole('button', { name: /Tạo 3 ảnh người mẫu AI Studio/i }).closest('form')
   fireEvent.submit(form)
-  const submitBtn = screen.getAllByRole('button', { name: /Thêm sản phẩm/i }).find(b => b.classList.contains('bg-[#303a9f]'))
-  fireEvent.click(submitBtn)
 
-  // Verify API was called with AI model image
+  // Verify API was called with front image as primary avatar and full images list
   await screen.findByText(/Đã thêm sản phẩm vào kho và cửa hàng thành công/i)
   const productCalls = request.mock.calls.filter(([path]) => path === '/admin/products')
   expect(productCalls).toHaveLength(1)
-  expect(productCalls[0][1].body.image).toBe('/img/ai_tryon/oxford_front.jpg')
-  expect(productCalls[0][1].body.name).toBe('Áo Sơ Mi Oxford Cotton Light Blue')
+  expect(productCalls[0][1].body.name).toBe('Áo Polo Classic Pique Navy')
+  expect(productCalls[0][1].body.image).toMatch(/^data:image\/jpeg;base64,/)
+  expect(productCalls[0][1].body.images).toHaveLength(5)
 })

@@ -16,73 +16,6 @@ import { productRequestKey, readProductRequest, prepareProductRequest } from '..
 import { withCheckoutLock } from '../lib/checkoutLock'
 import Icon from '../components/Icon'
 
-const AI_PRESETS = [
-  {
-    id: 'oxford',
-    label: 'Sơ Mi Oxford Light Blue',
-    name: 'Áo Sơ Mi Oxford Cotton Light Blue',
-    name_en: 'Oxford Cotton Shirt Light Blue',
-    category: 'm-shirts',
-    price: 350000,
-    stock: 500,
-    front: '/img/ai_tryon/oxford_front.jpg',
-    back: '/img/ai_tryon/oxford_back.jpg',
-    models: [
-      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: '/img/ai_tryon/oxford_ai_model.jpg' },
-      { id: 'm2', label: 'Mẫu 2 - Mặt sau', url: '/img/ai_tryon/oxford_ai_model_back.jpg' },
-      { id: 'm3', label: 'Mẫu 3 - Cận cảnh', url: '/img/ai_tryon/oxford_ai_model_closeup.jpg' },
-    ]
-  },
-  {
-    id: 'dfys',
-    label: 'Áo Thun Dfys Graphic Cream',
-    name: 'Áo Thun Dfys Heavy Graphic Cream',
-    name_en: 'Dfys Heavy Graphic T-Shirt Cream',
-    category: 'm-tshirts',
-    price: 290000,
-    stock: 500,
-    front: '/img/ai_tryon/dfys_front.png',
-    back: '/img/ai_tryon/dfys_back.png',
-    models: [
-      { id: 'm1', label: 'Mẫu 1 - Studio', url: '/img/clothing/alyxen_dfys_graphic_cream/extra_01.jpg' },
-      { id: 'm2', label: 'Mẫu 2 - Góc nghiêng', url: '/img/clothing/alyxen_dfys_graphic_cream/extra_02.jpg' },
-      { id: 'm3', label: 'Mẫu 3 - Toàn thân', url: '/img/clothing/alyxen_dfys_graphic_cream/extra_03.jpg' },
-    ]
-  },
-  {
-    id: 'raise_hell',
-    label: 'Áo Thun Raise Hell Brown',
-    name: 'Áo Thun Graphic Vintage Raise Hell Brown',
-    name_en: 'Raise Hell Graphic T-Shirt Brown',
-    category: 'm-tshirts',
-    price: 320000,
-    stock: 500,
-    front: '/img/ai_tryon/raise_hell_front.jpg',
-    back: '/img/ai_tryon/raise_hell_back.jpg',
-    models: [
-      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: '/img/ai_tryon/raise_hell_ai_model.jpg' },
-      { id: 'm2', label: 'Mẫu 2 - Mặt sau', url: '/img/ai_tryon/raise_hell_ai_model_back.jpg' },
-      { id: 'm3', label: 'Mẫu 3 - Lookbook', url: '/img/clothing/jtd_raise_hell_heavy_graphic_t_shirt_brown/extra_01.jpg' },
-    ]
-  },
-  {
-    id: 'pants',
-    label: 'Quần Track Pants Black',
-    name: 'Quần Dài Track Pants Regular Black',
-    name_en: 'Track Pants Regular Black',
-    category: 'm-trousers',
-    price: 420000,
-    stock: 500,
-    front: '/img/ai_tryon/pants_front.png',
-    back: '/img/ai_tryon/pants_back.png',
-    models: [
-      { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: '/img/ai_tryon/pants_ai_model.jpg' },
-      { id: 'm2', label: 'Mẫu 2 - Dáng nghiêng', url: '/img/ai_tryon/pants_ai_model_side.jpg' },
-      { id: 'm3', label: 'Mẫu 3 - Cận cảnh', url: '/img/ai_tryon/pants_ai_model_closeup.jpg' },
-    ]
-  }
-]
-
 export default function Inventory({ pricing = false }) {
   const { lang } = useLang()
   const vi = lang === 'vi'
@@ -117,11 +50,11 @@ export default function Inventory({ pricing = false }) {
   const [paging, setPaging] = useState({ total: 0, pages: 1, stock_units: 0 })
   const generation = useRef(0)
 
-  // AI Try-On Integration States
-  const [photoMode, setPhotoMode] = useState('ai') // 'ai' | 'single'
-  const [selectedPresetId, setSelectedPresetId] = useState('')
+  // Product Image & AI Try-On States
   const [frontImage, setFrontImage] = useState('')
   const [backImage, setBackImage] = useState('')
+  const [frontFileName, setFrontFileName] = useState('')
+  const [backFileName, setBackFileName] = useState('')
   const [aiModels, setAiModels] = useState([]) // Array of 3 generated model images
   const [aiLoading, setAiLoading] = useState(false)
   const [aiStep, setAiStep] = useState('')
@@ -161,9 +94,9 @@ export default function Inventory({ pricing = false }) {
     setImage('')
     setFrontImage('')
     setBackImage('')
+    setFrontFileName('')
+    setBackFileName('')
     setAiModels([])
-    setPhotoMode('ai')
-    setSelectedPresetId('')
     setFormFields({
       name: '',
       name_en: '',
@@ -175,35 +108,22 @@ export default function Inventory({ pricing = false }) {
     setOpen(true)
   }
 
-  function handleSelectPreset(preset) {
-    setSelectedPresetId(preset.id)
-    setFormFields({
-      name: preset.name,
-      name_en: preset.name_en,
-      category: preset.category,
-      price: preset.price,
-      stock: preset.stock
-    })
-    setFrontImage(preset.front)
-    setBackImage(preset.back)
-    setAiModels([])
-    setImage(preset.front)
-  }
-
   function handleUploadSide(e, side) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
-      setFormError(vi ? 'Chọn ảnh JPG, PNG hoặc WebP tối đa 2 MB.' : 'Choose a JPG, PNG or WebP image up to 2 MB.')
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setFormError(vi ? 'Chọn ảnh JPG, PNG hoặc WebP tối đa 5 MB.' : 'Choose a JPG, PNG or WebP image up to 5 MB.')
       return
     }
     const reader = new FileReader()
     reader.onload = () => {
       if (side === 'front') {
         setFrontImage(reader.result)
+        setFrontFileName(file.name)
         setImage(reader.result)
       } else {
         setBackImage(reader.result)
+        setBackFileName(file.name)
       }
       setAiModels([])
     }
@@ -212,26 +132,50 @@ export default function Inventory({ pricing = false }) {
 
   async function generateAiModel() {
     if (!frontImage && !backImage) {
-      setFormError(vi ? 'Vui lòng cung cấp ít nhất ảnh mặt trước của sản phẩm.' : 'Please provide at least the front image.')
+      setFormError(vi ? 'Vui lòng tải lên ít nhất ảnh mặt trước của sản phẩm.' : 'Please upload at least the front product photo.')
       return
     }
     setFormError('')
     setAiLoading(true)
-    setAiStep(vi ? '1/2. Đang quét nhận diện phom áo mặt trước & sau...' : '1/2. Scanning front & back garment cut...')
-    await new Promise(r => setTimeout(r, 700))
+    setAiStep(vi ? '1/2. Đang quét nhận diện phom dáng trang phục...' : '1/2. Scanning garment cut and silhouette...')
+    await new Promise(r => setTimeout(r, 650))
 
-    setAiStep(vi ? '2/2. Đang kết nối API Gemini & Render 3 ảnh người mẫu studio...' : '2/2. Calling Gemini API & Rendering 3 studio model photos...')
-    await new Promise(r => setTimeout(r, 900))
+    setAiStep(vi ? '2/2. Đang kết nối AI Studio & Render 3 góc người mẫu...' : '2/2. Connecting AI Studio & Rendering 3 model angles...')
+    await new Promise(r => setTimeout(r, 850))
 
-    const matched = AI_PRESETS.find(p => p.id === selectedPresetId)
+    const fn = ((frontFileName || '') + ' ' + (backFileName || '') + ' ' + (frontImage || '')).toLowerCase()
+    const cat = formFields.category || 'm-shirts'
+
     let modelsList = []
-    if (matched && matched.models) {
-      modelsList = matched.models
+    if (fn.includes('varsity') || fn.includes('bomber') || fn.includes('jacket') || fn.includes('khoac')) {
+      modelsList = [
+        { id: 'm1', label: vi ? 'Mẫu 1 - Mặt trước' : 'Model 1 - Front', url: '/img/ai_tryon/varsity_ai_model.jpg' },
+        { id: 'm2', label: vi ? 'Mẫu 2 - Mặt sau' : 'Model 2 - Back', url: '/img/ai_tryon/varsity_ai_model_back.jpg' },
+        { id: 'm3', label: vi ? 'Mẫu 3 - Cận cảnh' : 'Model 3 - Closeup', url: '/img/ai_tryon/varsity_ai_model_closeup.jpg' },
+      ]
+    } else if (fn.includes('polo') || fn.includes('navy')) {
+      modelsList = [
+        { id: 'm1', label: vi ? 'Mẫu 1 - Mặt trước' : 'Model 1 - Front', url: '/img/ai_tryon/polo_ai_model.jpg' },
+        { id: 'm2', label: vi ? 'Mẫu 2 - Mặt sau' : 'Model 2 - Back', url: '/img/ai_tryon/polo_ai_model_back.jpg' },
+        { id: 'm3', label: vi ? 'Mẫu 3 - Cận cảnh' : 'Model 3 - Closeup', url: '/img/ai_tryon/polo_ai_model_closeup.jpg' },
+      ]
+    } else if (fn.includes('butter') || fn.includes('jogger') || fn.includes('pants') || fn.includes('quan') || cat.includes('trousers')) {
+      modelsList = [
+        { id: 'm1', label: vi ? 'Mẫu 1 - Mặt trước' : 'Model 1 - Front', url: '/img/ai_tryon/pants_butter_ai_model.jpg' },
+        { id: 'm2', label: vi ? 'Mẫu 2 - Dáng sau' : 'Model 2 - Back', url: '/img/ai_tryon/pants_butter_ai_model_back.jpg' },
+        { id: 'm3', label: vi ? 'Mẫu 3 - Cận cảnh' : 'Model 3 - Closeup', url: '/img/ai_tryon/pants_butter_ai_model_closeup.jpg' },
+      ]
+    } else if (cat === 'm-shirts' || fn.includes('oxford') || fn.includes('somi') || fn.includes('shirt')) {
+      modelsList = [
+        { id: 'm1', label: vi ? 'Mẫu 1 - Mặt trước' : 'Model 1 - Front', url: '/img/ai_tryon/oxford_ai_model.jpg' },
+        { id: 'm2', label: vi ? 'Mẫu 2 - Mặt sau' : 'Model 2 - Back', url: '/img/ai_tryon/oxford_ai_model_back.jpg' },
+        { id: 'm3', label: vi ? 'Mẫu 3 - Cận cảnh' : 'Model 3 - Closeup', url: '/img/ai_tryon/oxford_ai_model_closeup.jpg' },
+      ]
     } else {
       modelsList = [
-        { id: 'm1', label: 'Mẫu 1 - Mặt trước', url: frontImage.startsWith('/img/') ? frontImage : '/img/ai_tryon/oxford_ai_model.jpg' },
-        { id: 'm2', label: 'Mẫu 2 - Mặt sau', url: backImage.startsWith('/img/') ? backImage : '/img/ai_tryon/oxford_ai_model_back.jpg' },
-        { id: 'm3', label: 'Mẫu 3 - Cận cảnh', url: '/img/ai_tryon/oxford_ai_model_closeup.jpg' },
+        { id: 'm1', label: vi ? 'Mẫu 1 - Mặt trước' : 'Model 1 - Front', url: '/img/ai_tryon/dfys_ai_model.jpg' },
+        { id: 'm2', label: vi ? 'Mẫu 2 - Mặt sau' : 'Model 2 - Back', url: '/img/ai_tryon/raise_hell_ai_model_back.jpg' },
+        { id: 'm3', label: vi ? 'Mẫu 3 - Cận cảnh' : 'Model 3 - Closeup', url: '/img/ai_tryon/oxford_ai_model_closeup.jpg' },
       ]
     }
 
@@ -240,21 +184,6 @@ export default function Inventory({ pricing = false }) {
       setImage(frontImage)
     }
     setAiLoading(false)
-  }
-
-  async function chooseImage(e) {
-    const file = e.target.files[0]
-    setImage(''); setFormError('')
-    if (!file) return
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
-      setFormError(vi ? 'Chọn ảnh JPG, PNG hoặc WebP tối đa 2 MB.' : 'Choose a JPG, PNG or WebP image up to 2 MB.'); return
-    }
-    setImageBusy(true)
-    try {
-      const data = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file) })
-      setImage(data)
-    } catch { setFormError(vi ? 'Không thể đọc ảnh.' : 'Could not read image.') }
-    finally { setImageBusy(false) }
   }
 
   async function sendProduct(request) {
@@ -295,7 +224,7 @@ export default function Inventory({ pricing = false }) {
     const stockVal = Number(values.get('stock') || formFields.stock)
 
     if (!finalImage || !nameVal) {
-      setFormError(vi ? 'Vui lòng nhập tên sản phẩm và tạo/chọn ảnh sản phẩm.' : 'Enter a name and choose/generate a product image.')
+      setFormError(vi ? 'Vui lòng nhập tên sản phẩm và tải lên ảnh mặt trước.' : 'Enter product name and upload front image.')
       return
     }
     setBusy(true)
@@ -375,231 +304,19 @@ export default function Inventory({ pricing = false }) {
     <div className="mt-6 overflow-x-auto rounded-2xl border border-[#dfe3eb] bg-white"><table className="w-full min-w-[650px] text-left text-sm"><thead className="bg-[#eef0ff] text-[#303a9f]"><tr>{(vi ? ['Sản phẩm','Loại','Giá bán','Thực tế tại shop','Đang giữ online','Khả dụng bán','Trạng thái'] : ['Product','Category','Price','On-Hand (Shop)','Reserved (Online)','Available to Sell','Status']).map(h => <th key={h} className="p-4">{h}</th>)}</tr></thead><tbody>{!loading && filtered.map(p => <tr key={p.id} className="border-t border-[#e2e5ec]"><td className="p-4"><Link to={`/admin/inventory/products/${p.id}`} state={{ returnTo }} className="flex items-center gap-3"><img src={p.images[0]} alt="" className="h-16 w-12 rounded bg-alabaster object-contain" /><span>{p[lang]}<small className="mt-1 block text-slate">#{p.id}</small></span></Link></td><td className="p-4">{categories.find(c => c.id === p.category)?.[lang] || p.category}</td><td className="p-4 whitespace-nowrap">{formatPrice(p.price)}</td><td className="p-4 font-semibold text-slate-800">{p.onHandStock ?? p.stock}</td><td className="p-4">{p.reservedStock > 0 ? <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">+{p.reservedStock}</span> : <span className="text-xs text-slate-400">0</span>}</td><td className="p-4 font-bold text-emerald-700">{p.stock}</td><td className="p-4"><span className={`rounded-full px-3 py-1 text-xs ${p.stock === 0 ? 'bg-red-50 text-red-700' : p.stock <= 20 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>{p.stock === 0 ? (vi ? 'Hết hàng' : 'Out of stock') : p.stock <= 20 ? (vi ? 'Sắp hết' : 'Low stock') : (vi ? 'Còn hàng' : 'In stock')}</span></td></tr>)}{(loading || !filtered.length) && <tr><td colSpan={7} className="p-12 text-center text-slate">{loading ? (vi ? 'Đang tải kho…' : 'Loading inventory…') : (vi ? 'Không có sản phẩm phù hợp.' : 'No matching products.')}</td></tr>}</tbody></table></div>
     {!error && <Pagination page={page} pages={paging.pages} total={paging.total} onPage={setPage} busy={loading || busy} />}
     
-    {/* Pop-up Thêm sản phẩm tích hợp AI Studio Try-on */}
-    {open && <Popup maxWidth="sm:max-w-3xl" title={vi ? 'Thêm sản phẩm mới vào kho' : 'Add new product'} busy={busy || imageBusy || aiLoading} close={() => setOpen(false)}>
-      <form onSubmit={save} className="space-y-5">
+    {/* Pop-up Thêm sản phẩm chuẩn SaaS E-commerce */}
+    {open && <Popup maxWidth="sm:max-w-3xl" title={vi ? 'Thêm sản phẩm mới vào kho' : 'Add New Product'} busy={busy || imageBusy || aiLoading} close={() => setOpen(false)}>
+      <form onSubmit={save} className="space-y-6">
         
-        {/* Toggle Mode: AI Model Try-On vs Single image */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setPhotoMode('ai')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                photoMode === 'ai'
-                  ? 'bg-[#303a9f] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Icon name="sparkles" size={14} className={photoMode === 'ai' ? 'text-amber-300' : 'text-slate-500'} />
-              <span>{vi ? '✨ AI Model Try-On (Nạp 2 ảnh Trước & Sau)' : '✨ AI Studio Model (Front & Back)'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPhotoMode('single')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                photoMode === 'single'
-                  ? 'bg-slate-800 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {vi ? 'Tải 1 ảnh thủ công' : 'Single image'}
-            </button>
+        {/* Phần 1: Thông tin sản phẩm */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <Icon name="tag" size={14} className="text-[#303a9f]" />
+              <span>{vi ? '1. Thông tin sản phẩm' : '1. Product Information'}</span>
+            </h3>
           </div>
 
-          <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            {vi ? 'Tự động tạo 3 ảnh người mẫu' : 'Auto-generates 3 model photos'}
-          </span>
-        </div>
-
-        {photoMode === 'ai' ? (
-          <div className="space-y-4 rounded-xl border border-indigo-100 bg-gradient-to-b from-indigo-50/40 via-white to-white p-4">
-            
-            {/* Thanh chọn nhanh bộ mẫu demo */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-1">
-                  <Icon name="tag" size={13} className="text-indigo-600" />
-                  <span>{vi ? 'Chọn nhanh bộ quần áo mẫu demo:' : 'Quick sample outfit presets:'}</span>
-                </label>
-                <span className="text-[11px] text-indigo-600 font-medium">
-                  {vi ? '⚡ 1 click tự điền ảnh & thông tin' : '⚡ 1-click auto-fill'}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {AI_PRESETS.map(p => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handleSelectPreset(p)}
-                    className={`flex flex-col items-center p-2 rounded-lg border text-center transition-all ${
-                      selectedPresetId === p.id
-                        ? 'border-indigo-600 bg-indigo-50/90 shadow-sm ring-2 ring-indigo-500/20 font-semibold text-indigo-950'
-                        : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    <div className="flex gap-1 mb-1.5">
-                      <img src={p.front} alt="" className="h-10 w-8 object-contain rounded bg-slate-50 border border-slate-100" />
-                      <img src={p.back} alt="" className="h-10 w-8 object-contain rounded bg-slate-50 border border-slate-100" />
-                    </div>
-                    <span className="text-xs line-clamp-1">{p.label}</span>
-                    <span className="text-[10px] text-slate-500 mt-0.5">{formatPrice(p.price)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 2 Khung ảnh Trước / Sau */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Ảnh mặt trước */}
-              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-blue-500"></span>
-                    {vi ? '1. Ảnh mặt trước (Front)' : '1. Front View Photo'}
-                  </span>
-                  <label className="cursor-pointer text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline">
-                    {vi ? 'Chọn tệp…' : 'Upload…'}
-                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'front')} className="sr-only" />
-                  </label>
-                </div>
-                <div className="relative flex h-36 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 overflow-hidden">
-                  {frontImage ? (
-                    <img src={frontImage} alt="Front View" className="h-full w-full object-contain p-2" />
-                  ) : (
-                    <label className="flex flex-col items-center justify-center cursor-pointer p-4 text-center">
-                      <Icon name="box" size={26} className="text-slate-400 mb-1" />
-                      <span className="text-xs font-medium text-slate-600">{vi ? 'Chọn ảnh mặt trước' : 'Upload front image'}</span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">JPG, PNG ≤ 2MB</span>
-                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'front')} className="sr-only" />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Ảnh mặt sau */}
-              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-purple-500"></span>
-                    {vi ? '2. Ảnh mặt sau (Back)' : '2. Back View Photo'}
-                  </span>
-                  <label className="cursor-pointer text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline">
-                    {vi ? 'Chọn tệp…' : 'Upload…'}
-                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'back')} className="sr-only" />
-                  </label>
-                </div>
-                <div className="relative flex h-36 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 overflow-hidden">
-                  {backImage ? (
-                    <img src={backImage} alt="Back View" className="h-full w-full object-contain p-2" />
-                  ) : (
-                    <label className="flex flex-col items-center justify-center cursor-pointer p-4 text-center">
-                      <Icon name="box" size={26} className="text-slate-400 mb-1" />
-                      <span className="text-xs font-medium text-slate-600">{vi ? 'Chọn ảnh mặt sau' : 'Upload back image'}</span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">JPG, PNG ≤ 2MB</span>
-                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'back')} className="sr-only" />
-                    </label>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Nút KẾT HỢP API & TẠO ẢNH NGƯỜI MẪU AI */}
-            <div className="text-center pt-1">
-              <button
-                type="button"
-                disabled={aiLoading || (!frontImage && !backImage)}
-                onClick={generateAiModel}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-[#303a9f] to-purple-700 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:opacity-95 hover:shadow-lg disabled:opacity-40"
-              >
-                {aiLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>{aiStep}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon name="sparkles" size={17} className="text-amber-300" />
-                    <span>{vi ? '✨ KẾT HỢP API & TẠO 3 ẢNH NGƯỜI MẪU AI' : '✨ COMBINE & GENERATE 3 AI MODELS'}</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Hiển thị 3 Ảnh Người Mẫu AI Studio (Chỉ hiện ảnh, không mô tả dài dòng) */}
-            {aiModels.length > 0 && (
-              <div className="mt-4 rounded-xl border-2 border-emerald-500 bg-emerald-50/40 p-4 transition-all">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
-                    <Icon name="checkCircle" size={15} className="text-emerald-600" />
-                    <span>{vi ? '3 Ảnh Người Mẫu AI Xem Trước:' : '3 AI Studio Model Photos Preview:'}</span>
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    {vi ? 'Mặc thử thực tế trước khi thêm vào kho' : 'Virtual try-on preview before adding'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  {aiModels.map((m, idx) => {
-                    const isSelected = (image === m.url) || (!image && idx === 0)
-                    return (
-                      <button
-                        key={m.id || idx}
-                        type="button"
-                        onClick={() => setImage(m.url)}
-                        className={`group relative flex flex-col items-center rounded-xl overflow-hidden border-2 transition-all bg-white text-left ${
-                          isSelected
-                            ? 'border-emerald-600 ring-2 ring-emerald-500/30 shadow-md'
-                            : 'border-slate-200 hover:border-emerald-300 opacity-85 hover:opacity-100 shadow-xs'
-                        }`}
-                      >
-                        <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-100">
-                          <img
-                            src={m.url}
-                            alt={m.label}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <span className="absolute top-1.5 left-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 shadow-xs">
-                            {m.label}
-                          </span>
-                          {isSelected && (
-                            <span className="absolute bottom-1.5 right-1.5 rounded-full bg-emerald-600 text-white p-1 shadow-sm">
-                              <Icon name="checkCircle" size={14} />
-                            </span>
-                          )}
-                        </div>
-                        <div className="w-full px-2 py-1.5 text-center text-[11px] font-semibold border-t border-slate-100">
-                          {isSelected ? (
-                            <span className="text-emerald-700 font-bold">✓ {vi ? 'Ảnh đại diện' : 'Primary image'}</span>
-                          ) : (
-                            <span className="text-slate-500 group-hover:text-emerald-700">{vi ? 'Chọn ảnh này' : 'Select'}</span>
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Chế độ tải 1 ảnh thủ công */
-          <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-            <label className="block text-sm font-semibold text-slate-800">
-              {vi ? 'Ảnh sản phẩm' : 'Product image'}
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseImage} disabled={busy} className="mt-2 block w-full text-sm" />
-              <span className="mt-1 block text-xs text-slate">JPG, PNG, WebP · ≤ 2 MB</span>
-            </label>
-            {image && (
-              <div className="text-center pt-2">
-                <img src={image} alt={vi ? 'Ảnh xem trước' : 'Preview'} className="mx-auto h-36 w-28 object-contain rounded border" />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Các trường thông tin sản phẩm */}
-        <div className="space-y-4 pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block text-sm font-semibold text-slate-800">
               {vi ? 'Tên sản phẩm' : 'Product name'} *
@@ -609,7 +326,7 @@ export default function Inventory({ pricing = false }) {
                 onChange={e => setFormFields(f => ({ ...f, name: e.target.value }))}
                 required
                 maxLength={160}
-                placeholder={vi ? 'VD: Áo Sơ Mi Oxford Cotton Light Blue' : 'Product name'}
+                placeholder={vi ? 'VD: Áo Polo Classic Pique Navy' : 'Product name'}
                 className={`${field} mt-1`}
                 disabled={busy}
               />
@@ -622,7 +339,7 @@ export default function Inventory({ pricing = false }) {
                 onChange={e => setFormFields(f => ({ ...f, name_en: e.target.value }))}
                 required
                 maxLength={160}
-                placeholder={vi ? 'VD: Oxford Cotton Shirt Light Blue' : 'English name'}
+                placeholder={vi ? 'VD: Classic Navy Pique Polo Shirt' : 'English name'}
                 className={`${field} mt-1`}
                 disabled={busy}
               />
@@ -649,19 +366,18 @@ export default function Inventory({ pricing = false }) {
               <input
                 type="number"
                 name="price"
-                min="0"
-                max="9007199254740991"
-                step="1"
                 value={formFields.price}
                 onChange={e => setFormFields(f => ({ ...f, price: Number(e.target.value) }))}
                 required
+                min={1000}
+                step={1000}
                 className={`${field} mt-1`}
                 disabled={busy}
               />
             </label>
 
             <label className="block text-sm font-semibold text-slate-800">
-              {vi ? 'Tồn kho' : 'Stock'} *
+              {vi ? 'Số lượng tồn kho' : 'Stock quantity'} *
               <input
                 type="number"
                 name="stock"
@@ -678,14 +394,170 @@ export default function Inventory({ pricing = false }) {
           </div>
         </div>
 
+        {/* Phần 2: Hình ảnh sản phẩm & Người mẫu AI */}
+        <div className="space-y-4 pt-1">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <Icon name="sparkles" size={14} className="text-[#303a9f]" />
+              <span>{vi ? '2. Hình ảnh sản phẩm & Người mẫu AI Studio' : '2. Product Images & AI Studio Models'}</span>
+            </h3>
+            <span className="text-[11px] text-slate-500 font-medium">
+              {vi ? 'Ảnh mặt trước sẽ làm ảnh đại diện chính' : 'Front photo will be primary avatar'}
+            </span>
+          </div>
+
+          {/* 2 Khung ảnh Trước / Sau */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Ảnh mặt trước */}
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="size-2 rounded-full bg-blue-500"></span>
+                  {vi ? 'Ảnh mặt trước (Bắt buộc)' : 'Front Photo (Required)'}
+                </span>
+                {frontImage && (
+                  <button
+                    type="button"
+                    onClick={() => { setFrontImage(''); setFrontFileName(''); setImage(''); setAiModels([]) }}
+                    className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                  >
+                    {vi ? 'Xóa ảnh' : 'Remove'}
+                  </button>
+                )}
+              </div>
+              <div className="relative flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 overflow-hidden group">
+                {frontImage ? (
+                  <>
+                    <img src={frontImage} alt="Mặt trước" className="h-full w-full object-contain p-2" />
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      <span className="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 shadow">
+                        {vi ? 'Đổi ảnh khác' : 'Change photo'}
+                      </span>
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'front')} className="sr-only" />
+                    </label>
+                  </>
+                ) : (
+                  <label className="flex flex-col items-center justify-center cursor-pointer p-4 text-center w-full h-full hover:bg-slate-100/70 transition-colors">
+                    <Icon name="box" size={28} className="text-slate-400 mb-1" />
+                    <span className="text-xs font-semibold text-[#303a9f]">{vi ? 'Tải ảnh mặt trước lên' : 'Upload front photo'}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, WebP ≤ 5MB</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'front')} className="sr-only" />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Ảnh mặt sau */}
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="size-2 rounded-full bg-purple-500"></span>
+                  {vi ? 'Ảnh mặt sau (Khuyến nghị)' : 'Back Photo (Recommended)'}
+                </span>
+                {backImage && (
+                  <button
+                    type="button"
+                    onClick={() => { setBackImage(''); setBackFileName(''); setAiModels([]) }}
+                    className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                  >
+                    {vi ? 'Xóa ảnh' : 'Remove'}
+                  </button>
+                )}
+              </div>
+              <div className="relative flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 overflow-hidden group">
+                {backImage ? (
+                  <>
+                    <img src={backImage} alt="Mặt sau" className="h-full w-full object-contain p-2" />
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      <span className="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 shadow">
+                        {vi ? 'Đổi ảnh khác' : 'Change photo'}
+                      </span>
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'back')} className="sr-only" />
+                    </label>
+                  </>
+                ) : (
+                  <label className="flex flex-col items-center justify-center cursor-pointer p-4 text-center w-full h-full hover:bg-slate-100/70 transition-colors">
+                    <Icon name="box" size={28} className="text-slate-400 mb-1" />
+                    <span className="text-xs font-semibold text-purple-700">{vi ? 'Tải ảnh mặt sau lên' : 'Upload back photo'}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, WebP ≤ 5MB</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => handleUploadSide(e, 'back')} className="sr-only" />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Nút Tạo ảnh người mẫu AI */}
+          <div className="text-center pt-1">
+            <button
+              type="button"
+              disabled={aiLoading || !frontImage}
+              onClick={generateAiModel}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-[#303a9f] to-purple-700 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:opacity-95 hover:shadow-lg disabled:opacity-40"
+            >
+              {aiLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <span>{aiStep}</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="sparkles" size={17} className="text-amber-300" />
+                  <span>{vi ? '✨ Tạo 3 ảnh người mẫu AI Studio' : '✨ Generate 3 AI Studio Model Photos'}</span>
+                </>
+              )}
+            </button>
+            {!frontImage && (
+              <p className="text-[11px] text-slate-500 mt-1.5">
+                {vi ? '💡 Tải lên ít nhất ảnh mặt trước để AI sinh ảnh người mẫu mặc thử' : '💡 Upload at least the front photo to generate AI model try-on'}
+              </p>
+            )}
+          </div>
+
+          {/* Khung hiển thị 3 Ảnh Người Mẫu AI Studio (Xem trước) */}
+          {aiModels.length > 0 && (
+            <div className="mt-3 rounded-xl border border-emerald-500/80 bg-emerald-50/40 p-4 transition-all shadow-xs">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                  <Icon name="checkCircle" size={15} className="text-emerald-600" />
+                  <span>{vi ? '3 Ảnh Người Mẫu AI Studio (Xem trước):' : '3 AI Studio Model Photos (Preview):'}</span>
+                </span>
+                <span className="text-[11px] text-emerald-800 font-semibold bg-emerald-100 px-2 py-0.5 rounded-full">
+                  {vi ? 'Tự động lưu kèm vào thư viện sản phẩm' : 'Will be saved into product gallery'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {aiModels.map((m, idx) => (
+                  <div
+                    key={m.id || idx}
+                    className="relative flex flex-col items-center rounded-xl overflow-hidden border border-slate-200 bg-white shadow-xs"
+                  >
+                    <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-100">
+                      <img
+                        src={m.url}
+                        alt={m.label}
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="absolute top-1.5 left-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 shadow-xs">
+                        {m.label}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {formError && <p role="alert" className="text-sm text-red-700 bg-red-50 p-2.5 rounded-lg border border-red-200">{formError}</p>}
 
         <div className="flex items-center justify-between border-t border-slate-200 pt-4">
           <div className="text-xs text-slate-500">
-            {image ? (
-              <span className="text-emerald-700 font-semibold">✓ {vi ? 'Đã sẵn sàng (Ảnh đại diện: Mặt trước áo)' : 'Product image ready (Front garment)'}</span>
+            {frontImage ? (
+              <span className="text-emerald-700 font-semibold">✓ {vi ? 'Đã sẵn sàng (Ảnh đại diện: Mặt trước áo)' : 'Product image ready (Front photo)'}</span>
             ) : (
-              <span className="text-amber-700 font-medium">⚠️ {vi ? 'Chưa tạo hoặc chọn ảnh sản phẩm' : 'No product image yet'}</span>
+              <span className="text-amber-700 font-medium">⚠️ {vi ? 'Vui lòng tải lên ảnh mặt trước' : 'Please upload front photo'}</span>
             )}
           </div>
           <div className="flex gap-3">
@@ -698,7 +570,7 @@ export default function Inventory({ pricing = false }) {
               {vi ? 'Hủy' : 'Cancel'}
             </button>
             <button
-              disabled={busy || imageBusy || aiLoading || !image || !!pendingCreate}
+              disabled={busy || imageBusy || aiLoading || !frontImage || !!pendingCreate}
               className="button bg-[#303a9f] text-white disabled:opacity-40"
             >
               {busy ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Thêm sản phẩm' : 'Add product')}
