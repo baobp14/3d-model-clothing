@@ -9,50 +9,37 @@ const MAN = '/img/home/93716292-f67d-436f-9944-76792d2d518a.jpg'
 const CAMPAIGN = '/img/home/61d0c12e-9132-428f-8150-aa5521e142f6.jpg'
 const LOOKBOOK = '/img/home/e30d6819-39c8-4361-b5c7-8f5e75aecd2d.jpg'
 
-/** Thanh quyền lợi & mã giảm giá hấp dẫn dành cho khách mua hàng */
-function CustomerPerks() {
+/** Dải thông tin dịch vụ & quyền lợi mua sắm theo phong cách tinh giản */
+function ServiceStrip() {
   const { lang } = useLang()
   const vi = lang === 'vi'
 
-  const perks = [
+  const items = [
     {
-      badge: vi ? 'GIẢM 15%' : '15% OFF',
-      title: vi ? 'Mã Giảm Giá Tân Thủ: TET2026' : 'New Member Code: TET2026',
-      desc: vi ? 'Giảm ngay 15% cho đơn hàng đầu tiên khi thanh toán.' : 'Save 15% on your first order at checkout.',
-      highlight: true,
+      title: vi ? 'Ưu đãi thành viên mới' : 'Welcome offer',
+      desc: vi ? 'Nhập mã TET2026 giảm 15% đơn đầu tiên' : 'Use code TET2026 for 15% off',
     },
     {
-      badge: vi ? 'FREESHIP' : 'FREE SHIP',
-      title: vi ? 'Miễn Phí Vận Chuyển Toàn Quốc' : 'Free Shipping Nationwide',
-      desc: vi ? 'Áp dụng cho mọi đơn hàng giá trị từ 399.000đ.' : 'On all eligible orders over 399,000₫.',
-      highlight: false,
+      title: vi ? 'Giao hàng tiêu chuẩn' : 'Complimentary shipping',
+      desc: vi ? 'Miễn phí đơn từ 399.000₫ toàn quốc' : 'Free delivery on orders over 399,000₫',
     },
     {
-      badge: vi ? 'THỬ ĐỒ 3D' : '3D TRY-ON',
-      title: vi ? 'Thử Đồ Ảo Chuẩn Phom 360°' : 'Smart 3D Virtual Try-On',
-      desc: vi ? 'Ướm vừa vặn theo số đo, không lo chọn nhầm size.' : 'Match your body measurements before buying.',
-      highlight: false,
+      title: vi ? 'Phòng thử đồ 3D' : '3D Virtual fitting',
+      desc: vi ? 'Ướm phom theo số đo thực tế 360°' : '360° fit simulation tailored to your size',
     },
     {
-      badge: vi ? 'ĐỔI TRẢ 7 NGÀY' : '7 DAYS',
-      title: vi ? 'Đổi Hàng Dễ Dàng Tận Nhà' : 'Hassle-Free Exchanges',
-      desc: vi ? 'Hỗ trợ đổi size tận nơi hoặc tại cửa hàng N&B.' : 'Exchange sizes easily at our store or doorstep.',
-      highlight: false,
+      title: vi ? 'Đổi trả linh hoạt' : '7-Day returns',
+      desc: vi ? 'Hỗ trợ đổi size tận nơi trong 7 ngày' : 'Effortless doorstep size exchanges',
     },
   ]
 
   return (
-    <section className="border-y border-line bg-amber-50/50 py-5" aria-label={vi ? 'Ưu đãi khách hàng' : 'Customer promotions'}>
-      <div className="shell grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-        {perks.map((p, i) => (
-          <div key={i} className={`flex items-start gap-3.5 rounded-xl p-3 ${p.highlight ? 'bg-amber-100/60 border border-amber-300' : 'bg-white border border-line/70'} shadow-xs`}>
-            <span className={`shrink-0 rounded-md px-2 py-1 text-micro font-bold tracking-wider ${p.highlight ? 'bg-red-600 text-white animate-pulse' : 'bg-ink text-on-ink'}`}>
-              {p.badge}
-            </span>
-            <div>
-              <h3 className="text-body-sm font-bold text-ink leading-snug">{p.title}</h3>
-              <p className="mt-0.5 text-micro text-ink-muted leading-relaxed">{p.desc}</p>
-            </div>
+    <section className="border-y border-line bg-cream/60 py-6" aria-label={vi ? 'Dịch vụ & Ưu đãi' : 'Services & Offers'}>
+      <div className="shell grid grid-cols-2 gap-y-6 gap-x-4 md:grid-cols-4 lg:gap-8">
+        {items.map((item, i) => (
+          <div key={i} className="text-center sm:text-left">
+            <p className="font-display text-body font-semibold text-ink">{item.title}</p>
+            <p className="mt-1 text-micro text-ink-muted leading-relaxed">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -60,48 +47,50 @@ function CustomerPerks() {
   )
 }
 
-/** Banner khuyến mãi lớn Flash Sale / Mega Deal */
-function MegaPromotionBanner() {
+/** Banner quảng bá chiến dịch ưu đãi theo phong cách editorial */
+function SeasonalPromotion() {
   const { lang } = useLang()
   const vi = lang === 'vi'
 
   return (
-    <section className="shell py-8" aria-label={vi ? 'Khuyến mãi đặc biệt' : 'Special sale'}>
-      <div className="relative isolate overflow-hidden rounded-3xl bg-linear-to-r from-red-950 via-slate-900 to-ink px-6 py-10 text-white sm:px-12 sm:py-14 border border-red-900/40 shadow-xl">
-        <div aria-hidden="true" className="absolute -right-20 -top-20 size-80 rounded-full bg-red-600/20 blur-3xl" />
-        <div className="grid items-center gap-8 md:grid-cols-12">
-          <div className="md:col-span-8">
-            <div className="inline-flex items-center gap-2 rounded-full bg-red-500/20 border border-red-400/40 px-3 py-1 text-micro font-bold uppercase tracking-wider text-red-300">
-              🔥 {vi ? 'ƯU ĐÃI KHỦNG THÁNG NÀY — SỐ LƯỢNG CÓ HẠN' : 'EXCLUSIVE MONTHLY OFFER'}
-            </div>
-            <h2 className="mt-4 font-display text-title sm:text-display leading-tight text-white">
-              {vi ? 'GIẢM ĐẾN 30% TẤT CẢ ÁO THUN & SƠ MI' : 'UP TO 30% OFF ALL SHIRTS & TEES'}
-            </h2>
-            <p className="mt-3 max-w-xl text-body text-white/85">
-              {vi
-                ? 'Nâng cấp phong cách hàng ngày với chất vải Cotton chải kỹ đanh mịn, chuẩn phom cao cấp. Nhập mã TET2026 giảm thêm 15% cho đơn từ 2 sản phẩm.'
-                : 'Elevate your daily rotation with heavyweight combed cotton. Use code TET2026 for an extra 15% off.'}
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <Link to="/products" className="button button--light text-body font-bold text-red-950 shadow-lg hover:scale-105 transition-transform">
-                {vi ? 'Săn Deal Ngay Bây Giờ →' : 'Shop The Sale →'}
-              </Link>
-              <Link to="/try-on" className="button button--ghost-light text-body font-medium">
-                {vi ? 'Thử 3D Trước Khi Mua' : 'Try On 3D First'}
-              </Link>
-            </div>
+    <section className="shell py-(--section-y)" aria-labelledby="home-promotion">
+      <div className="relative isolate overflow-hidden bg-ink text-on-ink md:grid md:grid-cols-12 min-h-[26rem] items-center">
+        <img
+          src={CAMPAIGN}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 -z-10 h-full w-full object-cover object-[60%_35%] opacity-40 md:opacity-50"
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-r from-ink via-ink/90 to-transparent" />
+
+        <div className="p-8 sm:p-12 md:p-16 md:col-span-8 lg:col-span-7">
+          <p className="eyebrow text-on-ink-muted">{vi ? 'Ưu đãi bộ sưu tập' : 'Seasonal selection'}</p>
+          <h2 id="home-promotion" className="mt-3 font-display text-title sm:text-display text-on-ink leading-tight">
+            {vi ? 'Giảm đến 30% áo thun & sơ mi' : 'Up to 30% off shirts & tees'}
+          </h2>
+          <p className="mt-4 max-w-lg text-body text-on-ink/80 leading-relaxed">
+            {vi
+              ? 'Chất liệu cotton chải kỹ và đường may tỉ mỉ từ xưởng may N&B. Nhập mã TET2026 để giảm thêm 15% cho đơn hàng của bạn.'
+              : 'Enduring essentials cut from premium combed cotton. Apply code TET2026 at checkout for an extra 15% off.'}
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link to="/products" className="button button--light">
+              {vi ? 'Khám phá bộ sưu tập' : 'Explore collection'}
+            </Link>
+            <Link to="/try-on" className="button button--ghost-light">
+              {vi ? 'Thử đồ 3D' : '3D fitting room'}
+            </Link>
           </div>
-          <div className="md:col-span-4 flex justify-center md:justify-end">
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-5 text-center backdrop-blur-md max-w-xs w-full shadow-inner">
-              <p className="text-micro uppercase tracking-widest text-white/70">{vi ? 'Mã Khuyến Mãi' : 'Promo Code'}</p>
-              <p className="mt-1 font-mono text-2xl font-black text-amber-300 tracking-wider">TET2026</p>
-              <div className="mt-3 border-t border-white/20 pt-3">
-                <span className="inline-block rounded-md bg-emerald-500 px-2 py-0.5 text-micro font-bold text-white">
-                  {vi ? 'ĐANG CÓ HIỆU LỰC' : 'ACTIVE NOW'}
-                </span>
-                <p className="mt-2 text-micro text-white/80">{vi ? 'Giảm 15% toàn bộ giỏ hàng' : '15% discount on full cart'}</p>
-              </div>
-            </div>
+        </div>
+
+        <div className="hidden md:flex md:col-span-4 lg:col-span-5 justify-end p-8 pr-12">
+          <div className="border border-on-ink/20 bg-ink/60 p-6 text-center backdrop-blur-sm max-w-xs w-full">
+            <p className="eyebrow text-on-ink-muted">{vi ? 'Mã ưu đãi' : 'Promo code'}</p>
+            <p className="mt-2 font-display text-2xl tracking-widest text-on-ink font-semibold">TET2026</p>
+            <p className="mt-2 border-t border-on-ink/15 pt-2 text-micro text-on-ink-muted">
+              {vi ? 'Giảm 15% toàn bộ giỏ hàng' : '15% off your entire order'}
+            </p>
           </div>
         </div>
       </div>
@@ -109,78 +98,70 @@ function MegaPromotionBanner() {
   )
 }
 
-/** Danh mục quần áo kèm mức giá hấp dẫn */
+/** Danh mục sản phẩm chủ đạo */
 function CategoryHighlights() {
   const { lang } = useLang()
   const vi = lang === 'vi'
 
   const categories = [
     {
-      title: vi ? 'Áo Thun Nam & Nữ' : 'T-Shirts & Tees',
-      price: vi ? 'Chỉ từ 199.000₫' : 'From 199,000₫',
-      tag: vi ? 'BÁN CHẠY NHẤT' : 'BEST SELLER',
+      title: vi ? 'Áo thun' : 'T-Shirts',
+      subtitle: vi ? 'Từ 199.000₫' : 'From 199,000₫',
       link: '/products?category=m-tshirts',
       image: '/img/clothing/ascolour_5027_classic_pocket_tee_bone/front.jpg',
     },
     {
-      title: vi ? 'Áo Sơ Mi Oxford' : 'Oxford Shirts',
-      price: vi ? 'Chỉ từ 229.000₫' : 'From 229,000₫',
-      tag: vi ? 'CAO CẤP' : 'LUXE WEAVE',
+      title: vi ? 'Áo sơ mi' : 'Oxford Shirts',
+      subtitle: vi ? 'Từ 229.000₫' : 'From 229,000₫',
       link: '/products?category=m-shirts',
       image: '/img/clothing/ascolour_5401_oxford_shirt_light_blue/front.jpg',
     },
     {
-      title: vi ? 'Quần Dài & Chân Váy' : 'Pants & Skirts',
-      price: vi ? 'Chỉ từ 259.000₫' : 'From 259,000₫',
-      tag: vi ? 'TÔN DÁNG' : 'FLATTERING',
+      title: vi ? 'Quần & Chân váy' : 'Trousers',
+      subtitle: vi ? 'Từ 259.000₫' : 'From 259,000₫',
       link: '/products?category=m-trousers',
       image: '/img/clothing/ascolour_5932_relax_track_pants_black/front.jpg',
     },
     {
-      title: vi ? 'Phòng Thử Đồ 3D' : '3D Fitting Room',
-      price: vi ? 'Miễn phí 100%' : '100% Complimentary',
-      tag: vi ? 'CÔNG NGHỆ MỚI' : 'AI & 3D TECH',
+      title: vi ? 'Phòng thử đồ 3D' : '3D Fitting',
+      subtitle: vi ? 'Trải nghiệm trực quan' : 'Interactive avatar',
       link: '/try-on',
       image: LOOKBOOK,
-      isSpecial: true,
     },
   ]
 
   return (
-    <section className="shell py-8" aria-labelledby="category-highlights-heading">
+    <section className="shell py-(--section-y)" aria-labelledby="category-highlights-heading">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div>
-          <p className="eyebrow text-ink-muted">{vi ? 'Khám phá theo danh mục' : 'Categories'}</p>
-          <h2 id="category-highlights-heading" className="mt-1 font-display text-title">
-            {vi ? 'Sản Phẩm Thời Trang Nổi Bật' : 'Featured Collections'}
+          <p className="eyebrow text-ink-muted">{vi ? 'Danh mục' : 'Categories'}</p>
+          <h2 id="category-highlights-heading" className="mt-2 font-display text-title">
+            {vi ? 'Thiết kế chủ đạo' : 'Core Collections'}
           </h2>
         </div>
-        <Link to="/products" className="text-body-sm font-semibold text-ink underline underline-offset-4 hover:text-black">
-          {vi ? 'Xem toàn bộ 55 mẫu sản phẩm →' : 'View all 55 styles →'}
+        <Link to="/products" className="text-body-sm text-ink text-link">
+          {vi ? 'Xem tất cả sản phẩm' : 'View all'}
         </Link>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
+      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
         {categories.map((c, i) => (
           <Link
             key={i}
             to={c.link}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-xs transition-transform duration-300 hover:-translate-y-1 hover:shadow-md"
+            className="group block"
           >
-            <div className="relative aspect-4/5 overflow-hidden bg-cream/50">
+            <div className="aspect-4/5 overflow-hidden bg-cream product-image-surface">
               <img
                 src={c.image}
                 alt={c.title}
-                className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                className="h-full w-full object-cover object-top transition-transform duration-[700ms] ease-soft group-hover:scale-[1.03]"
                 loading="lazy"
               />
-              <span className={`absolute left-2.5 top-2.5 rounded-sm px-2 py-0.5 text-micro font-bold tracking-wider ${c.isSpecial ? 'bg-indigo-600 text-white' : 'bg-ink text-on-ink'}`}>
-                {c.tag}
-              </span>
             </div>
-            <div className="p-3.5">
-              <h3 className="text-body-sm font-bold text-ink group-hover:underline">{c.title}</h3>
-              <p className="mt-1 text-caption font-semibold text-red-700">{c.price}</p>
+            <div className="mt-3">
+              <h3 className="font-display text-body font-semibold text-ink group-hover:underline underline-offset-4">{c.title}</h3>
+              <p className="mt-0.5 text-micro text-ink-muted">{c.subtitle}</p>
             </div>
           </Link>
         ))}
@@ -189,72 +170,58 @@ function CategoryHighlights() {
   )
 }
 
-/** Banner Thử Đồ 3D (Đã tinh chỉnh tập trung vào lợi ích mua sắm của khách) */
+/** Giới thiệu phòng thử đồ 3D */
 function VirtualTryOnSpotlight() {
   const { lang } = useLang()
   const vi = lang === 'vi'
 
   return (
     <section className="shell py-(--section-y)" aria-labelledby="home-tryon-heading">
-      <div className="relative isolate overflow-hidden rounded-3xl bg-ink px-6 py-12 text-on-ink sm:px-12 sm:py-16 lg:px-16 lg:py-20">
-        <div aria-hidden="true" className="absolute -right-24 -top-24 size-96 rounded-full bg-blue-900/30 blur-3xl pointer-events-none" />
-        <div aria-hidden="true" className="absolute -bottom-24 -left-24 size-96 rounded-full bg-indigo-900/20 blur-3xl pointer-events-none" />
+      <div className="grid items-center gap-10 md:grid-cols-12 lg:gap-16 border border-line bg-cream/40 p-8 sm:p-12 lg:p-16">
+        <div className="md:col-span-7">
+          <p className="eyebrow text-ink-muted">{vi ? 'Công nghệ phòng thử đồ' : 'Virtual fitting room'}</p>
+          <h2 id="home-tryon-heading" className="mt-3 font-display text-title sm:text-display leading-tight text-ink">
+            {vi ? 'Mặc thử trên người mẫu 360° theo đúng số đo' : 'Experience 360° virtual fitting tailored to your fit'}
+          </h2>
+          <p className="mt-4 max-w-xl text-body text-ink-muted leading-relaxed">
+            {vi
+              ? 'Xoay góc nhìn toàn diện, thử các mẫu áo sơ mi, áo thun và quần suông để cảm nhận độ rũ vải và phom dáng trước khi quyết định.'
+              : 'Rotate 360 degrees, inspect drape and proportions across our tops and trousers before buying.'}
+          </p>
 
-        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
-          <div className="lg:col-span-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-on-ink/15 bg-on-ink/5 px-3 py-1 text-micro tracking-wider uppercase text-on-ink/90">
-              <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-              {vi ? 'Phòng Thử Đồ 3D Thông Minh' : 'Interactive 3D Virtual Try-On'}
+          <div className="mt-8 grid grid-cols-3 gap-6 max-w-md border-t border-line pt-6">
+            <div>
+              <p className="font-display text-2xl font-semibold text-ink">360°</p>
+              <p className="mt-1 text-micro text-ink-muted">{vi ? 'Xoay góc nhìn' : 'Full rotation'}</p>
             </div>
-            <h2 id="home-tryon-heading" className="mt-5 font-display text-title sm:text-display leading-tight">
-              {vi ? 'Mặc thử ngay trên người mẫu 360° — Chuẩn size, không lo đổi trả.' : 'Try before you buy — 360° virtual fit personalized to your size.'}
-            </h2>
-            <p className="mt-5 max-w-xl text-body text-on-ink/80 leading-relaxed">
-              {vi
-                ? 'Thử ngay mẫu áo thun túi ngực, sơ mi Oxford và quần suông trên người mẫu ảo 3D. Nhập chiều cao cân nặng để hệ thống tự động kiểm tra độ vừa vặn từng milimet.'
-                : 'Preview shirts, tees, and trousers moving in 360 degrees on your personal 3D avatar.'}
-            </p>
-
-            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 max-w-lg">
-              <div className="rounded-xl border border-on-ink/10 bg-on-ink/5 p-3.5 backdrop-blur-xs">
-                <span className="text-body font-bold text-on-ink">360°</span>
-                <p className="mt-0.5 text-micro text-on-ink-muted">{vi ? 'Xoay góc nhìn tự do' : 'Full 360° rotation'}</p>
-              </div>
-              <div className="rounded-xl border border-on-ink/10 bg-on-ink/5 p-3.5 backdrop-blur-xs">
-                <span className="text-body font-bold text-on-ink">100%</span>
-                <p className="mt-0.5 text-micro text-on-ink-muted">{vi ? 'Chất vải & phom thật' : 'True-to-life texture'}</p>
-              </div>
-              <div className="col-span-2 sm:col-span-1 rounded-xl border border-on-ink/10 bg-on-ink/5 p-3.5 backdrop-blur-xs">
-                <span className="text-body font-bold text-emerald-400">0đ</span>
-                <p className="mt-0.5 text-micro text-on-ink-muted">{vi ? 'Dùng thử miễn phí' : 'Free guest trial'}</p>
-              </div>
+            <div>
+              <p className="font-display text-2xl font-semibold text-ink">0đ</p>
+              <p className="mt-1 text-micro text-ink-muted">{vi ? 'Dùng thử trải nghiệm' : 'Guest trial'}</p>
             </div>
-
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link to="/try-on" className="button button--light text-body font-medium shadow-md">
-                {vi ? 'Thử Đồ 3D Ngay (Miễn Phí)' : 'Launch 3D fitting room'}
-              </Link>
-              <Link to="/account/measurements" className="button button--ghost-light text-body font-medium">
-                {vi ? 'Nhập Số Đo Của Bạn' : 'Set your measurements'}
-              </Link>
+            <div>
+              <p className="font-display text-2xl font-semibold text-ink">1:1</p>
+              <p className="mt-1 text-micro text-ink-muted">{vi ? 'Mô phỏng phom thật' : 'True-to-size'}</p>
             </div>
           </div>
 
-          <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-paper/10 lg:col-span-5 lg:aspect-square border border-on-ink/10 shadow-2xl">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link to="/try-on" className="button button--primary">
+              {vi ? 'Bắt đầu thử đồ' : 'Launch fitting room'}
+            </Link>
+            <Link to="/account/measurements" className="button">
+              {vi ? 'Cập nhật số đo' : 'Set measurements'}
+            </Link>
+          </div>
+        </div>
+
+        <div className="md:col-span-5">
+          <div className="aspect-4/5 overflow-hidden bg-cream product-image-surface border border-line">
             <img
               src={LOOKBOOK}
-              alt={vi ? 'Mô phỏng thử đồ thời trang' : 'Fashion tryon simulation'}
+              alt=""
               className="h-full w-full object-cover object-center"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-ink/90 via-ink/20 to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 rounded-xl border border-white/20 bg-black/50 p-4 backdrop-blur-md">
-              <p className="text-caption font-semibold text-white">{vi ? 'Set đồ đề xuất tuần này' : 'Featured Look'}</p>
-              <p className="text-micro text-white/80">{vi ? 'Áo sơ mi Oxford + Quần suông Relaxed' : 'Oxford Shirt + Relaxed Trousers'}</p>
-              <Link to="/try-on?top=ascolour_5401_oxford_shirt_light_blue" className="mt-2 inline-block text-micro font-semibold text-emerald-300 underline underline-offset-2">
-                {vi ? 'Thử ngay mẫu áo này →' : 'Try this shirt now →'}
-              </Link>
-            </div>
           </div>
         </div>
       </div>
@@ -262,7 +229,7 @@ function VirtualTryOnSpotlight() {
   )
 }
 
-/** Sản phẩm nổi bật Best Sellers */
+/** Sản phẩm nổi bật */
 function FeaturedProducts() {
   const { lang, t } = useLang()
   const vi = lang === 'vi'
@@ -271,16 +238,16 @@ function FeaturedProducts() {
   const featured = (products || []).slice(0, 8)
 
   return (
-    <section className="shell py-(--section-y)" aria-labelledby="home-featured-heading">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
+    <section className="shell py-(--section-y) border-t border-line" aria-labelledby="home-featured-heading">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div>
-          <p className="eyebrow text-ink-muted">{vi ? 'Tuyển chọn hot nhất' : 'Trending Now'}</p>
+          <p className="eyebrow text-ink-muted">{vi ? 'Tuyển chọn' : 'Curated'}</p>
           <h2 id="home-featured-heading" className="mt-2 font-display text-title">
-            {vi ? 'Sản Phẩm Đang Được Mua Nhiều' : 'Boutique Best Sellers'}
+            {vi ? 'Sản phẩm nổi bật' : 'Featured Pieces'}
           </h2>
         </div>
-        <Link to="/products" className="button button--ghost text-body">
-          {t('nav.viewAll')} →
+        <Link to="/products" className="text-body-sm text-ink text-link">
+          {t('nav.viewAll')}
         </Link>
       </div>
 
@@ -295,7 +262,7 @@ function FeaturedProducts() {
 function WomenEditorial() {
   const { t } = useLang()
   return (
-    <section className="shell grid items-center gap-8 py-(--section-y) md:grid-cols-[5fr_6fr] lg:gap-16" aria-labelledby="home-women">
+    <section className="shell grid items-center gap-8 py-(--section-y) md:grid-cols-[5fr_6fr] lg:gap-16 border-t border-line" aria-labelledby="home-women">
       <Link to="/women/ready-to-wear" tabIndex={-1} aria-hidden="true" className="group block aspect-4/5 overflow-hidden bg-cream md:aspect-auto md:h-[28rem] lg:h-[32rem]">
         <img src={WOMAN} alt="" loading="lazy" decoding="async" width="1024" height="1536" className="h-full w-full object-cover object-top transition-transform duration-[900ms] ease-soft motion-safe:group-hover:scale-[1.02]" />
       </Link>
@@ -332,7 +299,7 @@ function MenEditorial() {
   )
 }
 
-/** Đánh giá khách hàng */
+/** Ý kiến khách hàng */
 function CustomerTestimonials() {
   const { lang } = useLang()
   const vi = lang === 'vi'
@@ -341,60 +308,48 @@ function CustomerTestimonials() {
     {
       author: 'Hoàng Minh',
       location: 'Hà Nội',
-      rating: 5,
       content: vi
-        ? 'Lần đầu tiên thấy một trang thời trang có tính năng thử đồ 3D mượt như thế này. Mình nhập số đo 1m73 - 68kg hệ thống gợi ý size M mặc vừa in không cần sửa.'
-        : 'First time experiencing a 3D fitting room this smooth. Inputted my height and weight, got recommended size M, and the shirt fits flawlessly.',
-      item: 'Áo sơ mi Oxford Nam',
+        ? 'Phòng thử đồ 3D rất trực quan, nhập chiều cao cân nặng là hệ thống gợi ý size vừa vặn, mặc lên đúng form.'
+        : 'The 3D fitting room is intuitive and accurate. Recommended size M fits perfectly as expected.',
+      item: 'Áo sơ mi Oxford',
     },
     {
       author: 'Phương Linh',
       location: 'TP. Hồ Chí Minh',
-      rating: 5,
       content: vi
-        ? 'Chất vải thun cotton của AS Colour dày dặn, giặt máy không bị bai xù. Nhập mã giảm 15% được freeship giao hàng hỏa tốc trong ngày.'
-        : 'The cotton quality is substantial and soft. Used the 15% promo code and got same-day delivery.',
-      item: 'Áo thun Classic Túi Ngực',
+        ? 'Chất vải thun cotton dày dặn, cầm chắc tay và đường may chỉn chu. Giao hàng nhanh và đóng gói cẩn thận.'
+        : 'The cotton fabric is substantial and soft. Prompt delivery and tasteful packaging.',
+      item: 'Áo thun Pocket Tee',
     },
     {
       author: 'Tuấn Kiệt',
       location: 'Đà Nẵng',
-      rating: 5,
       content: vi
-        ? 'Tính năng phối trọn bộ Outfit trên người mẫu 3D rất trực quan. Giúp mình chọn được ngay chiếc áo sơ mi phối hợp với quần suông mà không phải đoán mò.'
-        : 'The outfit mix-and-match on the 3D model is brilliant. Saved me tons of guessing.',
-      item: 'Set đồ phối Minimalist',
+        ? 'Phối cả set áo và quần trực tiếp trên người mẫu giúp mình dễ hình dung tổng thể phong cách trước khi đặt.'
+        : 'Previewing top and bottom pairings together made choosing outfits completely effortless.',
+      item: 'Set Minimalist',
     },
   ]
 
   return (
-    <section className="bg-cream/40 py-(--section-y) border-t border-line" aria-labelledby="home-reviews-heading">
-      <div className="shell">
-        <div className="text-center max-w-xl mx-auto">
-          <p className="eyebrow text-ink-muted">{vi ? 'Đánh giá chân thực' : 'Customer Voices'}</p>
-          <h2 id="home-reviews-heading" className="mt-2 font-display text-title">
-            {vi ? 'Khách Hàng Nói Gì Về N&B Boutique' : 'Loved by Our Community'}
-          </h2>
-        </div>
+    <section className="shell py-(--section-y) border-t border-line" aria-labelledby="home-reviews-heading">
+      <div className="max-w-md">
+        <p className="eyebrow text-ink-muted">{vi ? 'Ý kiến khách hàng' : 'Customer feedback'}</p>
+        <h2 id="home-reviews-heading" className="mt-2 font-display text-title">
+          {vi ? 'Trải nghiệm mua sắm' : 'Client Notes'}
+        </h2>
+      </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-          {reviews.map((r, i) => (
-            <div key={i} className="flex flex-col justify-between rounded-2xl border border-line bg-white p-6 shadow-xs">
-              <div>
-                <div className="flex items-center gap-1 text-amber-500">
-                  {Array.from({ length: r.rating }).map((_, starIndex) => (
-                    <span key={starIndex}>★</span>
-                  ))}
-                </div>
-                <p className="mt-4 text-body text-ink leading-relaxed">“{r.content}”</p>
-              </div>
-              <div className="mt-6 border-t border-line/60 pt-4">
-                <p className="text-body-sm font-semibold text-ink">{r.author}</p>
-                <p className="text-micro text-ink-muted">{r.location} · {r.item}</p>
-              </div>
+      <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3 lg:gap-12">
+        {reviews.map((r, i) => (
+          <div key={i} className="flex flex-col justify-between border-l border-line pl-6">
+            <p className="text-body text-ink/90 leading-relaxed">“{r.content}”</p>
+            <div className="mt-6">
+              <p className="font-display text-body font-semibold text-ink">{r.author}</p>
+              <p className="text-micro text-ink-muted">{r.location} · {r.item}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -425,8 +380,8 @@ export default function Home() {
     <main>
       <title>N&amp;B — Thời trang may sẵn tinh giản &amp; Phòng thử đồ 3D</title>
       <Hero />
-      <CustomerPerks />
-      <MegaPromotionBanner />
+      <ServiceStrip />
+      <SeasonalPromotion />
       <CategoryHighlights />
       <VirtualTryOnSpotlight />
       <FeaturedProducts />
