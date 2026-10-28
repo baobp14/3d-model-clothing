@@ -1048,280 +1048,194 @@ export default function GarmentTestApp() {
 
   return (
     <div className="flex h-screen flex-col bg-stone-50">
-      <header className="border-b border-stone-200 px-5 py-3">
-        <h1 className="text-base font-semibold text-stone-900">
-          Mặc thử bằng mesh áo thật — mô phỏng vải
-        </h1>
-        <p className="text-xs text-stone-500">
-          Áo là mesh có kích thước theo bảng size, không phải ảnh dán. Xoay người để thấy tà áo
-          văng theo quán tính. Áo và quần mặc cùng lúc — tab bên dưới chỉ chọn cái bạn đang chỉnh.
-        </p>
+      <header className="border-b border-stone-200 bg-white px-5 py-3 flex items-center justify-between">
+        <div>
+          <h1 className="text-base font-semibold text-stone-900 flex items-center gap-2">
+            Phòng Thử Đồ 3D Trực Tuyến
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
+              Form Dáng Chuẩn
+            </span>
+          </h1>
+          <p className="text-xs text-stone-500">
+            Mô phỏng độ vừa vặn và rơi của vải trên cơ thể thực tế theo bảng size chuẩn.
+          </p>
+        </div>
+        <a
+          href="/shop"
+          className="text-xs text-stone-600 hover:text-stone-900 border border-stone-200 hover:border-stone-400 rounded-lg px-3 py-1.5 transition-colors font-medium flex items-center gap-1.5"
+        >
+          <span>← Quay lại cửa hàng</span>
+        </a>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="w-64 shrink-0 space-y-4 overflow-y-auto border-r border-stone-200 bg-white p-4">
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">Xem</h2>
-            <div className="flex flex-wrap gap-1.5">
-              <Button active={showTop && showBottom} onClick={() => { setShowTop(true); setShowBottom(true); }}>Cả bộ</Button>
-              <Button active={showTop && !showBottom} onClick={() => { setShowTop(true); setShowBottom(false); }}>Chỉ áo</Button>
-              <Button active={!showTop && showBottom} onClick={() => { setShowTop(false); setShowBottom(true); }}>Chỉ quần / váy</Button>
+        <aside className="w-80 shrink-0 flex flex-col border-r border-stone-200 bg-white overflow-hidden shadow-xs">
+          {/* Header Phòng Thử Đồ */}
+          <div className="p-4 border-b border-stone-100 bg-stone-50/60">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-stone-900">
+                Phòng thử đồ 3D
+              </span>
+              <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+                Thời gian thực
+              </span>
             </div>
-          </section>
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Người mẫu
-            </h2>
-            <p className="mb-1.5 text-[11px] text-stone-400">
-              Số đo {fitKey === 'waistCircCm' ? 'vòng eo' : 'vòng ngực'} của người mẫu — không
-              phải size {fitKey === 'waistCircCm' ? 'quần' : 'áo'} đang chỉnh.
+            <p className="text-[11px] text-stone-500 mt-1">
+              Thử nghiệm form dáng & kích thước trực tiếp trên người mẫu mô phỏng.
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              {PROFILE_LIST.map(([key, p]) => (
-                <Button
-                  key={key}
-                  active={!customMode && profileKey === key}
-                  onClick={() => {
-                    setCustomMode(false);
-                    setProfileKey(key);
-                  }}
-                  title={p.label}
-                >
-                  {key} · {fitKey === 'waistCircCm' ? p.waist : p.chest}cm
-                </Button>
-              ))}
-              <Button active={customMode} onClick={() => setCustomMode(true)}>
-                Số đo tùy chỉnh
-              </Button>
-            </div>
+          </div>
 
-            {customMode && (
-              <div className="mt-2 space-y-2.5 border-t border-stone-200 pt-2">
-                <div className="flex gap-1.5">
-                  {(['male', 'female'] as const).map((g) => (
-                    <Button
-                      key={g}
-                      active={custom.gender === g}
-                      onClick={() => setCustom((c) => ({ ...c, gender: g }))}
-                    >
-                      {g === 'male' ? 'Nam' : 'Nữ'}
-                    </Button>
-                  ))}
-                </div>
-
-                {BASIC_FIELDS.map((f) => {
-                  const meta = MEASURE_FIELDS[f];
-                  const [wLo, wHi] = weightBounds(custom.height);
-                  const lo = f === 'weight' ? wLo : meta.min;
-                  const hi = f === 'weight' ? wHi : meta.max;
-                  return (
-                    <label key={f} className="block text-[11px] text-stone-600">
-                      <span className="flex justify-between">
-                        <span>{meta.label}</span>
-                        <span className="tabular-nums text-stone-800">
-                          {custom[f]}
-                          {f === 'weight' ? ' kg' : ' cm'}
-                        </span>
-                      </span>
-                      <input
-                        type="range"
-                        min={lo}
-                        max={hi}
-                        step={f === 'weight' ? 1 : 0.5}
-                        value={custom[f]}
-                        onChange={(e) => {
-                          const v = parseFloat(e.target.value);
-                          setCustom((c) => {
-                            if (f === 'height') {
-                              // Keep weight inside the BMI band for the new height.
-                              const [nLo, nHi] = weightBounds(v);
-                              return { ...c, height: v, weight: clampNum(c.weight, nLo, nHi) };
-                            }
-                            return { ...c, [f]: v };
-                          });
-                        }}
-                        className="mt-0.5 w-full"
-                      />
-                    </label>
-                  );
-                })}
-
-                <p className="pt-0.5 text-[10px] uppercase tracking-wide text-stone-400">
-                  App tự tính từ chiều cao + cân nặng — tick để tự chỉnh
-                </p>
-
-                {DERIVED_FIELDS.map((f) => {
-                  const meta = MEASURE_FIELDS[f];
-                  const on = manual[f];
-                  return (
-                    <div key={f} className="text-[11px] text-stone-600">
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-1.5">
-                          <input
-                            type="checkbox"
-                            checked={on}
-                            onChange={(e) => {
-                              const next = e.target.checked;
-                              // Turning on: seed the slider from the current estimate.
-                              if (next)
-                                setCustom((c) => ({ ...c, [f]: deriveSecondary(c)[f] }));
-                              setManual((m) => ({ ...m, [f]: next }));
-                            }}
-                          />
-                          {meta.label}
-                          {!on && <span className="text-stone-400">(tự tính)</span>}
-                        </label>
-                        <span className="tabular-nums text-stone-800">
-                          {customResolved[f]} cm
-                        </span>
-                      </div>
-                      {on && (
-                        <input
-                          type="range"
-                          min={meta.min}
-                          max={meta.max}
-                          step={0.5}
-                          value={custom[f]}
-                          onChange={(e) =>
-                            setCustom((c) => ({ ...c, [f]: parseFloat(e.target.value) }))
-                          }
-                          className="mt-0.5 w-full"
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-
-                <div className="flex gap-2 text-[11px]">
+          {/* Scrollable Customer Controls */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            {/* 1. CHỌN MÓN ĐỒ (ÁO / QUẦN) */}
+            <div>
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 block mb-2">
+                Trang phục đang thử
+              </label>
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-stone-100 rounded-xl">
+                {(['top', 'bottom'] as const).map((s) => (
                   <button
+                    key={s}
                     type="button"
                     onClick={() => {
-                      setCustom({ ...PROFILES.B });
-                      clearManual();
+                      setActiveSlot(s);
+                      if (s === 'top') setShowTop(true);
+                      if (s === 'bottom') setShowBottom(true);
                     }}
-                    className="text-stone-500 underline underline-offset-2"
+                    className={`py-2 px-3 text-xs font-medium rounded-lg transition-all text-center ${
+                      activeSlot === s
+                        ? 'bg-white text-stone-900 shadow-xs font-semibold'
+                        : 'text-stone-600 hover:text-stone-900'
+                    }`}
                   >
-                    ↺ về mặc định
+                    {s === 'top' ? '👔 Áo (Tops)' : '👖 Quần (Bottoms)'}
                   </button>
-                  {scene && (
-                    <span className="text-stone-400">
-                      sai số solver {scene.solveError.toFixed(2)} cm
-                    </span>
-                  )}
+                ))}
+              </div>
+
+              {/* Garment item styles (T-Shirt, Shirt, Longshirt, Pants, Shorts, Skirt) */}
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {SLOT_KINDS[activeSlot].map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => {
+                      const nextKind = active.kind === k ? null : k;
+                      const nextCalib = nextKind
+                        ? (loaded.meta.garments[nextKind]?.printCalibration ?? DEFAULT_CALIB)
+                        : DEFAULT_CALIB;
+                      const tex = nextKind ? TEXTURES[nextKind][0] : null;
+                      updateSlot(activeSlot, {
+                        kind: nextKind,
+                        presetIdx: -1,
+                        fabricKey: tex?.fabric ?? (nextKind && DEFAULT_FABRIC[nextKind]) ?? 'knit',
+                        printScale: nextCalib.scale,
+                        printOffsetY: nextCalib.offsetY,
+                        ...(tex
+                          ? {
+                              textureKey: tex.key,
+                              pattern: tex.pattern,
+                              baseColor: tex.color,
+                              color2: tex.color2,
+                              front: null,
+                              back: null,
+                            }
+                          : {}),
+                      });
+                    }}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+                      active.kind === k
+                        ? 'border-stone-900 bg-stone-900 text-white font-medium shadow-xs'
+                        : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300'
+                    }`}
+                  >
+                    {GARMENT_LABEL[k]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. CHỌN SIZE ÁO / QUẦN (TRỌNG TÂM CHO KHÁCH HÀNG) */}
+            {active.kind && (
+              <div className="rounded-2xl border-2 border-stone-900/10 bg-stone-50/50 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-stone-900">
+                    Chọn Size {activeSlot === 'top' ? 'Áo' : 'Quần'}
+                  </span>
+                  <span className="text-xs font-bold text-stone-900 bg-stone-200/80 px-2.5 py-0.5 rounded-full">
+                    Size {active.size}
+                  </span>
                 </div>
-                {scene && scene.outOfRange.length > 0 && (
-                  <p className="text-[11px] leading-snug text-amber-600">
-                    ⚠ Ngoài tầm morph: {scene.outOfRange.join(', ')} — cơ thể đã kịch cỡ, số đo
-                    thực tế sẽ lệch.
-                  </p>
+
+                {/* Big Size Grid Buttons */}
+                <div className="grid grid-cols-4 gap-2">
+                  {loaded.meta.sizeOrder.map((s) => {
+                    const isSelected = active.size === s;
+                    const circ = activeChart
+                      ? Math.round(fitCircCm(activeChart, s as SizeLetter) ?? 0)
+                      : Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0);
+
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => updateSlot(activeSlot, { size: s })}
+                        className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-all ${
+                          isSelected
+                            ? 'border-stone-900 bg-stone-900 text-white shadow-md scale-[1.02]'
+                            : 'border-stone-200 bg-white text-stone-800 hover:border-stone-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        <span className="text-base font-bold tracking-tight">{s}</span>
+                        <span className={`text-[10px] mt-0.5 ${isSelected ? 'text-stone-300' : 'text-stone-400'}`}>
+                          {circ}cm
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Fit Assessment Card */}
+                {activeResolved && (
+                  <div className={`rounded-xl p-3 border text-xs transition-all ${
+                    verdict === 'vua'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
+                      : verdict === 'chat'
+                        ? 'bg-rose-50 border-rose-200 text-rose-950'
+                        : 'bg-amber-50 border-amber-200 text-amber-950'
+                  }`}>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        {verdict === 'vua' && '✓ Vừa vặn hoàn hảo'}
+                        {verdict === 'chat' && '⚠ Hơi ôm sát / chật'}
+                        {verdict === 'rong' && 'ℹ Rộng rãi / Oversize'}
+                      </span>
+                      <span className="font-mono text-[11px] font-bold">
+                        {ease !== null && ease >= 0 ? `+${ease.toFixed(1)}` : ease?.toFixed(1)} cm
+                      </span>
+                    </div>
+
+                    <p className="mt-1 text-[11px] text-stone-600 leading-snug">
+                      {verdict === 'vua' && 'Kích thước này vừa in với cơ thể của bạn, cử động tự nhiên không bị gò bó.'}
+                      {verdict === 'chat' && 'Kích thước này sẽ ôm sát người. Nếu thích mặc thoải mái, bạn nên chọn tăng 1 size.'}
+                      {verdict === 'rong' && 'Dáng suông rộng thoáng mát, tạo phong cách trẻ trung năng động.'}
+                    </p>
+
+                    <div className="mt-2 pt-2 border-t border-stone-200/60 flex items-center justify-between text-[11px] text-stone-500">
+                      <span>Vòng {fitKey === 'waistCircCm' ? 'eo' : 'ngực'} người: <b>{bodyCircCm.toFixed(1)}cm</b></span>
+                      <span>Vòng {fitKey === 'waistCircCm' ? 'quần' : 'áo'}: <b>{Math.round(garmentCircCm ?? 0)}cm</b></span>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
-          </section>
 
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Trang phục
-            </h2>
-            <div className="mb-2 flex gap-1.5">
-              {(['top', 'bottom'] as const).map((s) => (
-                <Button key={s} active={activeSlot === s} onClick={() => setActiveSlot(s)}>
-                  {SLOT_LABEL[s]}
-                  {slots[s].kind ? ` · ${GARMENT_LABEL[slots[s].kind!]}` : ' · (trống)'}
-                </Button>
-              ))}
-            </div>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Món đồ ({SLOT_LABEL[activeSlot]})
-            </h2>
-            {activeSlot === 'bottom' && wearingDress && (
-              <p className="mb-1.5 text-[11px] text-amber-700">
-                Đang mặc đầm — phần váy đi theo đầm. Đổi áo ở tab Áo để mặc quần/váy riêng.
-              </p>
-            )}
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {SLOT_KINDS[activeSlot].map((k) => (
-                <Button
-                  key={k}
-                  active={active.kind === k}
-                  onClick={() => {
-                    const nextKind = active.kind === k ? null : k;
-                    const nextCalib = nextKind
-                      ? (loaded.meta.garments[nextKind]?.printCalibration ?? DEFAULT_CALIB)
-                      : DEFAULT_CALIB;
-                    // presetIdx is a position in that kind's preset list,
-                    // which is about to change -- the old index would point
-                    // at an unrelated entry, or past the end.
-                    const tex = nextKind ? TEXTURES[nextKind][0] : null;
-                    updateSlot(activeSlot, {
-                      kind: nextKind,
-                      presetIdx: -1,
-                      fabricKey: tex?.fabric ?? (nextKind && DEFAULT_FABRIC[nextKind]) ?? 'knit',
-                      printScale: nextCalib.scale,
-                      printOffsetY: nextCalib.offsetY,
-                      ...(tex
-                        ? {
-                            textureKey: tex.key,
-                            pattern: tex.pattern,
-                            baseColor: tex.color,
-                            color2: tex.color2,
-                            front: null,
-                            back: null,
-                          }
-                        : {}),
-                    });
-                  }}
-                >
-                  {GARMENT_LABEL[k]}
-                </Button>
-              ))}
-            </div>
-            {active.kind && (
-              <>
-                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                  Size {fitKey === 'waistCircCm' ? 'quần' : 'áo'}
-                </h2>
-                <div className="flex flex-wrap gap-1.5">
-                  {loaded.meta.sizeOrder.map((s) => (
-                    <Button
-                      key={s}
-                      active={active.size === s}
-                      onClick={() => updateSlot(activeSlot, { size: s })}
-                    >
-                      {activeChart
-                        ? (() => {
-                            const size = activeChart.sizes[s as SizeLetter];
-                            if (!size) return `${s} · chưa đo`;
-                            const label = size.label && size.label !== s ? ` (${size.label})` : '';
-                            return `${s}${label} · ${Math.round(fitCircCm(activeChart, s as SizeLetter) ?? 0)}cm`;
-                          })()
-                        : `${s} · ${Math.round(activeEntry?.sizes[s]?.[fitKey] ?? 0)}cm`}
-                    </Button>
-                  ))}
-                </div>
-                <p className="mt-1.5 text-[11px] leading-snug text-stone-500">
-                  {activeChart ? (
-                    <>
-                      Bảng size thật: <b>{activeChart.brand}</b> · {activeChart.style}
-                      {activeChart.waistStretchCm ? ` (lưng thun, tính thêm ${activeChart.waistStretchCm}cm co giãn)` : ''}.{' '}
-                      {activeChart.source && <a className="underline" href={activeChart.source} target="_blank" rel="noopener noreferrer">Nguồn</a>}
-                      {activeChart.note && <span className="block">{activeChart.note}</span>}
-                      {activeChart.estimate && <span className="block text-amber-700">{activeChart.estimate}</span>}
-                    </>
-                  ) : (
-                    'Bảng size chung (chọn họa tiết của một sản phẩm để dùng size thật của hãng).'
-                  )}
-                </p>
-              </>
-            )}
-          </section>
-
-          {active.kind && (
-            <>
-              <section>
-                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                  Chất liệu ({GARMENT_LABEL[active.kind]})
-                </h2>
+            {/* 3. MÀU SẮC TRANG PHỤC */}
+            {active.kind && TEXTURES[active.kind] && (
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 block mb-2">
+                  Màu sắc trang phục
+                </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {TEXTURES[active.kind].map((t) => (
                     <button
@@ -1340,329 +1254,157 @@ export default function GarmentTestApp() {
                           presetAuto: false,
                         })
                       }
-                      className={`flex items-center gap-1.5 rounded border px-1.5 py-1 text-left text-[11px] ${
+                      className={`flex items-center gap-2 rounded-xl border p-2 text-left text-xs transition-all ${
                         active.textureKey === t.key
-                          ? 'border-stone-900 bg-stone-900 text-white'
-                          : 'border-stone-300 bg-white text-stone-700 hover:border-stone-500'
+                          ? 'border-stone-900 bg-stone-900 text-white shadow-xs font-medium'
+                          : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300'
                       }`}
                     >
                       <span
-                        className="h-4 w-4 shrink-0 rounded-sm border border-black/10"
-                        style={{
-                          background:
-                            t.pattern === 'plain' || t.color2 === '#ffffff'
-                              ? t.color
-                              : `repeating-linear-gradient(90deg, ${t.color} 0 4px, ${t.color2} 4px 6px)`,
-                        }}
+                        className="h-4 w-4 shrink-0 rounded-full border border-black/10 shadow-inner"
+                        style={{ background: t.color }}
                       />
-                      {t.label}
+                      <span className="truncate">{t.label}</span>
                     </button>
                   ))}
                 </div>
-                <div className="mt-2 flex items-center gap-3 text-[11px] text-stone-600">
-                  <label className="flex items-center gap-1">
-                    Màu chính
-                    <input
-                      id={`color1-${activeSlot}`}
-                      type="color"
-                      value={active.baseColor}
-                      onChange={(e) => updateSlot(activeSlot, { baseColor: e.target.value })}
-                      className="h-6 w-8 cursor-pointer"
-                    />
-                  </label>
-                  <label className="flex items-center gap-1">
-                    Màu phụ
-                    <input
-                      id={`color2-${activeSlot}`}
-                      type="color"
-                      value={active.color2}
-                      onChange={(e) => updateSlot(activeSlot, { color2: e.target.value })}
-                      className="h-6 w-8 cursor-pointer"
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                  Độ cứng vải khi mô phỏng
-                </h2>
-                <div className="flex flex-col gap-1.5">
-                  {FABRIC_LIST.map(([key, label]) => (
-                    <Button
-                      key={key}
-                      active={active.fabricKey === key}
-                      onClick={() => updateSlot(activeSlot, { fabricKey: key as keyof typeof FABRICS })}
-                    >
-                      {label}
-                    </Button>
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                  Ảnh in lên {fitKey === 'waistCircCm' ? 'quần' : 'áo'} ({SLOT_LABEL[activeSlot]})
-                </h2>
-                <div className="space-y-1.5">
-                  {(['front', 'back'] as const).map((side) => (
-                    <label key={side} className="block text-xs text-stone-600">
-                      <span className="mb-0.5 block">
-                        {side === 'front' ? 'Mặt trước' : 'Mặt sau'}
-                        {printBusy?.slot === activeSlot && printBusy.what === side && ' — đang tách nền…'}
-                        {(side === 'front' ? active.front : active.back) && ' ✓'}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => loadPrint(activeSlot, side, e.target.files?.[0])}
-                        className="w-full text-[11px] file:mr-2 file:rounded file:border file:border-stone-300 file:bg-white file:px-2 file:py-0.5 file:text-[11px]"
-                      />
-                    </label>
-                  ))}
-                  {kindPresets.length > 0 && (
-                    <div className="rounded border border-stone-200 bg-stone-50 p-1.5">
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => stepPreset(-1)}
-                          disabled={printBusy?.slot === activeSlot && printBusy.what === 'preset'}
-                          className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-                        >
-                          ◀
-                        </button>
-                        <span className="flex-1 truncate text-center text-[11px] text-stone-600">
-                          {printBusy?.slot === activeSlot && printBusy.what === 'preset'
-                            ? 'đang tải…'
-                            : active.presetIdx < 0
-                              ? `Bộ sưu tập (${kindPresets.length})`
-                              : `${kindPresets[active.presetIdx].name} · ${active.presetIdx + 1}/${kindPresets.length}`}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => stepPreset(1)}
-                          disabled={printBusy?.slot === activeSlot && printBusy.what === 'preset'}
-                          className="rounded border border-stone-300 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-                        >
-                          ▶
-                        </button>
-                      </div>
-                      <Button
-                        active={active.presetAuto}
-                        onClick={() => {
-                          const next = !active.presetAuto;
-                          updateSlot(activeSlot, { presetAuto: next });
-                          if (next && active.presetIdx < 0) stepPreset(1);
-                        }}
-                      >
-                        {active.presetAuto ? '⏸ dừng tự chạy' : '▶ tự chạy hết bộ'}
-                      </Button>
-                    </div>
-                  )}
-                  <Button
-                    active={false}
-                    onClick={() => {
-                      const s = makeSamplePrints();
-                      updateSlot(activeSlot, { front: s.front, back: s.back });
-                    }}
-                  >
-                    Dùng ảnh mẫu
-                  </Button>
-                  {(active.front || active.back) && (
-                    <Button
-                      active={false}
-                      onClick={() => {
-                        updateSlot(activeSlot, {
-                          front: null,
-                          back: null,
-                          baseColor: '#41599c',
-                          printScale: calib.scale,
-                          printOffsetY: calib.offsetY,
-                          presetAuto: false,
-                          presetIdx: -1,
-                        });
-                      }}
-                    >
-                      Bỏ ảnh in
-                    </Button>
-                  )}
-                </div>
-
-                {(active.front || active.back) && (
-                  <div className="mt-2 space-y-2 border-t border-stone-200 pt-2">
-                    <p className="text-[10px] leading-snug text-stone-400">
-                      Đã căn sẵn cho mẫu áo này ({calib.scale}× · {calib.offsetY}). Chỉ chỉnh nếu
-                      ảnh của bạn khác bố cục.
-                    </p>
-                    <label className="block text-xs text-stone-600">
-                      Phóng ảnh in: {active.printScale.toFixed(2)}×
-                      <input
-                        type="range"
-                        min={0.5}
-                        max={2}
-                        step={0.01}
-                        value={active.printScale}
-                        onChange={(e) => updateSlot(activeSlot, { printScale: parseFloat(e.target.value) })}
-                        className="mt-1 w-full"
-                      />
-                      <span className="text-[10px] text-stone-400">nhỏ = hoa văn to · lớn = hoa văn nhỏ</span>
-                    </label>
-                    <label className="block text-xs text-stone-600">
-                      Dời lên / xuống: {active.printOffsetY > 0 ? '+' : ''}
-                      {active.printOffsetY.toFixed(2)}
-                      <input
-                        type="range"
-                        min={-0.3}
-                        max={0.3}
-                        step={0.01}
-                        value={active.printOffsetY}
-                        onChange={(e) => updateSlot(activeSlot, { printOffsetY: parseFloat(e.target.value) })}
-                        className="mt-1 w-full"
-                      />
-                    </label>
-                    {(active.printScale !== calib.scale || active.printOffsetY !== calib.offsetY) && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateSlot(activeSlot, { printScale: calib.scale, printOffsetY: calib.offsetY })
-                        }
-                        className="text-[11px] text-stone-500 underline underline-offset-2"
-                      >
-                        ↺ về mẫu chuẩn
-                      </button>
-                    )}
-                  </div>
-                )}
-              </section>
-            </>
-          )}
-
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Chuyển động
-            </h2>
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {(Object.keys(POSES) as PoseKey[]).map((k) => (
-                <Button key={k} active={pose === k} onClick={() => setPose(k)}>
-                  {POSES[k].label}
-                </Button>
-              ))}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Button active={spinning} onClick={() => setSpinning((v) => !v)}>
-                {spinning ? 'Đang quay — dừng' : 'Quay người liên tục'}
-              </Button>
-              <Button active={false} onClick={() => setTurnNonce((n) => n + 1)}>
-                Quay ngoặt 180°
-              </Button>
-              <label className="mt-1 block text-xs text-stone-600">
-                Tốc độ quay: {spinSpeed.toFixed(1)} rad/s
-                <input
-                  type="range"
-                  min={0.3}
-                  max={6}
-                  step={0.1}
-                  value={spinSpeed}
-                  onChange={(e) => setSpinSpeed(parseFloat(e.target.value))}
-                  className="mt-1 w-full"
-                />
-              </label>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
-              Hiển thị
-            </h2>
-            <div className="flex flex-col gap-1.5">
-              <Button active={showTop} onClick={() => setShowTop((v) => !v)}>
-                Hiện áo
-              </Button>
-              <Button active={showBottom} onClick={() => setShowBottom((v) => !v)}>
-                Hiện quần / váy
-              </Button>
-              <Button
-                active={showFaces}
-                onClick={() => {
-                  setShowFaces((v) => !v);
-                  setShowStretch(false);
-                }}
-              >
-                Vùng trước / sau ({SLOT_LABEL[activeSlot]})
-              </Button>
-              <Button
-                active={showStretch}
-                onClick={() => {
-                  setShowStretch((v) => !v);
-                  setShowFaces(false);
-                }}
-              >
-                Bản đồ độ căng ({SLOT_LABEL[activeSlot]})
-              </Button>
-              <Button active={wireframe} onClick={() => setWireframe((v) => !v)}>
-                Khung lưới
-              </Button>
-            </div>
-            <h3 className="mb-1 mt-3 text-[11px] font-medium text-stone-500">Góc nhìn</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {(
-                [
-                  ['full', 'Toàn thân'],
-                  ['neck', 'Cổ trước'],
-                  ['neckBack', 'Cổ sau'],
-                  ['arm', 'Tay'],
-                  ['legs', 'Chân'],
-                ] as const
-              ).map(([v, label]) => (
-                <Button key={v} active={view === v} onClick={() => setView(v)}>
-                  {label}
-                </Button>
-              ))}
-            </div>
-            {showFaces && (
-              <p className="mt-1.5 text-[11px] leading-snug text-stone-500">
-                <span className="text-cyan-600">■</span> vùng ăn ảnh MẶT TRƯỚC ·{' '}
-                <span className="text-orange-500">■</span> vùng ăn ảnh MẶT SAU ·{' '}
-                <span className="text-stone-400">■</span> tay / cổ / vai — không in
-              </p>
+              </div>
             )}
-          </section>
 
-          {activeResolved && (
-            <section className="rounded border border-stone-200 bg-stone-50 p-2.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-stone-500">
-                  {fitKey === 'waistCircCm' ? 'Eo người' : 'Ngực người'}
+            {/* 4. VÓC DÁNG CƠ BẢN (Nam/Nữ & Chiều cao/Cân nặng) */}
+            <div className="rounded-2xl border border-stone-200 p-3.5 space-y-3 bg-stone-50/40">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Vóc dáng của bạn
+                </label>
+                <span className="text-[11px] font-medium text-stone-500">
+                  {profile.gender === 'female' ? 'Nữ' : 'Nam'} · {profile.height}cm · {profile.weight}kg
                 </span>
-                <span className="font-medium">{bodyCircCm.toFixed(1)} cm</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-stone-500">
-                  {fitKey === 'waistCircCm' ? 'Eo quần' : 'Ngực áo'}
-                </span>
-                <span className="font-medium">{Math.round(garmentCircCm ?? 0)} cm</span>
+
+              {/* Gender selector */}
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-stone-200/50 rounded-xl">
+                {(['male', 'female'] as const).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => {
+                      setCustomMode(true);
+                      setCustom((c) => ({ ...c, gender: g }));
+                    }}
+                    className={`py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      (customMode ? custom.gender : profile.gender) === g
+                        ? 'bg-white text-stone-900 shadow-xs font-semibold'
+                        : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    {g === 'male' ? 'Nam' : 'Nữ'}
+                  </button>
+                ))}
               </div>
-              <div className="mt-1 flex justify-between border-t border-stone-200 pt-1">
-                <span className="text-stone-500">Ease</span>
-                <span
-                  className={
-                    'font-semibold ' +
-                    (verdict === 'vua'
-                      ? 'text-emerald-600'
-                      : verdict === 'chat'
-                        ? 'text-red-600'
-                        : 'text-amber-600')
-                  }
+
+              {/* Simple Sliders: Chiều cao & Cân nặng */}
+              <div className="space-y-3 pt-1">
+                <div>
+                  <div className="flex justify-between text-xs text-stone-700 mb-1">
+                    <span>Chiều cao</span>
+                    <span className="font-semibold text-stone-900">{customMode ? custom.height : profile.height} cm</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={150}
+                    max={195}
+                    step={1}
+                    value={customMode ? custom.height : profile.height}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setCustomMode(true);
+                      setCustom((c) => {
+                        const [wLo, wHi] = weightBounds(v);
+                        return { ...c, height: v, weight: clampNum(c.weight, wLo, wHi) };
+                      });
+                    }}
+                    className="w-full accent-stone-900 cursor-pointer h-1.5 bg-stone-200 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs text-stone-700 mb-1">
+                    <span>Cân nặng</span>
+                    <span className="font-semibold text-stone-900">{customMode ? custom.weight : profile.weight} kg</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={40}
+                    max={100}
+                    step={1}
+                    value={customMode ? custom.weight : profile.weight}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setCustomMode(true);
+                      setCustom((c) => ({ ...c, weight: v }));
+                    }}
+                    className="w-full accent-stone-900 cursor-pointer h-1.5 bg-stone-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomMode(false);
+                    setProfileKey('B');
+                  }}
+                  className="flex-1 py-1 px-2 rounded-lg border border-stone-200 bg-white text-[11px] text-stone-600 hover:border-stone-400 text-center"
                 >
-                  {ease !== null && ease >= 0 ? '+' : ''}
-                  {ease?.toFixed(1)} cm · {verdictLabel[verdict]}
-                </span>
+                  Mẫu chuẩn
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomMode(true);
+                    setCustom((c) => ({
+                      ...c,
+                      height: c.gender === 'female' ? 158 : 170,
+                      weight: c.gender === 'female' ? 45 : 58,
+                    }));
+                  }}
+                  className="flex-1 py-1 px-2 rounded-lg border border-stone-200 bg-white text-[11px] text-stone-600 hover:border-stone-400 text-center"
+                >
+                  Thon gọn
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomMode(true);
+                    setCustom((c) => ({
+                      ...c,
+                      height: c.gender === 'female' ? 162 : 175,
+                      weight: c.gender === 'female' ? 62 : 80,
+                    }));
+                  }}
+                  className="flex-1 py-1 px-2 rounded-lg border border-stone-200 bg-white text-[11px] text-stone-600 hover:border-stone-400 text-center"
+                >
+                  Đầy đặn
+                </button>
               </div>
-              <p className="mt-1.5 text-[11px] leading-snug text-stone-400">
-                Ease tính thẳng từ chu vi, không phụ thuộc mô phỏng.
-              </p>
-            </section>
-          )}
+            </div>
+          </div>
+
+          {/* Sidebar Footer: Add to Cart CTA */}
+          <div className="p-4 border-t border-stone-200 bg-white space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                alert(`Đã chọn kích thước Size ${active.size} cho trang phục của bạn!`);
+              }}
+              className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs transition-all shadow-md flex items-center justify-center gap-2"
+            >
+              <span>🛍️ Chọn Size {active.size} Cho Giỏ Hàng</span>
+            </button>
+          </div>
         </aside>
 
         <main className="relative min-w-0 flex-1 h-[680px] lg:h-full overflow-hidden bg-gradient-to-b from-[#faf8f5] to-[#eae6df]">
@@ -1672,7 +1414,7 @@ export default function GarmentTestApp() {
               <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-semibold tracking-wide uppercase text-[11px] text-stone-900">Studio Runway 3D</span>
               <span className="text-stone-300">|</span>
-              <span className="text-stone-600 font-medium">{profile.gender === 'female' ? 'Mẫu nữ' : 'Mẫu nam'} {profile.heightCm}cm · {profile.weightKg}kg</span>
+              <span className="text-stone-600 font-medium">{profile.gender === 'female' ? 'Mẫu nữ' : 'Mẫu nam'} {profile.height}cm · {profile.weight}kg</span>
               {active && (
                 <>
                   <span className="text-stone-300">|</span>
