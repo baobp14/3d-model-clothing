@@ -136,7 +136,7 @@ def ask_stylist(api_key: str, payload: StylistPayload) -> Dict[str, Any]:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with urllib.request.urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 candidates = data.get('candidates', [])
                 if candidates:
