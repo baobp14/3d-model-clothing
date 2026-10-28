@@ -1117,33 +1117,6 @@ export default function GarmentTestApp({
   const ease =
     activeResolved && bodyCircCm && garmentCircCm !== undefined ? garmentCircCm - bodyCircCm : null;
 
-  if (error) {
-    return <div className="p-6 text-sm text-red-600">Lỗi: {error}</div>;
-  }
-  if (!loaded || !scene) {
-    return (
-      <div className="flex h-[calc(100vh-68px)] min-h-[640px] items-center justify-center bg-stone-50">
-        <div className="flex flex-col items-center max-w-sm p-8 text-center bg-white rounded-2xl shadow-xs border border-stone-200/80">
-          <div className="relative mb-5 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full border-2 border-stone-200 border-t-stone-900 animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[11px] font-bold text-stone-900 tracking-tighter">3D</span>
-            </div>
-          </div>
-          <h3 className="text-sm font-semibold text-stone-900 tracking-tight mb-1">
-            Đang chuẩn bị phòng thử đồ 3D
-          </h3>
-          <p className="text-xs text-stone-500 leading-relaxed mb-4">
-            Đang tải mô hình người mẫu giải phẫu học và phom dáng vải vật lý...
-          </p>
-          <div className="w-40 h-1 bg-stone-100 rounded-full overflow-hidden">
-            <div className="h-full bg-stone-900 rounded-full animate-pulse w-3/4" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Match worn clothes to real products from shop catalog
   const topProduct = useMemo(() => {
     if (!catalog || !catalog.length || !showTop) return null;
@@ -1193,6 +1166,35 @@ export default function GarmentTestApp({
   }, [showTop, showBottom, topProduct, bottomProduct, slots.top.size, slots.bottom.size, ease]);
 
   const comboTotal = wornItems.reduce((sum, item) => sum + (item.price || 0), 0);
+
+  if (error) {
+    return <div className="p-6 text-sm text-red-600">Lỗi: {error}</div>;
+  }
+  if (!loaded || !scene) {
+    return (
+      <div className="flex h-[calc(100vh-68px)] min-h-[640px] items-center justify-center bg-stone-50">
+        <div className="flex flex-col items-center max-w-sm p-8 text-center bg-white rounded-2xl shadow-xs border border-stone-200/80">
+          <div className="relative mb-5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full border-2 border-stone-200 border-t-stone-900 animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-stone-900 tracking-tighter">3D</span>
+            </div>
+          </div>
+          <h3 className="text-sm font-semibold text-stone-900 tracking-tight mb-1">
+            Đang chuẩn bị phòng thử đồ 3D
+          </h3>
+          <p className="text-xs text-stone-500 leading-relaxed mb-4">
+            Đang tải mô hình người mẫu giải phẫu học và phom dáng vải vật lý...
+          </p>
+          <div className="w-40 h-1 bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-full bg-stone-900 rounded-full animate-pulse w-3/4" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
 
   const verdict = ease === null ? '' : verdictForEase(ease);
   const verdictLabel: Record<string, string> = {

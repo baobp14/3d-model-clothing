@@ -1,21 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Icon from './Icon'
 import { useAuth } from '../hooks/useAuth'
+import { useCart } from '../hooks/useCart'
+import { formatVnd } from '../lib/format'
+import { shopApi } from '../lib/api'
+import { canShop, loginPath } from '../lib/customerSession'
 
 const QUICK_PROMPTS = [
   { label: '👔 Set công sở lịch sự', prompt: 'Gợi ý cho mình set đồ đi làm công sở thanh lịch, lịch sự và chuyên nghiệp.' },
-  { label: '☕ Dạo phố cuối tuần', prompt: 'Gợi ý cho mình outfit trẻ trung, thoải mái để đi cà phê dạo phố cuối tuần.' },
-  { label: '🖤 Phong cách Minimalist', prompt: 'Mình thích phong cách tối giản (Minimalist), phối giúp mình set đồ tinh tế nhé.' },
-  { label: '📏 Chọn size theo số đo', prompt: 'Dựa vào chiều cao cân nặng của mình, bạn hãy tư vấn size và set đồ phù hợp nhất.' },
+  { label: '☕ Dạo phố cuối tuần', prompt: 'Gợi ý cho mình combo trẻ trung, thoải mái để đi cà phê dạo phố cuối tuần.' },
+  { label: '🖤 Phong cách Minimalist', prompt: 'Mình thích phong cách tối giản (Minimalist), phối giúp mình một combo tinh tế nhé.' },
+  { label: '📏 Chọn size theo số đo', prompt: 'Dựa vào chiều cao cân nặng của mình, bạn hãy tư vấn size và gợi ý combo phù hợp nhất.' },
 ]
 
 export default function AIStylistChat() {
   const [open, setOpen] = useState(false)
+  const [catalog, setCatalog] = useState([])
+  const [toast, setToast] = useState(null)
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Xin chào! Mình là **N&B AI Stylist** 🌟. Mình có thể phân tích vóc dáng, tư vấn phối đồ và đưa set đồ bạn thích vào **phòng thử 3D thời gian thực** ngay lập tức.\n\nBạn đang tìm outfit cho dịp nào hôm nay?',
+      content: 'Xin chào! Mình là **N&B AI Stylist** 🌟. Mình có thể phân tích số đo, tư vấn phối đồ và gợi ý **Combo trang phục hoàn chỉnh (Áo + Quần/Váy)** để bạn thêm ngay vào giỏ hàng hoặc mua ngay chỉ với 1 chạm.\n\nBạn đang tìm combo cho dịp nào hôm nay?',
       outfits: [],
     },
   ])
@@ -26,7 +32,16 @@ export default function AIStylistChat() {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const { user } = useAuth()
+  const { add } = useCart()
+  const location = useLocation()
   const navigate = useNavigate()
+
+  // Tải danh mục sản phẩm từ catalog để ánh xạ thành combo thương mại
+  useEffect(() => {
+    shopApi.request('/catalog')
+      .then(data => setCatalog(data.products || []))
+      .catch(() => {})
+  }, [])
 
   // Đọc số đo lưu trong máy người dùng nếu có
   useEffect(() => {
@@ -49,6 +64,36 @@ export default function AIStylistChat() {
       setTimeout(() => inputRef.current?.focus(), 150)
     }
   }, [open, messages, loading])
+
+  // Tìm sản phẩm thật trong catalog khớp với mã gợi ý của AI
+  function findProduct(key, defaultCat) {
+    if (!catalog || !catalog.length) return null
+    const k = String(key || '').toLowerCase()
+    // Khớp mã ID hoặc đường dẫn ảnh
+    for (const p of catalog) {
+      if (String(p.id) === k || p.images?.some(img => img.toLowerCase().includes(k))) {
+        return p
+      }
+    }
+    // Khớp từ khóa thông minh
+    for (const p of catalog) {
+      const cat = p.category || ''
+      const name = (p.name_vi || '').toLowerCase()
+      if (k.includes('oxford') && cat.includes('shirt')) return p
+      if (k.includes('short') && name.includes('short')) return p
+      if (k.includes('skirt') && cat.includes('skirt')) return p
+      if (k.includes('pant') && cat.includes('trouser') && !name.includes('short')) return p
+      if (k.includes('dfys') && name.includes('dfys')) return p
+      if (k.includes('sunny') && name.includes('sunny')) return p
+      if (k.includes('tidebreaker') && name.includes('tidebreaker')) return p
+      if (k.includes('blind') && name.includes('blind')) return p
+    }
+    // Fallback theo danh mục
+    for (const p of catalog) {
+      if (p.category === defaultCat) return p
+    }
+    return catalog[0] || null
+  }
 
   async function handleSend(textToSend) {
     const text = (textToSend || input).trim()
@@ -98,29 +143,55 @@ export default function AIStylistChat() {
     }
   }
 
-  function handleOutfitClick(outfit) {
-    setOpen(false)
-    if (outfit.url) {
-      navigate(outfit.url)
-    } else {
-      const p = new URLSearchParams()
-      if (outfit.top) p.set('top', outfit.top)
-      if (outfit.bottom) p.set('bottom', outfit.bottom)
-      if (outfit.size) p.set('size', outfit.size)
-      navigate(`/try-on?${p.toString()}`)
+  // Thêm Combo 2 món vào giỏ hàng hoặc mua ngay
+  function handleAddComboToCart(outfit, buyNow = false) {
+    if (!canShop(user)) {
+      setOpen(false)
+      navigate(loginPath(location.pathname + location.search), {
+        state: { returnTo: location.pathname + location.search },
+      })
+      return
+    }
+
+    const topProd = findProduct(outfit.top, 'm-tshirts')
+    const bottomProd = findProduct(outfit.bottom, 'm-trousers')
+    const size = outfit.size || 'M'
+
+    let addedCount = 0
+    if (topProd) {
+      const ok1 = add(topProd, topProd.colors?.[0] || 'Trắng', size, 1, {
+        combo: true,
+        comboTitle: outfit.label || 'Combo AI Stylist',
+      })
+      if (ok1) addedCount++
+    }
+    if (bottomProd) {
+      const ok2 = add(bottomProd, bottomProd.colors?.[0] || 'Đen', size, 1, {
+        combo: true,
+        comboTitle: outfit.label || 'Combo AI Stylist',
+      })
+      if (ok2) addedCount++
+    }
+
+    if (addedCount > 0) {
+      if (buyNow) {
+        setOpen(false)
+        navigate('/checkout')
+      } else {
+        setToast(`✓ Đã thêm Combo (${addedCount} món, Size ${size}) vào giỏ hàng!`)
+        setTimeout(() => setToast(null), 4000)
+      }
     }
   }
 
   function formatText(content) {
-    // Tách dòng và xử lý markdown đơn giản (**bold**, - list)
     const lines = content.split('\n')
     return lines.map((line, idx) => {
-      // Bỏ qua dòng link thô vì đã có thẻ Outfit riêng bên dưới
+      // Bỏ qua dòng link thô vì đã hiển thị thẻ Combo Card chuyên biệt bên dưới
       if (line.includes('](/try-on?') || line.trim().startsWith('/try-on?')) {
         return null
       }
 
-      // Xử lý in đậm
       const parts = line.split(/(\*\*[^*]+\*\*)/g).map((part, pIdx) => {
         if (part.startsWith('**') && part.endsWith('**')) {
           return <strong key={pIdx} className="font-semibold text-ink">{part.slice(2, -2)}</strong>
@@ -170,7 +241,7 @@ export default function AIStylistChat() {
                 </span>
               </div>
               <span className="font-medium text-body-sm tracking-wide">
-                AI Stylist <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-1.5 py-0.5 rounded-full border border-emerald-500/30">3D</span>
+                AI Stylist <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-1.5 py-0.5 rounded-full border border-emerald-500/30">Combo</span>
               </span>
             </>
           )}
@@ -185,7 +256,7 @@ export default function AIStylistChat() {
 
       {/* Cửa sổ chat AI Stylist */}
       {open && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 flex w-[calc(100vw-2rem)] sm:w-[410px] h-[580px] max-h-[82vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-line animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed bottom-24 right-4 sm:right-6 z-50 flex w-[calc(100vw-2rem)] sm:w-[420px] h-[600px] max-h-[85vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-line animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-ink via-slate-900 to-emerald-950 px-4 py-3.5 text-paper">
             <div className="flex items-center gap-2.5">
@@ -200,7 +271,7 @@ export default function AIStylistChat() {
                   </span>
                 </div>
                 <p className="text-[11px] text-paper-muted leading-none mt-0.5">
-                  Tư vấn phối đồ & Phòng thử 3D thời gian thực
+                  Tư vấn phối đồ & Gợi ý Combo mua sắm thông minh
                 </p>
               </div>
             </div>
@@ -212,7 +283,7 @@ export default function AIStylistChat() {
                   setMessages([
                     {
                       role: 'assistant',
-                      content: 'Cuộc trò chuyện đã được làm mới. Bạn cần mình tư vấn trang phục theo dịp nào tiếp theo nhé!',
+                      content: 'Cuộc trò chuyện đã được làm mới. Bạn cần mình tư vấn combo trang phục theo dịp nào tiếp theo nhé!',
                       outfits: [],
                     },
                   ])
@@ -234,7 +305,7 @@ export default function AIStylistChat() {
             </div>
           </div>
 
-          {/* Banner thông tin số đo người dùng (nếu có) */}
+          {/* Banner thông tin số đo */}
           <div className="border-b border-line bg-surface/60 px-4 py-2 text-[11px] text-ink-muted flex items-center justify-between">
             {measurements ? (
               <div className="flex items-center gap-1.5">
@@ -257,13 +328,27 @@ export default function AIStylistChat() {
               </div>
             )}
             <Link
-              to="/try-on"
+              to="/cart"
               onClick={() => setOpen(false)}
-              className="font-medium text-ink hover:text-black transition-colors"
+              className="font-medium text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1"
             >
-              Vào phòng 3D →
+              <span>Xem giỏ hàng</span> →
             </Link>
           </div>
+
+          {/* Toast thông báo trong khung chat */}
+          {toast && (
+            <div className="bg-emerald-600 text-white text-xs py-2 px-4 flex items-center justify-between animate-in fade-in slide-in-from-top-1">
+              <span>{toast}</span>
+              <Link
+                to="/cart"
+                onClick={() => setOpen(false)}
+                className="underline underline-offset-2 font-semibold hover:text-emerald-100 ml-2"
+              >
+                Mở giỏ
+              </Link>
+            </div>
+          )}
 
           {/* Vùng tin nhắn */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-paper/40">
@@ -275,7 +360,7 @@ export default function AIStylistChat() {
                   className={`flex flex-col ${isAssistant ? 'items-start' : 'items-end'}`}
                 >
                   <div
-                    className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-body-xs shadow-sm ${
+                    className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-body-xs shadow-sm ${
                       isAssistant
                         ? 'bg-white text-ink border border-line rounded-tl-sm'
                         : 'bg-ink text-white rounded-tr-sm'
@@ -288,54 +373,122 @@ export default function AIStylistChat() {
                     )}
                   </div>
 
-                  {/* Thẻ gợi ý mặc thử 3D (Outfit Card) */}
+                  {/* THẺ COMBO MUA SẮM THƯƠNG MẠI (COMMERCIAL COMBO CARD) */}
                   {isAssistant && msg.outfits && msg.outfits.length > 0 && (
-                    <div className="mt-2 w-full max-w-[92%] space-y-2">
-                      {msg.outfits.map((of, ofIdx) => (
-                        <div
-                          key={ofIdx}
-                          className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 via-white to-slate-50 p-3 shadow-sm"
-                        >
-                          <div className="flex items-center gap-1.5 text-emerald-800 font-medium text-[11px] uppercase tracking-wider">
-                            <Icon name="sparkles" size={13} className="text-emerald-600" />
-                            <span>Set đồ đề xuất cho bạn</span>
-                          </div>
+                    <div className="mt-2.5 w-full max-w-[94%] space-y-3">
+                      {msg.outfits.map((of, ofIdx) => {
+                        const topProd = findProduct(of.top, 'm-tshirts')
+                        const bottomProd = findProduct(of.bottom, 'm-trousers')
+                        const comboPrice = (topProd?.price || 199000) + (bottomProd?.price || 299000)
+                        const size = of.size || 'M'
 
-                          <p className="mt-1 font-semibold text-ink text-body-xs">
-                            {of.label.replace(/^✨\s*/, '')}
-                          </p>
-
-                          <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] text-ink-muted">
-                            <span className="rounded bg-surface px-2 py-0.5 border border-line">
-                              Size đề xuất: <strong className="text-emerald-700">{of.size}</strong>
-                            </span>
-                            {of.top && (
-                              <span className="rounded bg-surface px-2 py-0.5 border border-line">
-                                Áo: {of.top.replace(/^(ascolour_\d+_|alyxen_|jtd_)/, '').replace(/_/g, ' ')}
-                              </span>
-                            )}
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOutfitClick(of)}
-                            className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-center text-body-xs font-medium text-white shadow hover:bg-emerald-700 active:scale-98 transition-all"
+                        return (
+                          <div
+                            key={ofIdx}
+                            className="rounded-2xl border border-line bg-white p-3.5 shadow-md overflow-hidden"
                           >
-                            <Icon name="sparkles" size={14} />
-                            <span>Mặc thử set này trên người mẫu 3D</span>
-                          </button>
-                        </div>
-                      ))}
+                            {/* Header Thẻ Combo */}
+                            <div className="flex items-center justify-between pb-2 border-b border-line">
+                              <div className="flex items-center gap-1.5 text-emerald-800 font-semibold text-[11px] uppercase tracking-wider">
+                                <Icon name="tag" size={13} className="text-emerald-600" />
+                                <span>Combo Đề Xuất Cho Bạn</span>
+                              </div>
+                              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                                Size: {size}
+                              </span>
+                            </div>
+
+                            {/* Danh sách 2 món trong Combo kèm hình ảnh thật */}
+                            <div className="mt-2.5 space-y-2">
+                              {/* Món 1: Áo */}
+                              {topProd && (
+                                <div className="flex items-center gap-2.5 rounded-xl bg-surface/50 p-2 border border-line/60">
+                                  <img
+                                    src={topProd.images?.[0] || '/img/intro.mp4'}
+                                    alt={topProd.name_vi}
+                                    className="h-12 w-12 rounded-lg object-cover bg-white border border-line"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-ink truncate leading-tight">
+                                      {topProd.name_vi}
+                                    </p>
+                                    <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
+                                      {formatVnd(topProd.price)}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Món 2: Quần/Váy */}
+                              {bottomProd && (
+                                <div className="flex items-center gap-2.5 rounded-xl bg-surface/50 p-2 border border-line/60">
+                                  <img
+                                    src={bottomProd.images?.[0] || '/img/intro.mp4'}
+                                    alt={bottomProd.name_vi}
+                                    className="h-12 w-12 rounded-lg object-cover bg-white border border-line"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-ink truncate leading-tight">
+                                      {bottomProd.name_vi}
+                                    </p>
+                                    <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
+                                      {formatVnd(bottomProd.price)}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Tổng tiền Combo */}
+                            <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-2 text-xs">
+                              <span className="text-ink-muted">Tổng Combo (2 món):</span>
+                              <span className="font-bold text-ink text-sm">
+                                {formatVnd(comboPrice)}
+                              </span>
+                            </div>
+
+                            {/* 2 Nút Hành Động Thương Mại */}
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleAddComboToCart(of, false)}
+                                className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-center text-[12px] font-semibold text-white shadow hover:bg-emerald-700 active:scale-98 transition-all"
+                              >
+                                <Icon name="bag" size={14} />
+                                <span>Thêm vào giỏ</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddComboToCart(of, true)}
+                                className="flex items-center justify-center gap-1.5 rounded-xl bg-ink px-3 py-2.5 text-center text-[12px] font-semibold text-white shadow hover:bg-black active:scale-98 transition-all"
+                              >
+                                <span>⚡ Mua ngay</span>
+                              </button>
+                            </div>
+
+                            {/* Link phụ tùy chọn xem 3D */}
+                            <div className="mt-2 text-center">
+                              <Link
+                                to={of.url || `/try-on?top=${of.top}&bottom=${of.bottom}&size=${size}`}
+                                onClick={() => setOpen(false)}
+                                className="text-[11px] text-ink-muted hover:text-ink underline underline-offset-2 transition-colors"
+                              >
+                                👁️ Hoặc xem trên người mẫu 3D
+                              </Link>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
               )
             })}
 
-            {/* Hiệu ứng đang gõ (Typing indicator) */}
+            {/* Hiệu ứng đang gõ */}
             {loading && (
               <div className="flex items-center gap-2 text-ink-muted bg-white border border-line rounded-2xl rounded-tl-sm px-4 py-2.5 w-fit shadow-sm">
-                <span className="text-[11px] text-ink-muted font-medium">Stylist đang phối đồ</span>
+                <span className="text-[11px] text-ink-muted font-medium">Stylist đang phối combo</span>
                 <span className="flex gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.3s]" />
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.15s]" />
@@ -375,7 +528,7 @@ export default function AIStylistChat() {
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Hỏi Stylist: 'Phối đồ đi cà phê', 'Cao 1m72 55kg'..."
+              placeholder="Hỏi: 'Phối combo đi làm', 'Cao 1m72 nặng 55kg'..."
               disabled={loading}
               className="flex-1 rounded-xl border border-line bg-paper px-3 py-2 text-body-xs text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
             />
