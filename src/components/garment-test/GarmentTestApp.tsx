@@ -135,10 +135,13 @@ function deriveSecondary(b: {
   };
   const fit = CIRC_FIT[b.gender];
   const chest = fit.chest[0] + fit.chest[1] * w + fit.chest[2] * h;
+  const minChest = b.gender === 'female' ? 76 : 84;
+  const minWaist = b.gender === 'female' ? 60 : 66;
+  const minHip = b.gender === 'female' ? 82 : 84;
   return {
-    chest: step(chest, 'chest'),
-    waist: step(fit.waist[0] + fit.waist[1] * w + fit.waist[2] * h, 'waist'),
-    hip: step(fit.hip[0] + fit.hip[1] * w + fit.hip[2] * h, 'hip'),
+    chest: Math.max(minChest, step(chest, 'chest')),
+    waist: Math.max(minWaist, step(fit.waist[0] + fit.waist[1] * w + fit.waist[2] * h, 'waist')),
+    hip: Math.max(minHip, step(fit.hip[0] + fit.hip[1] * w + fit.hip[2] * h, 'hip')),
     shoulderWidth: step(
       b.gender === 'male'
         ? 0.25 * h + 0.07 * (chest - 92)
@@ -492,13 +495,7 @@ export default function GarmentTestApp() {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [profileKey, setProfileKey] = useState<string>('B');
-  const [pose, setPose] = useState<PoseKey>('apose');
-
   // Seed initial avatar body from customer's saved measurements if available
-  // Only height & weight drive the body model; secondary circumferences are computed
-  // via anthropometric models (deriveSecondary) to maintain valid 3D mesh manifold topology
-  // and prevent collider self-intersection / mesh pinching.
   const [initialUser] = useState(() => {
     if (typeof window === 'undefined') return null;
     try {
@@ -510,13 +507,34 @@ export default function GarmentTestApp() {
           gender: (m.gender || 'male') as 'male' | 'female',
           height: Number(m.height) || 172,
           weight: Number(m.weight) || 55,
+          chest: m.chest ? Number(m.chest) : undefined,
+          waist: m.waist ? Number(m.waist) : undefined,
+          hip: (m.hips || m.hip) ? Number(m.hips || m.hip) : undefined,
+          shoulderWidth: m.shoulder ? Number(m.shoulder) : undefined,
         };
       }
     } catch {}
     return null;
   });
 
-  const [customMode, setCustomMode] = useState<boolean>(() => Boolean(initialUser));
+  // Pick the best calibrated 3D fit model for the customer's size:
+  // Male: A (Slim, 165cm, 58kg - fits S/XS), B (Average, 175cm, 68kg - fits M/L), C (Large, 185cm, 82kg - fits XL)
+  // Female: F1 (Slim, 155cm, 48kg), F2 (Average, 162cm, 54kg), F3 (Curvy, 170cm, 65kg)
+  const [profileKey, setProfileKey] = useState<string>(() => {
+    if (!initialUser) return 'B';
+    if (initialUser.gender === 'female') {
+      if (initialUser.weight <= 50 || initialUser.height <= 158) return 'F1';
+      if (initialUser.weight <= 60 || initialUser.height <= 165) return 'F2';
+      return 'F3';
+    }
+    // Male
+    if (initialUser.weight <= 62 || initialUser.height <= 172) return 'A';
+    if (initialUser.weight <= 78) return 'B';
+    return 'C';
+  });
+
+  const [pose, setPose] = useState<PoseKey>('apose');
+  const [customMode, setCustomMode] = useState<boolean>(false);
   const [custom, setCustom] = useState<AvatarBodyInput>(() => {
     if (initialUser) {
       return {
@@ -671,6 +689,14 @@ export default function GarmentTestApp() {
     if (urlSize && loaded.meta.sizeOrder.includes(urlSize as any)) {
       updateSlot('top', { size: urlSize as any });
       updateSlot('bottom', { size: urlSize as any });
+      // Map chosen size to best authored mannequin model
+      if (urlSize === 'S' || urlSize === 'XS') {
+        setProfileKey((k) => (k.startsWith('F') ? 'F1' : 'A'));
+      } else if (urlSize === 'M' || urlSize === 'L') {
+        setProfileKey((k) => (k.startsWith('F') ? 'F2' : 'B'));
+      } else if (urlSize === 'XL' || urlSize === '2XL') {
+        setProfileKey((k) => (k.startsWith('F') ? 'F3' : 'C'));
+      }
     }
     // Women's garments (AS Colour Wo's, Everlane skirts) start on a female body.
     if ([q.get('top'), q.get('bottom')].some((id) => id && (id.includes('_wos_') || id.startsWith('everlane_')))) {
@@ -990,9 +1016,13 @@ export default function GarmentTestApp() {
       ? fitCircCm(activeResolved.chart, activeResolved.state.size as SizeLetter)
       : activeResolved.entry?.sizes[activeResolved.state.size]?.[fitKey]
     : undefined;
-  const bodyCircCm = scene ? (fitKey === 'waistCircCm' ? scene.body.waist : scene.body.chest) : 0;
+  // When customer has saved measurements, assess fit against their actual body
+  const customerCirc = initialUser
+    ? (fitKey === 'waistCircCm' ? (initialUser.waist ?? scene?.body.waist) : (initialUser.chest ?? scene?.body.chest))
+    : undefined;
+  const bodyCircCm = customerCirc ?? (scene ? (fitKey === 'waistCircCm' ? scene.body.waist : scene.body.chest) : 0);
   const ease =
-    activeResolved && scene && garmentCircCm !== undefined ? garmentCircCm - bodyCircCm : null;
+    activeResolved && bodyCircCm && garmentCircCm !== undefined ? garmentCircCm - bodyCircCm : null;
 
   if (error) {
     return <div className="p-6 text-sm text-red-600">Lỗi: {error}</div>;
@@ -1380,37 +1410,41 @@ export default function GarmentTestApp() {
                   type="button"
                   onClick={() => {
                     setCustomMode(false);
-                    setProfileKey('B');
+                    setProfileKey(profile.gender === 'female' ? 'F2' : 'B');
                   }}
-                  className="flex-1 py-1 px-2 rounded-lg border border-stone-200 bg-white text-[11px] text-stone-600 hover:border-stone-400 text-center"
+                  className={`flex-1 py-1 px-2 rounded-lg border text-[11px] text-center transition-all ${
+                    !customMode && (profileKey === 'B' || profileKey === 'F2')
+                      ? 'border-stone-900 bg-stone-900 text-white font-medium shadow-xs'
+                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'
+                  }`}
                 >
                   Mẫu chuẩn
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setCustomMode(true);
-                    setCustom((c) => ({
-                      ...c,
-                      height: c.gender === 'female' ? 158 : 170,
-                      weight: c.gender === 'female' ? 45 : 58,
-                    }));
+                    setCustomMode(false);
+                    setProfileKey(profile.gender === 'female' ? 'F1' : 'A');
                   }}
-                  className="flex-1 py-1 px-2 rounded-lg border border-stone-200 bg-white text-[11px] text-stone-600 hover:border-stone-400 text-center"
+                  className={`flex-1 py-1 px-2 rounded-lg border text-[11px] text-center transition-all ${
+                    !customMode && (profileKey === 'A' || profileKey === 'F1')
+                      ? 'border-stone-900 bg-stone-900 text-white font-medium shadow-xs'
+                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'
+                  }`}
                 >
                   Thon gọn
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setCustomMode(true);
-                    setCustom((c) => ({
-                      ...c,
-                      height: c.gender === 'female' ? 162 : 175,
-                      weight: c.gender === 'female' ? 62 : 80,
-                    }));
+                    setCustomMode(false);
+                    setProfileKey(profile.gender === 'female' ? 'F3' : 'C');
                   }}
-                  className="flex-1 py-1 px-2 rounded-lg border border-stone-200 bg-white text-[11px] text-stone-600 hover:border-stone-400 text-center"
+                  className={`flex-1 py-1 px-2 rounded-lg border text-[11px] text-center transition-all ${
+                    !customMode && (profileKey === 'C' || profileKey === 'F3')
+                      ? 'border-stone-900 bg-stone-900 text-white font-medium shadow-xs'
+                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'
+                  }`}
                 >
                   Đầy đặn
                 </button>
